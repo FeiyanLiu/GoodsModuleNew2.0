@@ -10,7 +10,7 @@ import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.po.CouponPo;
 import cn.edu.xmu.activity.model.po.CouponSkuPo;
 import cn.edu.xmu.activity.model.vo.CouponStateVo;
-import cn.edu.xmu.goodsservice.model.vo.GoodsSkuRetVo;
+//import cn.edu.xmu.goodsservice.model.vo.GoodsSkuRetVo;
 //import cn.edu.xmu.goods.service.GoodsSkuServiceImpl;
 import cn.edu.xmu.goods.service.GoodsSkuService;
 import cn.edu.xmu.ooad.model.VoObject;
@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +49,9 @@ public class CouponActivityService{
 
     //@Autowired
     GoodsSkuService goodsSkuService;
+
+    @Autowired
+    RedisTemplate redisTemplate;
 
     /** @author 24320182203218
      **/
@@ -94,10 +98,10 @@ public class CouponActivityService{
         ReturnObject ret = new ReturnObject();
         //判断商品是否存在
         try {
-            GoodsSkuRetVo vo = goodsSkuService.getSkuById(skuId).getData();
-            if (vo.getId() == null)
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("新增优惠商品失败，优惠商品不存在 id：" + skuId));
-//            //判断商品是否属于此商铺
+//            GoodsSkuRetVo vo = goodsSkuService.getSkuById(skuId).getData();
+//            if (vo.getId() == null)
+//                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("新增优惠商品失败，优惠商品不存在 id：" + skuId));
+////            //判断商品是否属于此商铺
 //            if (vo.getShop().getId() != shopId)
 //                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("创建优惠活动失败，商品非用户店铺的商品"));
             //判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
@@ -352,11 +356,11 @@ public class CouponActivityService{
             //2.判断商品是否存在
             for(Long id:skuIds)
             {
-                GoodsSkuRetVo goodsSkuRetVo=goodsSkuService.getSkuById(id).getData();
-                //若商品不存在
-                if (goodsSkuRetVo==null) {
-                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-                }
+//                GoodsSkuRetVo goodsSkuRetVo=goodsSkuService.getSkuById(id).getData();
+//                //若商品不存在
+//                if (goodsSkuRetVo==null) {
+//                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+//                }
                 //3.判断此商品的shopId和管理员的shopId是否相同
 //            if (goodsSkuService.getSkuById(SkuId).getData().getShop().getId() != shopId)
 //                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("新增优惠商品失败，此商品非用户店铺的商品"));
@@ -472,11 +476,22 @@ public class CouponActivityService{
                         returnObject = couponDao.addCoupon(couponPo);//这里返回值循环赋值？？？
                 } else if (quantityType == 1) {
                     //判断数量是否足够
-                    CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
-                    returnObject = couponDao.addCoupon(couponPo);
+                    String couponQuantity=redisTemplate.opsForValue().decrement("coupon_"+couponActivityPo.getId()).toString();
+                    //如果redis中没有 是第一次访问
+                    if(couponQuantity==null)
+                    {
+                        redisTemplate.opsForValue().set("coupon_"+couponActivityPo.getId(),couponActivityPo.getQuantity()-1);
+                        CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
+                        returnObject = couponDao.addCoupon(couponPo);
+                    }
+                    else if(Long.parseLong(couponQuantity)>=0)
+                    {
+                        CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
+                        returnObject = couponDao.addCoupon(couponPo);
+                    }
+                    else
+                        redisTemplate.delete("coupon_"+couponActivityPo.getId());
                     //用户领取完优惠券之后要减优惠券数量
-                    //
-                    //
                 }
             }
             return returnObject;
@@ -557,8 +572,16 @@ public class CouponActivityService{
         couponPo.setCouponSn("1");//要设计sn的生成算法
         couponPo.setCustomerId(userId);
         couponPo.setActivityId(id);
-        couponPo.setBeginTime(couponActivityPo.getCouponTime());
-        couponPo.setEndTime(couponActivityPo.getEndTime());
+        if(couponActivityPo.getValidTerm()==0)
+        {
+            couponPo.setBeginTime(couponActivityPo.getCouponTime());
+            couponPo.setEndTime(couponActivityPo.getEndTime());
+        }
+        else
+        {
+            couponPo.setBeginTime(LocalDateTime.now());
+            couponPo.setEndTime(LocalDateTime.now().plusDays(couponActivityPo.getValidTerm().intValue()));
+        }
         couponPo.setState((byte) Coupon.State.NOT_CLAIMED.getCode());
         return couponPo;
     }
