@@ -9,6 +9,7 @@ import cn.edu.xmu.goods.dao.ShopDao;
 import cn.edu.xmu.goods.model.po.GoodsSkuPo;
 import cn.edu.xmu.goods.model.po.ShopPo;
 import cn.edu.xmu.goods.service.GoodsSkuService;
+import cn.edu.xmu.goods.service.ShopService;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
@@ -34,14 +35,11 @@ public class PreSaleService {
     private Logger logger = LoggerFactory.getLogger(PreSaleService.class);
 
     @Autowired
-    GoodsSkuDao goodsSkuDao;
-    @Autowired
     GoodsSkuService goodsSkuService;
     @Autowired
     PreSaleDao preSaleDao;
     @Autowired
-    ShopDao shopDao;
-
+    ShopService shopService;
     @Transactional
     public boolean getPreSaleInActivities(Long goodsSpuId, LocalDateTime beginTime, LocalDateTime endTime) {
         return preSaleDao.getPreSaleInActivities(goodsSpuId, beginTime, endTime);
@@ -83,7 +81,6 @@ public class PreSaleService {
 
         PageInfo<VoObject> of = PageInfo.of(ret);
         return new ReturnObject<PageInfo<VoObject>>(of);
-        //return preSaleDao.selectAllPreSale(shopId, timeline, spuId, pageNum, pageSize);
     }
 
     /**
@@ -98,7 +95,7 @@ public class PreSaleService {
     @Transactional
     public ReturnObject createNewPreSale(NewPreSaleVo vo, Long shopId, Long id) {
         // 检查商品skuId是否为真
-        ReturnObject<GoodsSkuPo> goodsSkuById = goodsSkuDao.getSkuById(id);
+        ReturnObject<GoodsSkuPo> goodsSkuById = goodsSkuService.getSkuPoById(id);
         if (goodsSkuById.getData() == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
@@ -149,8 +146,8 @@ public class PreSaleService {
      * @return
      */
     private PreSale createPreSaleByPreSalePo(PreSalePo preSalePo) {
-        GoodsSkuPo goodsSkuPo = goodsSkuDao.getSkuById(preSalePo.getGoodsSkuId()).getData();
-        ShopPo shopPo = shopDao.getShopById(preSalePo.getShopId());
+        GoodsSkuPo goodsSkuPo = goodsSkuService.getSkuPoById(preSalePo.getGoodsSkuId()).getData();
+        ShopPo shopPo = shopService.getShopPoById(preSalePo.getShopId());
         PreSale preSale = new PreSale(preSalePo, goodsSkuPo, shopPo);
         return preSale;
     }
