@@ -1,6 +1,8 @@
 package cn.edu.xmu.activity.dao;
 
-
+import cn.edu.xmu.rocketmqdemo.util.JacksonUtil;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.messaging.Message;
 import cn.edu.xmu.activity.mapper.CouponPoMapper;
 import cn.edu.xmu.activity.model.bo.Coupon;
 import cn.edu.xmu.activity.model.po.CouponActivityPo;
@@ -11,6 +13,7 @@ import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.springframework.messaging.support.MessageBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,6 +37,8 @@ public class CouponDao implements InitializingBean {
     @Autowired
     CouponActivityDao couponActivityDao;
 
+    @Autowired
+    RocketMQTemplate rocketMQTemplate;
     /**
      * 是否初始化，生成signature和加密
      */
@@ -112,20 +117,12 @@ public class CouponDao implements InitializingBean {
     }
 public ReturnObject addCoupon(CouponPo po)
 {
-    ReturnObject returnObject=null;
-    try{
-        int ret=couponMapper.insertSelective(po);
-        if(ret == 0) {
-            logger.debug("insertCoupon: insert fail.");
-            returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-        } else {
-            logger.debug("insertCoupon: insert success." );
-            returnObject = new ReturnObject();
-        }
-    } catch (Exception e) {
-        logger.error("发生了严重的服务器内部错误：" + e.getMessage());
-    }
-    return returnObject;
+    String json = JacksonUtil.toJson(po);
+    Message message = MessageBuilder.withPayload(json).build();
+    logger.info("addCouponMessage: message = " + message);
+
+    rocketMQTemplate.sendOneWay("coupon-topic:1", message);
+    return couponMapper.insert(po);
 }
 
 public boolean haveCoupon(Long userId,Long activityId)

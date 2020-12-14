@@ -3,6 +3,7 @@ package cn.edu.xmu.activity.controller;
 
 import cn.edu.xmu.activity.model.bo.CouponActivity;
 import cn.edu.xmu.activity.model.vo.CouponActivityVo;
+import cn.edu.xmu.activity.service.CouponActivityService;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.Depart;
 import cn.edu.xmu.ooad.annotation.LoginUser;
@@ -485,4 +486,6 @@ public class CouponController {
         ReturnObject returnObject = couponActivityService.putCouponActivityOffShelves(shopId, id);
         return Common.decorateReturnObject(returnObject);
     }
+
+
 }
