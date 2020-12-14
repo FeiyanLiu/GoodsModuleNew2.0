@@ -157,4 +157,9 @@ public class ShopService{
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
+
+
+    public ShopPo getShopPoById(Long id) {
+        return shopDao.getShopById(id);
+    }
 }

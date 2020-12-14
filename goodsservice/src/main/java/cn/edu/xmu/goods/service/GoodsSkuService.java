@@ -413,7 +413,11 @@ public class GoodsSkuService {
         return vo;
     }
 
-    
+    public ReturnObject<GoodsSkuPo> getSkuPoById(Long id){
+        return goodsSkuDao.getSkuById(id);
+    }
+
+
     public boolean checkSkuIdInShop(Long shopId, Long skuId) {
         return goodsSkuDao.checkSkuIdInShop(shopId,skuId);
     }
