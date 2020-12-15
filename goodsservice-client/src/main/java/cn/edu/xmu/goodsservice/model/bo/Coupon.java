@@ -47,8 +47,5 @@ public class Coupon implements Serializable {
             return description;
         }
     }
-    public Coupon()
-    {
-
-    }
+    public Coupon() {}
 }
