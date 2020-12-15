@@ -1,9 +1,9 @@
 package cn.edu.xmu.goodsservice.client;
 
 
-import cn.edu.xmu.goodsservice.model.po.GoodsSkuPo;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 
 public interface IGoodsService {
 
-    public GoodsSkuPo getSkuById(Long id);
+    GoodsSku getSkuById(Long id);
 }

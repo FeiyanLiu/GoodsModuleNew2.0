@@ -1,9 +1,11 @@
-package cn.edu.xmu.goods.model.bo;
+package cn.edu.xmu.activity.model.bo;
 
-import cn.edu.xmu.goods.model.po.GoodsSpuPo;
-import cn.edu.xmu.goods.model.vo.*;
+import cn.edu.xmu.goods.model.po.GoodsSkuPo;
+import cn.edu.xmu.goods.model.vo.GoodsSkuPostVo;
+import cn.edu.xmu.goods.model.vo.GoodsSkuRetVo;
+import cn.edu.xmu.goods.model.vo.GoodsSkuSimpleRetVo;
+import cn.edu.xmu.goods.model.vo.OrderItemVo;
 import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.goods.model.po.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -17,19 +19,9 @@ import java.util.Map;
  * modifiedBy Yancheng Lai 19:48
  **/
 @Data
-public class GoodsSku implements VoObject, Serializable {
+public class GoodsSku implements Serializable {
 
-    String sn;
-    String name;
-    Long originalPrice;
-    Long configuration;
-    Long weight;
-    String imageUrl;
-    Long inventory;
-    String detail;
-    LocalDateTime gmtCreate;
-    LocalDateTime gmtModified;
-
+    private GoodsSkuPo goodsSkuPo;
     private Byte statecode;
 //    State state;
     public enum State {
@@ -68,15 +60,6 @@ public class GoodsSku implements VoObject, Serializable {
         }
     }
 
-    @Override
-    public GoodsSkuRetVo createVo() {
-        return new GoodsSkuRetVo(this);
-    }
-
-    @Override
-    public GoodsSkuSimpleRetVo createSimpleVo() {
-        return new GoodsSkuSimpleRetVo(this);
-    }
 
 
 
@@ -96,6 +79,16 @@ public class GoodsSku implements VoObject, Serializable {
         goodsSkuPo.setGmtCreate(gmtCreate);
     }
 
+    String sn;
+    String name;
+    Long originalPrice;
+    Long configuration;
+    Long weight;
+    String imageUrl;
+    Long inventory;
+    String detail;
+    LocalDateTime gmtCreate;
+    LocalDateTime gmtModified;
     public GoodsSku(GoodsSkuPostVo goodsSkuPostVo){
         this.goodsSkuPo = new GoodsSkuPo();
         this.setSkuSn(goodsSkuPostVo.getSn());
@@ -118,20 +111,21 @@ public class GoodsSku implements VoObject, Serializable {
     * @Date: 2020/12/3 15:41
     */
     public GoodsSku(GoodsSkuRetVo goodsSkuRetVo){
-        this.statecode = (byte)State.WAITING.getCode();
-        this.setDetail(goodsSkuRetVo.getDetail());
-        this.setDisabled(goodsSkuRetVo.getDisabled());
-        this.setId(goodsSkuRetVo.getId());
-        this.setImageUrl(goodsSkuRetVo.getImageUrl());
-        this.setName(goodsSkuRetVo.getName());
-        this.setGoodsSpuId(goodsSkuRetVo.getGoodsSpu().getId());
-        this.setSkuSn(goodsSkuRetVo.getSkuSn());
-        this.setOriginalPrice(goodsSkuRetVo.getOriginalPrice());
-        this.setConfiguration(goodsSkuRetVo.getConfiguration());
-        this.setWeight(goodsSkuRetVo.getWeight());
-        this.setInventory(goodsSkuRetVo.getInventory());
-        this.setGmtCreate(goodsSkuRetVo.getGmtCreate());
-        this.setGmtModified(goodsSkuRetVo.getGmtModified());
+        this.goodsSkuPo = new GoodsSkuPo();
+        this.statecode = (byte) State.WAITING.getCode();
+        this.goodsSkuPo.setDetail(goodsSkuRetVo.getDetail());
+        this.goodsSkuPo.setDisabled(goodsSkuRetVo.getDisabled());
+        this.goodsSkuPo.setId(goodsSkuRetVo.getId());
+        this.goodsSkuPo.setImageUrl(goodsSkuRetVo.getImageUrl());
+        this.goodsSkuPo.setName(goodsSkuRetVo.getName());
+        this.goodsSkuPo.setGoodsSpuId(goodsSkuRetVo.getGoodsSpu().getId());
+        this.goodsSkuPo.setSkuSn(goodsSkuRetVo.getSkuSn());
+        this.goodsSkuPo.setOriginalPrice(goodsSkuRetVo.getOriginalPrice());
+        this.goodsSkuPo.setConfiguration(goodsSkuRetVo.getConfiguration());
+        this.goodsSkuPo.setWeight(goodsSkuRetVo.getWeight());
+        this.goodsSkuPo.setInventory(goodsSkuRetVo.getInventory());
+        this.goodsSkuPo.setGmtCreate(goodsSkuRetVo.getGmtCreate());
+        this.goodsSkuPo.setGmtModified(goodsSkuRetVo.getGmtModified());
     }
 
     public GoodsSku(OrderItemVo vo){

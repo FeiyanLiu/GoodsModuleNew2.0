@@ -1,7 +1,7 @@
 package cn.edu.xmu.activity.dao;
 
-import cn.edu.xmu.rocketmqdemo.util.JacksonUtil;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
+
+import cn.edu.xmu.ooad.util.JacksonUtil;
 import org.springframework.messaging.Message;
 import cn.edu.xmu.activity.mapper.CouponPoMapper;
 import cn.edu.xmu.activity.model.bo.Coupon;
@@ -115,14 +115,14 @@ public class CouponDao implements InitializingBean {
         }
         return po;
     }
-public ReturnObject addCoupon(CouponPo po)
+public void addCoupon(CouponPo po)
 {
     String json = JacksonUtil.toJson(po);
     Message message = MessageBuilder.withPayload(json).build();
     logger.info("addCouponMessage: message = " + message);
 
     rocketMQTemplate.sendOneWay("coupon-topic:1", message);
-    return couponMapper.insert(po);
+
 }
 
 public boolean haveCoupon(Long userId,Long activityId)

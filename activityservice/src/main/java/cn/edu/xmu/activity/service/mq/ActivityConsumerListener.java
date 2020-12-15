@@ -3,7 +3,7 @@ package cn.edu.xmu.activity.service.mq;
 import cn.edu.xmu.activity.mapper.CouponPoMapper;
 import cn.edu.xmu.activity.model.bo.Coupon;
 import cn.edu.xmu.activity.model.po.CouponPo;
-import cn.edu.xmu.rocketmqdemo.util.JacksonUtil;
+import cn.edu.xmu.activity.util.JacksonUtil;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * @date Created in 2020/11/7 22:47
  **/
 @Service
-@RocketMQMessageListener(topic = "coupon-topic", consumeMode = ConsumeMode.CONCURRENTLY, consumeThreadMax = 10, consumerGroup = "pay-group")
+@RocketMQMessageListener(topic = "coupon-topic:1", consumeMode = ConsumeMode.CONCURRENTLY, consumeThreadMax = 10, consumerGroup = "pay-group")
 public class ActivityConsumerListener implements RocketMQListener<String> {
     private static final Logger logger = LoggerFactory.getLogger(ActivityConsumerListener.class);
     @Autowired

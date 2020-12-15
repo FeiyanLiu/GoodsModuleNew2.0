@@ -10,14 +10,15 @@ import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.po.CouponPo;
 import cn.edu.xmu.activity.model.po.CouponSkuPo;
 import cn.edu.xmu.activity.model.vo.CouponStateVo;
-//import cn.edu.xmu.goodsservice.model.vo.GoodsSkuRetVo;
-//import cn.edu.xmu.goods.service.GoodsSkuServiceImpl;
-import cn.edu.xmu.goods.service.GoodsSkuService;
+
+import cn.edu.xmu.goodsservice.client.IGoodsService;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ImgHelper;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageInfo;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +48,8 @@ public class CouponActivityService{
     CouponDao couponDao;
     private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
 
-    //@Autowired
-    GoodsSkuService goodsSkuService;
-
+   @DubboReference(check=false)
+    IGoodsService goodsService;
     @Autowired
     RedisTemplate redisTemplate;
 
@@ -98,12 +98,12 @@ public class CouponActivityService{
         ReturnObject ret = new ReturnObject();
         //判断商品是否存在
         try {
-//            GoodsSkuRetVo vo = goodsSkuService.getSkuById(skuId).getData();
-//            if (vo.getId() == null)
-//                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("新增优惠商品失败，优惠商品不存在 id：" + skuId));
-////            //判断商品是否属于此商铺
-//            if (vo.getShop().getId() != shopId)
-//                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("创建优惠活动失败，商品非用户店铺的商品"));
+           GoodsSku goodsSku = goodsService.getSkuById(skuId);
+            if (goodsSku.getGoodsSkuPo().getId() == null)
+               return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("新增优惠商品失败，优惠商品不存在 id：" + skuId));
+//            //判断商品是否属于此商铺
+//           if (goodsSku.getShop().getId() != shopId)
+//               return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("创建优惠活动失败，商品非用户店铺的商品"));
             //判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
             boolean result = (Boolean) checkCouponActivityParticipation(skuId, couponActivity.getBeginTime(), couponActivity.getEndTime()).getData();
             if (result) {
@@ -356,14 +356,14 @@ public class CouponActivityService{
             //2.判断商品是否存在
             for(Long id:skuIds)
             {
-//                GoodsSkuRetVo goodsSkuRetVo=goodsSkuService.getSkuById(id).getData();
-//                //若商品不存在
-//                if (goodsSkuRetVo==null) {
-//                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-//                }
-                //3.判断此商品的shopId和管理员的shopId是否相同
-//            if (goodsSkuService.getSkuById(SkuId).getData().getShop().getId() != shopId)
-//                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("新增优惠商品失败，此商品非用户店铺的商品"));
+                GoodsSkuRetVo goodsSkuRetVo=goodsSkuService.getSkuById(id).getData();
+                //若商品不存在
+                if (goodsSkuRetVo==null) {
+                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+                }
+               // 3.判断此商品的shopId和管理员的shopId是否相同
+            if (goodsSkuService.getSkuById(SkuId).getData().getShop().getId() != shopId)
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("新增优惠商品失败，此商品非用户店铺的商品"));
                 //4.判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
                 Boolean result = (Boolean) checkCouponActivityParticipation(id, couponActivityPo.getBeginTime(), couponActivityPo.getEndTime()).getData();
                 if (result) {
@@ -455,13 +455,13 @@ public class CouponActivityService{
         if(LocalDateTime.now().isBefore(couponActivityPo.getCouponTime()))
             return new ReturnObject(ResponseCode.COUPON_NOTBEGIN);
         int quantityType = couponActivityPo.getQuantitiyType();
-        ReturnObject returnObject = null;
+        ReturnObject returnObject = new ReturnObject();
         try {
             //判断优惠活动是否需要优惠券(即优惠券是否限量）
             //若不需要优惠券则直接领取
             if (couponActivityPo.getQuantity() == 0) {
                 CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
-                returnObject = couponDao.addCoupon(couponPo);
+                couponDao.addCoupon(couponPo);
             }
             //需要优惠券则需进行限量操作
             else {
@@ -473,7 +473,7 @@ public class CouponActivityService{
                 {
                     CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                     for (int i = 0; i < couponActivityPo.getQuantity(); i++)
-                        returnObject = couponDao.addCoupon(couponPo);//这里返回值循环赋值？？？
+                        couponDao.addCoupon(couponPo);//这里返回值循环赋值？？？
                 } else if (quantityType == 1) {
                     //判断数量是否足够
                     String couponQuantity=redisTemplate.opsForValue().decrement("coupon_"+couponActivityPo.getId()).toString();
@@ -482,12 +482,12 @@ public class CouponActivityService{
                     {
                         redisTemplate.opsForValue().set("coupon_"+couponActivityPo.getId(),couponActivityPo.getQuantity()-1);
                         CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
-                        returnObject = couponDao.addCoupon(couponPo);
+                        couponDao.addCoupon(couponPo);
                     }
                     else if(Long.parseLong(couponQuantity)>=0)
                     {
                         CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
-                        returnObject = couponDao.addCoupon(couponPo);
+                        couponDao.addCoupon(couponPo);
                     }
                     else
                         redisTemplate.delete("coupon_"+couponActivityPo.getId());

@@ -15,6 +15,10 @@ spring:
     name: goods-service
   profiles:
     active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 114.215.198.238:8848
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
@@ -93,11 +97,15 @@ goodsservice:
 pagehelper:
   helper-dialect: mysql
 
-shopservice:
-  #是否对数据库中的未初始化的数据初始化
-  initialization: false
+
 
 dubbo:
+  # 配置服务信息
+  application:
+    name: goods-service
+    # 禁用QOS同一台机器可能会有端口冲突现象
+    qos-enable: false
+    qos-accept-foreign-ip: false
   scan:
     # dubbo 服务扫描基准包
     base-packages: cn.edu.xmu.goodsservice
@@ -105,7 +113,7 @@ dubbo:
     # dubbo 协议
     name: dubbo
     # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
-    port: 33333
+    port: -1
   registry:
     address: nacos://114.215.198.238:8848
 
