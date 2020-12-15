@@ -2,6 +2,7 @@ package cn.edu.xmu.activity.dao;
 
 
 import cn.edu.xmu.ooad.util.JacksonUtil;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.messaging.Message;
 import cn.edu.xmu.activity.mapper.CouponPoMapper;
 import cn.edu.xmu.activity.model.bo.Coupon;

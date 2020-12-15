@@ -8,7 +8,7 @@ import lombok.Data;
  * modifiedBy Yancheng Lai 11:19
  **/
 @Data
-public class GoodsSkuPostVo {
+public class GoodsSkuVo {
     String sn;
     String name;
     Long originalPrice;

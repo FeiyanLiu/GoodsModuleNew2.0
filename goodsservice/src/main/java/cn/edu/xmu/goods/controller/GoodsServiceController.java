@@ -231,7 +231,7 @@ public class GoodsServiceController {
     })
     //@Audit
     @PostMapping("/shops/{shopId}/spus/{id}/skus")
-    public Object insertSku(@Validated @RequestBody GoodsSkuPostVo vo, BindingResult bindingResult,
+    public Object insertSku(@Validated @RequestBody GoodsSkuVo vo, BindingResult bindingResult,
                              @PathVariable("shopId") Long shopId,
                              @PathVariable("id") Long id) {
 
@@ -283,7 +283,7 @@ public class GoodsServiceController {
     @Audit
     @PutMapping("/shops/{shopId}/skus/{id}")
     public Object updateSkus(@PathVariable Long id,
-                             @Validated @RequestBody GoodsSkuPostVo vo,
+                             @Validated @RequestBody GoodsSkuVo vo,
                              BindingResult bindingResult,
                              @PathVariable Long shopId,
                              HttpServletResponse httpServletResponse){
@@ -324,7 +324,7 @@ public class GoodsServiceController {
     })
     @Audit
     @PostMapping("/shops/{id}/spus")
-    public Object insertSku(@Validated @RequestBody GoodsSpuPostVo vo, BindingResult bindingResult,
+    public Object insertSku(@Validated @RequestBody GoodsSpuVo vo, BindingResult bindingResult,
                              @PathVariable("id") Long id) {
 
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
@@ -360,7 +360,7 @@ public class GoodsServiceController {
     @PutMapping("/shops/{shopId}/spus/{id}")
 
     public Object modifyGoodsSpu(@PathVariable Long id,
-                             @Validated @RequestBody GoodsSpuPostVo vo,
+                             @Validated @RequestBody GoodsSpuVo vo,
                              BindingResult bindingResult,
                              @PathVariable Long shopId,
                              HttpServletResponse httpServletResponse){

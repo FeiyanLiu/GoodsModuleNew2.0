@@ -1,6 +1,6 @@
 package cn.edu.xmu.activity.service.impl;
 
-import cn.edu.xmu.activity.model.po.FlashSaleItemPo;
+
 import cn.edu.xmu.goodsservice.client.IActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 

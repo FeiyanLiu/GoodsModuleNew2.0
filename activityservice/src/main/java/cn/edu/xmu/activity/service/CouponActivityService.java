@@ -356,15 +356,15 @@ public class CouponActivityService{
             //2.判断商品是否存在
             for(Long id:skuIds)
             {
-                GoodsSkuRetVo goodsSkuRetVo=goodsSkuService.getSkuById(id).getData();
+                 GoodsSku goodsSku=goodsService.getSkuById(id);
                 //若商品不存在
-                if (goodsSkuRetVo==null) {
+                if (goodsSku==null) {
                     return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
                 }
                // 3.判断此商品的shopId和管理员的shopId是否相同
-            if (goodsSkuService.getSkuById(SkuId).getData().getShop().getId() != shopId)
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("新增优惠商品失败，此商品非用户店铺的商品"));
-                //4.判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
+//            if (goodsService.getSkuById(id).getShop().getId() != shopId)
+//                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("新增优惠商品失败，此商品非用户店铺的商品"));
+//                //4.判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
                 Boolean result = (Boolean) checkCouponActivityParticipation(id, couponActivityPo.getBeginTime(), couponActivityPo.getEndTime()).getData();
                 if (result) {
                     logger.debug("the sku id=" + id + " already has other activity at the same time.");

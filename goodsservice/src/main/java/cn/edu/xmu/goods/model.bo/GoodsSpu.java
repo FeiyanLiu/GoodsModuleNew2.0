@@ -21,9 +21,21 @@ import java.time.LocalDateTime;
 public class GoodsSpu implements VoObject, Serializable {
 
 
-
-    private GoodsSpuPo goodsSpuPo;
-
+    String name;
+    Long weight;
+    String imageUrl;
+    Integer inventory;
+    String detail;
+    LocalDateTime gmtCreate;
+    LocalDateTime gmtModified;
+    Byte disabled;
+    Long brandId;
+    Long categoryId;
+    Long freightId;
+    Long shopId;
+    String spec;
+    String goodsSn;
+    Long id;
     /**
     * @Description:  构造函数byPo
     * @Param: [goodsSpuPo]
@@ -32,14 +44,13 @@ public class GoodsSpu implements VoObject, Serializable {
     * @Date: 2020/12/1 19:51
     */
     public GoodsSpu(GoodsSpuPo goodsSpuPo) {
-        this.goodsSpuPo = goodsSpuPo;
+        this.name=goodsSpuPo.getName();
     }
 
-    public GoodsSpu(GoodsSpuPostVo goodsSpuPostVo) {
-        this.goodsSpuPo = new GoodsSpuPo();
-        this.setName(goodsSpuPostVo.getName());
-        this.setDetail(goodsSpuPostVo.getDescription());
-        this.setSpec(goodsSpuPostVo.getSpecs());
+    public GoodsSpu(GoodsSpuVo goodsSpuVo) {
+        this.setName(goodsSpuVo.getName());
+        this.setDetail(goodsSpuVo.getDescription());
+        this.setSpec(goodsSpuVo.getSpecs());
     }
 
     //注意 注意 由于集成的历史原因 这里的FreightModel还没有初始化
@@ -75,108 +86,5 @@ public class GoodsSpu implements VoObject, Serializable {
     }
 
 
-    public Long getId() {
-        return goodsSpuPo.getId();
-    }
 
-    public void setId(Long id) {
-        goodsSpuPo.setId(id);
-    }
-
-    public String getName() {
-        return goodsSpuPo.getName();
-    }
-
-    public void setName(String name) {
-        goodsSpuPo.setName(name);
-    }
-
-    public Long getBrandId() {
-        return goodsSpuPo.getBrandId();
-    }
-
-    public void setBrandId(Long brandId) {
-        goodsSpuPo.setBrandId(brandId);
-    }
-
-    public Long getCategoryId() {
-        return goodsSpuPo.getCategoryId();
-    }
-
-    public void setCategoryId(Long categoryId) {
-        goodsSpuPo.setCategoryId(categoryId);
-    }
-
-    public Long getFreightId() {
-        return goodsSpuPo.getFreightId();
-    }
-
-    public void setFreightId(Long freightId) {
-        goodsSpuPo.setFreightId(freightId);
-    }
-
-    public Long getShopId() {
-        return goodsSpuPo.getShopId();
-    }
-
-    public void setShopId(Long shopId) {
-        goodsSpuPo.setShopId(shopId);
-    }
-
-    public String getGoodsSn() {
-        return goodsSpuPo.getGoodsSn();
-    }
-
-    public void setGoodsSn(String goodsSn) {
-        goodsSpuPo.setGoodsSn(goodsSn);
-    }
-
-    public String getDetail() {
-        return goodsSpuPo.getDetail();
-    }
-
-    public void setDetail(String detail) {
-        goodsSpuPo.setDetail(detail);
-    }
-
-    public String getImageUrl() {
-        return goodsSpuPo.getImageUrl();
-    }
-
-    public void setImageUrl(String imageUrl) {
-        goodsSpuPo.setImageUrl(imageUrl);
-    }
-
-
-    public String getSpec() {
-        return goodsSpuPo.getSpec();
-    }
-
-    public void setSpec(String spec) {
-        goodsSpuPo.setSpec(spec);
-    }
-
-    public Byte getDisabled() {
-        return goodsSpuPo.getDisabled();
-    }
-
-    public void setDisabled(Byte disabled) {
-        goodsSpuPo.setDisabled(disabled);
-    }
-
-    public LocalDateTime getGmtCreate() {
-        return goodsSpuPo.getGmtCreate();
-    }
-
-    public void setGmtCreate(LocalDateTime gmtCreated) {
-        goodsSpuPo.setGmtCreate(gmtCreated);
-    }
-
-    public LocalDateTime getGmtModified() {
-        return goodsSpuPo.getGmtModified();
-    }
-
-    public void setGmtModified(LocalDateTime gmtModified) {
-        goodsSpuPo.setGmtModified(gmtModified);
-    }
 }

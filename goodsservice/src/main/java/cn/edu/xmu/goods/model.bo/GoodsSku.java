@@ -19,16 +19,18 @@ import java.util.Map;
 @Data
 public class GoodsSku implements VoObject, Serializable {
 
-    String sn;
+    String skuSn;
     String name;
     Long originalPrice;
-    Long configuration;
+    String configuration;
     Long weight;
     String imageUrl;
-    Long inventory;
+    Integer inventory;
     String detail;
     LocalDateTime gmtCreate;
     LocalDateTime gmtModified;
+    Byte disabled;
+
 
     private Byte statecode;
 //    State state;
@@ -89,23 +91,18 @@ public class GoodsSku implements VoObject, Serializable {
     */
     public GoodsSku(GoodsSkuPo goodsSkuPo) {
         this.statecode = goodsSkuPo.getState();
-        this.goodsSkuPo = goodsSkuPo;
     }
+    
 
-    public void setGmtCreate(LocalDateTime gmtCreate) {
-        goodsSkuPo.setGmtCreate(gmtCreate);
-    }
-
-    public GoodsSku(GoodsSkuPostVo goodsSkuPostVo){
-        this.goodsSkuPo = new GoodsSkuPo();
-        this.setSkuSn(goodsSkuPostVo.getSn());
-        this.setName(goodsSkuPostVo.getName());
-        this.setOriginalPrice(goodsSkuPostVo.getOriginalPrice());
-        this.setConfiguration(goodsSkuPostVo.getConfiguration());
-        this.setWeight(goodsSkuPostVo.getWeight());
-        this.setImageUrl(goodsSkuPostVo.getImageUrl());
-        this.setInventory(goodsSkuPostVo.getInventory());
-        this.setDetail(goodsSkuPostVo.getDetail());
+    public GoodsSku(GoodsSkuVo goodsSkuVo){
+        this.setSkuSn(goodsSkuVo.getSn());
+        this.setName(goodsSkuVo.getName());
+        this.setOriginalPrice(goodsSkuVo.getOriginalPrice());
+        this.setConfiguration(goodsSkuVo.getConfiguration());
+        this.setWeight(goodsSkuVo.getWeight());
+        this.setImageUrl(goodsSkuVo.getImageUrl());
+        this.setInventory(goodsSkuVo.getInventory());
+        this.setDetail(goodsSkuVo.getDetail());
         this.setGmtCreate(LocalDateTime.now());
         this.setGmtModified(LocalDateTime.now());
     }
@@ -117,6 +114,8 @@ public class GoodsSku implements VoObject, Serializable {
     * @Author: Yancheng Lai
     * @Date: 2020/12/3 15:41
     */
+    private Long id;
+    private Long goodsSpuId;
     public GoodsSku(GoodsSkuRetVo goodsSkuRetVo){
         this.statecode = (byte)State.WAITING.getCode();
         this.setDetail(goodsSkuRetVo.getDetail());
@@ -134,122 +133,7 @@ public class GoodsSku implements VoObject, Serializable {
         this.setGmtModified(goodsSkuRetVo.getGmtModified());
     }
 
-    public GoodsSku(OrderItemVo vo){
-        setId(vo.getSkuId());
-    }
-    /** 
-    * @Description: 得到Po 
-    * @Param: [] 
-    * @return: cn.edu.xmu.goods.model.po.GoodsSkuPo 
-    * @Author: Yancheng Lai
-    * @Date: 2020/12/3 17:05
-    */
-    public GoodsSkuPo getPo(){
-        return this.goodsSkuPo;
-    }
 
-    public Long getId() {
-        return goodsSkuPo.getId();
-    }
 
-    public void setId(Long id) {
-        goodsSkuPo.setId(id);
-    }
-
-    public Long getGoodsSpuId() {
-        return goodsSkuPo.getGoodsSpuId();
-    }
-
-    public void setGoodsSpuId(Long goodsSpuId) {
-        goodsSkuPo.setGoodsSpuId(goodsSpuId);
-    }
-
-    public String getSkuSn() {
-        return goodsSkuPo.getSkuSn();
-    }
-
-    public void setSkuSn(String skuSn) {
-        goodsSkuPo.setSkuSn(skuSn);
-    }
-
-    public String getName() {
-        return goodsSkuPo.getName();
-    }
-
-    public void setName(String name) {
-        goodsSkuPo.setName(name);
-    }
-
-    public Long getOriginalPrice() {
-        return goodsSkuPo.getOriginalPrice();
-    }
-
-    public void setOriginalPrice(Long originalPrice) {
-        goodsSkuPo.setOriginalPrice(originalPrice);
-    }
-
-    public String getConfiguration() {
-        return goodsSkuPo.getConfiguration();
-    }
-
-    public void setConfiguration(String configuration) {
-        goodsSkuPo.setConfiguration(configuration);
-    }
-
-    public LocalDateTime getGmtCreate() {
-        return goodsSkuPo.getGmtCreate();
-    }
-
-    public void setGmtCreated(LocalDateTime gmtCreated) {
-        goodsSkuPo.setGmtCreate(gmtCreated);
-    }
-
-    public LocalDateTime getGmtModified() {
-        return goodsSkuPo.getGmtModified();
-    }
-
-    public void setGmtModified(LocalDateTime gmtModified) {
-        goodsSkuPo.setGmtModified(gmtModified);
-    }
-
-    public Long getWeight() {
-        return goodsSkuPo.getWeight();
-    }
-
-    public void setWeight(Long weight) {
-        goodsSkuPo.setWeight(weight);
-    }
-
-    public String getImageUrl() {
-        return goodsSkuPo.getImageUrl();
-    }
-
-    public void setImageUrl(String imageUrl) {
-        goodsSkuPo.setImageUrl(imageUrl);
-    }
-
-    public Integer getInventory() {
-        return goodsSkuPo.getInventory();
-    }
-
-    public void setInventory(Integer inventory) {
-        goodsSkuPo.setInventory(inventory);
-    }
-
-    public String getDetail() {
-        return goodsSkuPo.getDetail();
-    }
-
-    public void setDetail(String detail) {
-        goodsSkuPo.setDetail(detail);
-    }
-
-    public Byte getDisabled() {
-        return goodsSkuPo.getDisabled();
-    }
-
-    public void setDisabled(Byte disabled) {
-        goodsSkuPo.setDisabled(disabled);
-    }
 
 }

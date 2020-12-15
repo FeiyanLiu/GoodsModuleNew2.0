@@ -86,29 +86,29 @@ public class GoodsSpuDao {
     }
 
     public ReturnObject<GoodsSpu> insertGoodsSpu(GoodsSpu goodsSpu) {
-        GoodsSpuPo goodsSpuPo = goodsSpu.getGoodsSpuPo();
-        GoodsSpuPoExample example = new GoodsSpuPoExample();
-        GoodsSpuPoExample.Criteria criteria = example.createCriteria();
-        criteria.andSpecEqualTo(goodsSpu.getSpec());
-        criteria.andNameEqualTo(goodsSpu.getName());
-        criteria.andDetailEqualTo(goodsSpu.getDetail());
-        ReturnObject<GoodsSpu> retObj = null;
-        try{
-            goodsSpuPo.setGmtModified(LocalDateTime.now());
-            goodsSpuPo.setGmtCreate(LocalDateTime.now());
-
-            int ret = goodsSpuPoMapper.insertSelective(goodsSpuPo);
-            if (ret == 0) {
-                retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("Insert false：" + goodsSpuPo.getName()));
-            } else {
-                List<GoodsSpuPo> retSpu = goodsSpuPoMapper.selectByExample(example);
-
-                retObj = new ReturnObject<>(new GoodsSpu(retSpu.get(0)));
-            }
-        }
-        catch (DataAccessException e) {
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("Database Eoor: %s", e.getMessage()));
-        }
+//        GoodsSpuPo goodsSpuPo = goodsSpu.getGoodsSpuPo();
+//        GoodsSpuPoExample example = new GoodsSpuPoExample();
+//        GoodsSpuPoExample.Criteria criteria = example.createCriteria();
+//        criteria.andSpecEqualTo(goodsSpu.getSpec());
+//        criteria.andNameEqualTo(goodsSpu.getName());
+//        criteria.andDetailEqualTo(goodsSpu.getDetail());
+      ReturnObject<GoodsSpu> retObj = null;
+//        try{
+//            goodsSpuPo.setGmtModified(LocalDateTime.now());
+//            goodsSpuPo.setGmtCreate(LocalDateTime.now());
+//
+//            int ret = goodsSpuPoMapper.insertSelective(goodsSpuPo);
+//            if (ret == 0) {
+//                retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("Insert false：" + goodsSpuPo.getName()));
+//            } else {
+//                List<GoodsSpuPo> retSpu = goodsSpuPoMapper.selectByExample(example);
+//
+//                retObj = new ReturnObject<>(new GoodsSpu(retSpu.get(0)));
+//            }
+//        }
+//        catch (DataAccessException e) {
+//            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("Database Eoor: %s", e.getMessage()));
+//        }
         return retObj;
     }
     /**
@@ -155,17 +155,17 @@ public class GoodsSpuDao {
     }
 
     public ReturnObject<VoObject> updateSpu(GoodsSpu goodsSpu){
-        GoodsSpuPo po = goodsSpuPoMapper.selectByPrimaryKey(goodsSpu.getId());
-        if(po == null)
-        {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-        if(goodsSpu.getShopId() != po.getShopId()){
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
-        }
-        goodsSpu.setGmtModified(LocalDateTime.now());
-        goodsSpu.setDisabled((byte)0);
-        int res =  goodsSpuPoMapper.updateByPrimaryKeySelective(goodsSpu.getGoodsSpuPo());
+//        GoodsSpuPo po = goodsSpuPoMapper.selectByPrimaryKey(goodsSpu.getId());
+//        if(po == null)
+//        {
+//            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+//        }
+//        if(goodsSpu.getShopId() != po.getShopId()){
+//            return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
+//        }
+//        goodsSpu.setGmtModified(LocalDateTime.now());
+//        goodsSpu.setDisabled((byte)0);
+//        int res =  goodsSpuPoMapper.updateByPrimaryKeySelective(goodsSpu.getGoodsSpuPo());
         return new ReturnObject<VoObject>();
     }
 

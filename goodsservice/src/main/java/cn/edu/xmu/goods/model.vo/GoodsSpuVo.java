@@ -11,12 +11,12 @@ import java.io.Serializable;
  **/
 
 @Data
-public class GoodsSpuPostVo implements Serializable {
+public class GoodsSpuVo implements Serializable {
     String name;
 
     String description;
 
     String specs;
 
-    public GoodsSpuPostVo(){}
+    public GoodsSpuVo(){}
 }
