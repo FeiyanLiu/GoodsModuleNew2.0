@@ -5,10 +5,11 @@ import cn.edu.xmu.goodsservice.model.bo.Shop;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class ShopVo {
+public class ShopVo implements Serializable {
     @ApiModelProperty(value = "店铺名字")
     String shopName;
     @ApiModelProperty(value = "店铺id")
@@ -28,6 +29,7 @@ public class ShopVo {
         this.setGmtModified(shop.getGmtModified());
     }
 
+    public ShopVo(){}
 
     public Shop createShop(){
         Shop shop=new Shop();
