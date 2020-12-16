@@ -161,10 +161,10 @@ public class CouponActivityService{
      */
     @Transactional
     
-    public ReturnObject<PageInfo<VoObject>> getCouponActivities(Long shopId, LocalDateTime beginTime,LocalDateTime endTime, Integer page, Integer pageSize) {
+    public ReturnObject<PageInfo<VoObject>> getOnlineCouponActivities(Long shopId, LocalDateTime beginTime,LocalDateTime endTime, Integer page, Integer pageSize) {
         try {
-            PageInfo<CouponActivityPo> couponActivitiesPos = couponActivityDao.getCouponActivity(shopId,beginTime,endTime,page,pageSize);
-            List<VoObject> couponActivities = couponActivitiesPos.getList().stream().map(CouponActivity::new).collect(Collectors.toList());
+            PageInfo<CouponActivityPo> couponActivitiesPos = couponActivityDao.getOnlineCouponActivity(shopId,beginTime,endTime,page,pageSize);
+            List<VoObject> couponActivities = couponActivitiesPos.getList().stream().map(po->new CouponActivity(po).createSimpleVo()).collect(Collectors.toList());
             PageInfo<VoObject> returnObject = new PageInfo<>(couponActivities);
             returnObject.setPages(couponActivitiesPos.getPages());
             returnObject.setPageNum(couponActivitiesPos.getPageNum());
@@ -190,7 +190,7 @@ public class CouponActivityService{
     public ReturnObject<PageInfo<VoObject>> getInvalidCouponActivities(Integer page, Integer pageSize, Long shopId) {
         try {
             PageInfo<CouponActivityPo> couponActivitiesPos = couponActivityDao.getInvalidCouponActivity(shopId,page,pageSize);
-            List<VoObject> couponActivities = couponActivitiesPos.getList().stream().map(CouponActivity::new).collect(Collectors.toList());
+            List<VoObject> couponActivities = couponActivitiesPos.getList().stream().map(po->new CouponActivity(po).createSimpleVo()).collect(Collectors.toList());
             PageInfo<VoObject> returnObject = new PageInfo<>(couponActivities);
             returnObject.setPages(couponActivitiesPos.getPages());
             returnObject.setPageNum(couponActivitiesPos.getPageNum());
@@ -223,16 +223,10 @@ public class CouponActivityService{
             //如果活动状态不是上线 不允许查看
             if(couponActivityPo.getState()!=CouponActivity.State.ONLINE.getCode())
                 return new ReturnObject<>(ResponseCode.COUPONACT_STATENOTALLOW);
-            PageInfo<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id,page,pageSize);
-            List<VoObject> couponSkus = couponSkuPos.getList().stream().map(CouponSku::new).collect(Collectors.toList());
+           List<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id,page,pageSize);
+           List<Long> skuIds=couponSkuPos.stream().map(couponSkuPo->couponSkuPo.getSkuId()).collect(Collectors.toList());
+           goodsService.ge
 
-            PageInfo<VoObject> returnObject = new PageInfo<>(couponSkus);
-            returnObject.setPages(couponSkuPos.getPages());
-            returnObject.setPageNum(couponSkuPos.getPageNum());
-            returnObject.setPageSize(couponSkuPos.getPageSize());
-            returnObject.setTotal(couponSkuPos.getTotal());
-
-            return new ReturnObject<>(returnObject);
 
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
@@ -631,6 +625,12 @@ public class CouponActivityService{
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
+public boolean checkCouponActivityShop(Long shopId,Long couponActivityId)
+{
+    if(shopId==couponActivityDao.getShopId(couponActivityId))
+        return true;
+    else return false;
+}
 
 
 //    /**

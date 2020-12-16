@@ -160,7 +160,7 @@ public class CouponController {
         customerVo.setUserName(otherService.getUserById(id).getUserName());
         CouponActivity couponActivity = vo.createCouponActivity();
         couponActivity.setCreatedBy(customerVo);
-        ReturnObject returnObject = couponActivityService.createCouponActivity(shopId, id, couponActivity);
+        ReturnObject returnObject = couponActivityService.createCouponActivity(shopId,couponActivity);
         if (returnObject.getData() != null) {
             return ResponseUtil.ok(returnObject.getData());
         } else {
@@ -168,38 +168,38 @@ public class CouponController {
         }
     }
 
-    @ApiOperation(value = "查看优惠活动详情")
+
+    @ApiOperation(value = "上传优惠活动图片",  produces="application/json")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
-            @ApiImplicitParam(name = "shopId", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
-            @ApiImplicitParam(name = "id", value = "优惠商品id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(paramType = "formData", dataType = "file", name = "img", value ="文件", required = true),
+            @ApiImplicitParam(paramType = "path",dataType = "Long",name = "shopId",value = "店铺id"),
+            @ApiImplicitParam(paramType = "path",dataType = "Long",name = "id",value = "spuid"),
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 504, message = "操作id不存在")
+            @ApiResponse(code = 506, message = "该目录文件夹没有写入的权限"),
+            @ApiResponse(code = 508, message = "图片格式不正确"),
+            @ApiResponse(code = 509, message = "图片大小超限")
     })
     @Audit
-    @GetMapping("/shops/{shopId}/couponactivities/{id}")
-    public Object getCouponActivity(@PathVariable("shopId") Long shopId, @PathVariable("id") Long id, @Depart Long departId) {
-            ReturnObject returnObject = couponActivityService.getCouponActivityById(id,shopId);
-            if (returnObject.getData() != null) {
-                return ResponseUtil.ok(returnObject.getData());
-            } else {
-                return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-            }
+    @PostMapping("/shops/{shopId}/couponactivities/{id}/uploadImg")
+    public Object uploadImg(@RequestParam("img") MultipartFile multipartFile,
+                            @PathVariable("shopId") Long shopId,
+                            @PathVariable("id") Long id){
+
+        if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
+        ReturnObject returnObject = couponActivityService.uploadImg(id, multipartFile);
+        return Common.decorateReturnObject(returnObject);
     }
 
-
-
-    /**
-     * @description:查看上线的列表 可以根据shopId查看 也可以指定timeline查看
-     * @author: Feiyan Liu
-     * @date: Created at 2020/12/2 15:08
-     */
     @ApiOperation(value = "查看上线的优惠活动列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "shopId", value = "店铺id", required = false, dataType = "Integer", paramType = "query"),
-            @ApiImplicitParam(name = "timeline", value = "活动时间", required = false, dataType = "Integer", paramType = "query"),
+            @ApiImplicitParam(name = "shopId", value = "店铺id", dataType = "Integer", paramType = "query"),
+            @ApiImplicitParam(name = "timeline", value = "活动时间", dataType = "Integer", paramType = "query"),
+            @ApiImplicitParam(paramType = "query", name = "page", value = "页码",  dataType = "Integer"),
+            @ApiImplicitParam(paramType = "query", name = "pageSize", value = "每页数目", dataType = "Integer")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -216,7 +216,7 @@ public class CouponController {
         { beginTime= Timeline.getBeginTimeByCode(timeline);
            endTime= Timeline.getEndTimeByCode(timeline);
         }
-        ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getCouponActivities(shopId, beginTime,endTime, page, pageSize);
+        ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getOnlineCouponActivities(shopId, beginTime,endTime, page, pageSize);
         return ResponseUtil.ok(returnObject.getData());
     }
 
@@ -224,6 +224,9 @@ public class CouponController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "id", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(paramType = "query", name = "page", value = "页码", dataType = "Integer"),
+            @ApiImplicitParam(paramType = "query", name = "pageSize", value = "每页数目", dataType = "Integer")
+
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -232,10 +235,10 @@ public class CouponController {
     @Audit
     @GetMapping("/shops/{id}/couponactivities/invalid")
     public Object getInvalidCouponActivity(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize,
-                                           @PathVariable Long id, @Depart Long departId) {
+                                           @PathVariable Long id) {
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
-        ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getInvalidCouponActivities(page, pageSize,departId);
+        ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getInvalidCouponActivities(page, pageSize,id);
         return ResponseUtil.ok(returnObject.getData());
     }
 
@@ -243,6 +246,8 @@ public class CouponController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "id", value = "活动id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(paramType = "query", name = "page", value = "页码", dataType = "Integer"),
+            @ApiImplicitParam(paramType = "query", name = "pageSize", value = "每页数目", dataType = "Integer")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -257,6 +262,26 @@ public class CouponController {
         if (returnObject.getData() != null)
             return ResponseUtil.ok(returnObject.getData());
         else {
+            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
+        }
+    }
+    @ApiOperation(value = "查看优惠活动详情")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name = "shopId", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "id", value = "优惠商品id", required = true, dataType = "Integer", paramType = "path"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")
+    })
+    @Audit
+    @GetMapping("/shops/{shopId}/couponactivities/{id}")
+    public Object getCouponActivity(@PathVariable("shopId") Long shopId, @PathVariable("id") Long id, @Depart Long departId) {
+        ReturnObject returnObject = couponActivityService.getCouponActivityById(id,shopId);
+        if (returnObject.getData() != null) {
+            return ResponseUtil.ok(returnObject.getData());
+        } else {
             return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
         }
     }
@@ -431,31 +456,6 @@ public class CouponController {
     }
 
 
-    @ApiOperation(value = "SPU上传图片",  produces="application/json")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
-            @ApiImplicitParam(paramType = "formData", dataType = "file", name = "img", value ="文件", required = true),
-            @ApiImplicitParam(paramType = "path",dataType = "Long",name = "shopId",value = "店铺id"),
-            @ApiImplicitParam(paramType = "path",dataType = "Long",name = "id",value = "spuid"),
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 506, message = "该目录文件夹没有写入的权限"),
-            @ApiResponse(code = 508, message = "图片格式不正确"),
-            @ApiResponse(code = 509, message = "图片大小超限")
-    })
-    @Audit
-    @PostMapping("/shops/{shopId}/couponactivities/{id}/uploadImg")
-    public Object uploadImg(@RequestParam("img") MultipartFile multipartFile,
-                               @PathVariable("shopId") Long shopId,
-                               @PathVariable("id") Long id){
-
-//        if(goodsSpuService.checkSpuIdInShop(shopId,id)==false){
-//            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
-//        }
-        ReturnObject returnObject = couponActivityService.uploadImg(id, multipartFile);
-        return Common.decorateReturnObject(returnObject);
-    }
 
 
     @ApiOperation(value = "上线优惠活动",  produces="application/json")

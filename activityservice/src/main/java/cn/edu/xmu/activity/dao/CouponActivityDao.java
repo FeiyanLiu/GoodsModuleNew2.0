@@ -90,7 +90,7 @@ public class CouponActivityDao implements InitializingBean {
      * @author: Feiyan Liu
      * @date: Created at 2020/11/30 9:10
      */
-    public PageInfo<CouponActivityPo> getCouponActivity(Long shopId,LocalDateTime beginTime,LocalDateTime endTime,Integer page,Integer pageSize) {
+    public PageInfo<CouponActivityPo> getOnlineCouponActivity(Long shopId,LocalDateTime beginTime,LocalDateTime endTime,Integer page,Integer pageSize) {
         PageHelper.startPage(page,pageSize);
         CouponActivityPoExample example = new CouponActivityPoExample();
         CouponActivityPoExample.Criteria criteria = example.createCriteria();

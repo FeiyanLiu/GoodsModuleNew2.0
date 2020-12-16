@@ -24,11 +24,11 @@ public class CouponActivityRetSimpleVo implements VoObject {
     public CouponActivityRetSimpleVo(CouponActivity couponActivity) {
         this.id = couponActivity.getId();
         this.name = couponActivity.getName();
-//        this.quantity = couponActivity.getQuantity();
-//        this.imageUrl = couponActivity.getImg();
-//        this.beginTime = couponActivity.getBeginTime().toString();
-//        this.endTime = couponActivity.getEndTime().toString();
-//        this.couponTime = couponActivity.getCouponTime().toString();
+        this.quantity = couponActivity.getQuantity();
+        this.imageUrl = couponActivity.getImg();
+        this.beginTime = couponActivity.getBeginTime();
+        this.endTime = couponActivity.getEndTime();
+        this.couponTime = couponActivity.getCouponTime();
     }
 
     @Override
