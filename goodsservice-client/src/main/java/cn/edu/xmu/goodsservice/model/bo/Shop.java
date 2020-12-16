@@ -18,7 +18,7 @@ import java.util.Map;
 public class Shop implements VoObject, Serializable {
 
 
-    long id;
+    Long id;
     String shopName;
     Byte state=(byte) State.UNAUDITED.code;
     LocalDateTime gmtCreate;

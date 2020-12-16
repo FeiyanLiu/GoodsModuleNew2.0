@@ -38,7 +38,7 @@ dubbo:
     # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
     port: -1
   registry:
-    address: nacos://114.215.198.238:8848
+    address: nacos://193.112.59.84:8848
 #  consumer:
 #    timeout: 4000
 #    check: false
