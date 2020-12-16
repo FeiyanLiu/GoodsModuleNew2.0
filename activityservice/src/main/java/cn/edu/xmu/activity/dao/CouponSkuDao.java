@@ -42,25 +42,27 @@ public class CouponSkuDao implements InitializingBean {
     }
 
     /**
-     * @param SkuId
      * @param activityId
      * @description:加入新的优惠商品
      * @return: cn.edu.xmu.ooad.util.ReturnObject
      * @author: Feiyan Liu
      * @date: Created at 2020/11/30 4:11
      */
-    public ReturnObject addCouponSku(Long SkuId, Long activityId) {
+    public ReturnObject addCouponSku(Long[] skuIds, Long activityId) {
         ReturnObject retObj = null;
         //数据插入优惠商品表
-        CouponSku couponSku = new CouponSku();
-        couponSku.setSkuId(SkuId);
-        couponSku.setActivityId(activityId);
-        CouponSkuPo couponSkuPo = couponSku.createPo();
         try {
-            couponSkuMapper.insert(couponSkuPo);
-            //插入成功
-            logger.debug("insertCouponSku: insert couponSku = " + couponSkuPo.toString());
-            retObj = new ReturnObject<>(couponSku);
+            for(Long skuId:skuIds)
+            {
+                CouponSku couponSku = new CouponSku();
+                couponSku.setSkuId(skuId);
+                couponSku.setActivityId(activityId);
+                CouponSkuPo couponSkuPo = couponSku.createPo();
+                couponSkuMapper.insert(couponSkuPo);
+                //插入成功
+                logger.debug("insertCouponSku: insert couponSku = " + couponSkuPo.toString());
+            }
+            retObj = new ReturnObject();
         } catch (Exception e) {
             logger.error("严重错误：" + e.getMessage());
             return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,

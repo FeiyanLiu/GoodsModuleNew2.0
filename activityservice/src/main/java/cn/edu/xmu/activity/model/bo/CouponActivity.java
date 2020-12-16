@@ -2,9 +2,9 @@ package cn.edu.xmu.activity.model.bo;
 
 
 import cn.edu.xmu.activity.model.po.CouponActivityPo;
-import cn.edu.xmu.activity.model.vo.CouponActivityRetSimpleVo;
 import cn.edu.xmu.activity.model.vo.CouponActivityRetVo;
 
+import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
@@ -24,6 +24,7 @@ public class CouponActivity implements VoObject {
     Long id;
     Byte state = (byte) State.OFFLINE.code;
     String name;
+    ShopVo shop;
     int quantity;
     Byte quantityType;
     Byte validTerm;
