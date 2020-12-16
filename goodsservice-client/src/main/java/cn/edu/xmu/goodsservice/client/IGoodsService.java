@@ -4,6 +4,7 @@ package cn.edu.xmu.goodsservice.client;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 
 import java.util.List;
@@ -20,6 +21,6 @@ public interface IGoodsService {
 
     List<ShopVo> getShopVoBySkuIdList(List<Long> ids);
 
-    List<GoodsSku> getGoodsSkuBySkuIdList(List<Long> ids);
+    List<GoodsSkuSimpleRetVo> getGoodsSkuListBySkuIdList(List<Long> ids);
 
 }
