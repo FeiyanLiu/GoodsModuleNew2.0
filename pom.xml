@@ -13,6 +13,9 @@
         <module>core</module>
         <module>activityservice</module>
         <module>goodsservice-client</module>
+        <module>orderservice-client</module>
+        <module>otherservice</module>
+        <module>otherservice-client</module>
         <!--        <module>privilege</module>-->
 
     </modules>
