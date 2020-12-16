@@ -122,7 +122,6 @@ public class CouponActivityService {
      * @date: Created at 2020/11/30 4:33
      */
     @Transactional
-
     public ReturnObject createCouponActivity(Long shopId, CouponActivity couponActivity) {
         ReturnObject ret = new ReturnObject();
         try {
@@ -145,7 +144,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/1 13:39
      */
     @Transactional
-
     public ReturnObject uploadImg(Long id, MultipartFile multipartFile) {
         CouponActivity couponActivity = new CouponActivity(couponActivityDao.getCouponActivityById(id));
         if (couponActivity == null) {
@@ -191,7 +189,6 @@ public class CouponActivityService {
      * @date: Created at 2020/11/30 9:43
      */
     @Transactional
-
     public ReturnObject<PageInfo<VoObject>> getOnlineCouponActivities(Long shopId, LocalDateTime beginTime, LocalDateTime endTime, Integer page, Integer pageSize) {
         try {
             PageInfo<CouponActivityPo> couponActivitiesPos = couponActivityDao.getOnlineCouponActivity(shopId, beginTime, endTime, page, pageSize);
@@ -217,7 +214,6 @@ public class CouponActivityService {
      * @date: Created at 2020/11/30 9:47
      */
     @Transactional
-
     public ReturnObject<PageInfo<VoObject>> getInvalidCouponActivities(Integer page, Integer pageSize, Long shopId) {
         try {
             PageInfo<CouponActivityPo> couponActivitiesPos = couponActivityDao.getInvalidCouponActivity(shopId, page, pageSize);
@@ -244,7 +240,6 @@ public class CouponActivityService {
      * @date: Created at 2020/11/30 22:11
      */
     @Transactional
-
     public ReturnObject<PageInfo<VoObject>> getCouponSku(Long id, Integer page, Integer pageSize) {
         try {
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(id);
@@ -277,7 +272,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/5 15:35
      */
     @Transactional
-
     public ReturnObject getCouponActivityById(Long id, Long shopId) {
         try {
             CouponActivityPo po = couponActivityDao.getCouponActivityById(id);
@@ -303,7 +297,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/2 10:25
      */
     @Transactional
-
     public ReturnObject updateCouponActivity(CouponActivity couponActivity) {
         try {
             CouponActivityPo po = couponActivityDao.getCouponActivityById(couponActivity.getId());
@@ -331,7 +324,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/2 10:34
      */
     @Transactional
-
     public ReturnObject deleteCouponActivity(Long shopId, Long id) {
         try {
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(id);
@@ -361,7 +353,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/8 22:50
      */
     @Transactional
-
     public ReturnObject addCouponSku(Long shopId, Long[] skuIds, Long activityId) {
         try {
             //判断活动状态是否为下线
@@ -404,7 +395,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/2 11:16
      */
     @Transactional
-
     public ReturnObject deleteCouponSku(Long id, Long shopId) {
         try {
             CouponSkuPo couponSkuPo = couponSkuDao.getCouponSkuById(id);
@@ -432,7 +422,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/3 17:24
      */
     @Transactional
-
     public ReturnObject<PageInfo<VoObject>> getCouponByUserId(Long id, Integer state, Integer page, Integer pageSize) {
         PageInfo<VoObject> returnObject = null;
         try {
@@ -532,7 +521,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/10 17:45
      */
     @Transactional
-
     public ReturnObject putCouponActivityOnShelves(Long shopId, Long id) {
         try {
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(id);
@@ -560,7 +548,6 @@ public class CouponActivityService {
      * @date: Created at 2020/12/10 17:45
      */
     @Transactional
-
     public ReturnObject putCouponActivityOffShelves(Long shopId, Long id) {
         try {
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(id);
