@@ -137,34 +137,34 @@ public class CommentController {
     }
 
 
-    /**
-     * @description:买家查看自己的评价记录
-     * @author: Ruzhen Chang
-     */
-    @ApiOperation(value = "买家查看自己的评价记录")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "用户token", required = true, dataType = "string", paramType = "header"),
-            @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query"),
-            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @Audit
-    @GetMapping("/sku/{id}/comments")
-    public Object userGetGoodsSkuCommentList(@RequestParam(required = false) Long userId,
-                                         @RequestParam(required = false) Integer page,
-                                         @RequestParam(required = false) Integer pageSize
-    ) {
-        page = (page == null) ? 1 : page;
-        pageSize = (pageSize == null) ? 10 : pageSize;
-        ReturnObject<PageInfo<VoObject>> returnObject = commentService.getSelfCommentList(userId,page,pageSize);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
-    }
+//    /**
+//     * @description:买家查看自己的评价记录
+//     * @author: Ruzhen Chang
+//     */
+//    @ApiOperation(value = "买家查看自己的评价记录")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "用户token", required = true, dataType = "string", paramType = "header"),
+//            @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query"),
+//            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query")
+//    })
+//    @ApiResponses({
+//            @ApiResponse(code = 0, message = "成功"),
+//    })
+//    @Audit
+//    @GetMapping("/sku/{id}/comments")
+//    public Object userGetGoodsSkuCommentList(@RequestParam(required = false) Long userId,
+//                                         @RequestParam(required = false) Integer page,
+//                                         @RequestParam(required = false) Integer pageSize
+//    ) {
+//        page = (page == null) ? 1 : page;
+//        pageSize = (pageSize == null) ? 10 : pageSize;
+//        ReturnObject<PageInfo<VoObject>> returnObject = commentService.getSelfCommentList(userId,page,pageSize);
+//        if (returnObject.getData() != null) {
+//            return ResponseUtil.ok(returnObject.getData());
+//        } else {
+//            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
+//        }
+//    }
 
     /**
      * @description:管理员查看未审核/已审核评论列表

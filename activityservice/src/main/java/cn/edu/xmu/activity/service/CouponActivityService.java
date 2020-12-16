@@ -99,7 +99,7 @@ public class CouponActivityService{
         //判断商品是否存在
         try {
            GoodsSku goodsSku = goodsService.getSkuById(skuId);
-            if (goodsSku.getGoodsSkuPo().getId() == null)
+            if (goodsSku.getId() == null)
                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("新增优惠商品失败，优惠商品不存在 id：" + skuId));
 //            //判断商品是否属于此商铺
 //           if (goodsSku.getShop().getId() != shopId)

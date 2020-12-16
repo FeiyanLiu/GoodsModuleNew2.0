@@ -69,6 +69,12 @@ mybatis:
     #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
 
+commentservice:
+  initialization: false
+
+shopservice:
+  initialization: false
+
 goodsservice:
   #是否对数据库中的未初始化的数据初始化
   initialization: false
@@ -108,7 +114,7 @@ dubbo:
     qos-accept-foreign-ip: false
   scan:
     # dubbo 服务扫描基准包
-    base-packages: cn.edu.xmu.goodsservice
+    base-packages: cn.edu.xmu.goods.service
   protocol:
     # dubbo 协议
     name: dubbo
@@ -116,5 +122,4 @@ dubbo:
     port: -1
   registry:
     address: nacos://114.215.198.238:8848
-
 

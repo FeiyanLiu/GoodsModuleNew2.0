@@ -6,6 +6,7 @@ import cn.edu.xmu.goodsservice.model.VoObject;
 import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.Map;
  * @author Ruzhen Chang
  */
 @Data
-public class Shop implements VoObject{
+public class Shop implements VoObject, Serializable {
 
 
     long id;

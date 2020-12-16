@@ -83,7 +83,7 @@ public class GoodsSkuRetVo {
         this.setInventory ( goodsSku.getInventory());
         this.setSkuSn ( goodsSku.getSkuSn());
         this.setWeight (goodsSku.getWeight());
-        StateVo state = new StateVo(goodsSku.getStatecode());
+        //StateVo state = new StateVo(goodsSku.getStatecode());
         this.setState((int)goodsSku.getStatecode());
         //this.setState(goodsSku.getState());
     }

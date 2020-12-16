@@ -19,6 +19,7 @@ import java.util.Map;
 @Data
 public class GoodsSku implements VoObject, Serializable {
 
+    Long id;
     String skuSn;
     String name;
     Long originalPrice;
@@ -30,10 +31,8 @@ public class GoodsSku implements VoObject, Serializable {
     LocalDateTime gmtCreate;
     LocalDateTime gmtModified;
     Byte disabled;
-
-
+    Long goodsSpuId;
     private Byte statecode;
-//    State state;
     public enum State {
         WAITING(0, "未上架"),
         INVALID(4, "上架"),
@@ -80,7 +79,25 @@ public class GoodsSku implements VoObject, Serializable {
         return new GoodsSkuSimpleRetVo(this);
     }
 
-
+    public GoodsSkuPo getPo()
+    {
+        GoodsSkuPo goodsSkuPo = new GoodsSkuPo();
+        goodsSkuPo.setSkuSn(getSkuSn());
+        goodsSkuPo.setId(getId());
+        goodsSkuPo.setState(getStatecode());
+        goodsSkuPo.setSkuSn(getSkuSn());
+        goodsSkuPo.setName(getName());
+        goodsSkuPo.setOriginalPrice(getOriginalPrice());
+        goodsSkuPo.setConfiguration(getConfiguration());
+        goodsSkuPo.setWeight(getWeight());
+        goodsSkuPo.setImageUrl(getImageUrl());
+        goodsSkuPo.setInventory(getInventory());
+        goodsSkuPo.setDetail(getDetail());
+        goodsSkuPo.setGmtCreate(getGmtCreate());
+        goodsSkuPo.setGmtModified(getGmtModified());
+        goodsSkuPo.setGoodsSpuId(getGoodsSpuId());
+        return goodsSkuPo;
+    }
 
     /**
     * @Description: 构造函数by Po
@@ -91,6 +108,19 @@ public class GoodsSku implements VoObject, Serializable {
     */
     public GoodsSku(GoodsSkuPo goodsSkuPo) {
         this.statecode = goodsSkuPo.getState();
+        this.setDetail(goodsSkuPo.getDetail());
+        this.setDisabled(goodsSkuPo.getDisabled());
+        this.setId(goodsSkuPo.getId());
+        this.setImageUrl(goodsSkuPo.getImageUrl());
+        this.setName(goodsSkuPo.getName());
+        this.setGoodsSpuId(goodsSkuPo.getGoodsSpuId());
+        this.setSkuSn(goodsSkuPo.getSkuSn());
+        this.setOriginalPrice(goodsSkuPo.getOriginalPrice());
+        this.setConfiguration(goodsSkuPo.getConfiguration());
+        this.setWeight(goodsSkuPo.getWeight());
+        this.setInventory(goodsSkuPo.getInventory());
+        this.setGmtCreate(goodsSkuPo.getGmtCreate());
+        this.setGmtModified(goodsSkuPo.getGmtModified());
     }
     
 
@@ -114,8 +144,6 @@ public class GoodsSku implements VoObject, Serializable {
     * @Author: Yancheng Lai
     * @Date: 2020/12/3 15:41
     */
-    private Long id;
-    private Long goodsSpuId;
     public GoodsSku(GoodsSkuRetVo goodsSkuRetVo){
         this.statecode = (byte)State.WAITING.getCode();
         this.setDetail(goodsSkuRetVo.getDetail());

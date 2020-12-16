@@ -92,20 +92,22 @@ activityservice:
     password: hello
     baseUrl: http://192.168.233.128/webdav/
 
+
 #pagehelper分页插件配置
 pagehelper:
   helper-dialect: mysql
 
 
 dubbo:
+  # 配置服务信息
+  application:
+    name: activity-service
+    # 禁用QOS同一台机器可能会有端口冲突现象
+    qos-enable: false
+    qos-accept-foreign-ip: false
   scan:
-    application:
-      name: activity-service
-      # 禁用QOS同一台机器可能会有端口冲突现象
-      qos-enable: false
-      qos-accept-foreign-ip: false
     # dubbo 服务扫描基准包
-    base-packages: cn.edu.xmu.activity
+    base-packages: cn.edu.xmu.activity.service
   protocol:
     # dubbo 协议
     name: dubbo
@@ -113,9 +115,26 @@ dubbo:
     port: -1
   registry:
     address: nacos://114.215.198.238:8848
-  consumer:
-    timeout: 4000
-    check: false
 
+couponservice:
+  #是否对数据库中的未初始化的数据初始化
+  initialization: false
+  imglocation: http://192.168.233.128/webdav/
+  dav:
+    username: hellobaby
+    password: hello
+    baseUrl: http://192.168.233.128/webdav/
 
+rocketmq:
+  # 指定namesrv地址
+  name-server: 127.0.0.1:9876
+  producer:
+    #生产者group名称
+    group: producer_group
+    #一次发送多少数量消息
+    max-message-size: 4096
+    #发送消息超时时间,默认3000
+    send-message-timeout: 3000
+    #发送消息失败重试次数，默认2
+    retry-times-when-send-async-failed: 2
 

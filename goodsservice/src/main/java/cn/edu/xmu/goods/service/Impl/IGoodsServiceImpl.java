@@ -1,20 +1,16 @@
 package cn.edu.xmu.goods.service.Impl;
 
 
-        import cn.edu.xmu.goods.dao.GoodsSkuDao;
-        import cn.edu.xmu.goods.dao.GoodsSpuDao;
-        import cn.edu.xmu.goods.model.bo.GoodsSku;
-        import cn.edu.xmu.goods.model.po.GoodsSkuPo;
-        import cn.edu.xmu.goods.model.po.GoodsSpuPo;
-        import cn.edu.xmu.goods.model.vo.GoodsSkuRetVo;
-        import cn.edu.xmu.goods.model.vo.GoodsSpuRetVo;
-        import cn.edu.xmu.goods.service.GoodsSkuService;
-        import cn.edu.xmu.goods.service.GoodsSpuService;
-        import cn.edu.xmu.ooad.util.ReturnObject;
-        import org.springframework.beans.factory.annotation.Autowired;
-        import org.springframework.transaction.annotation.Transactional;
+import cn.edu.xmu.goods.dao.GoodsSkuDao;
+import cn.edu.xmu.goods.dao.GoodsSpuDao;
+import cn.edu.xmu.goods.model.po.GoodsSkuPo;
+import cn.edu.xmu.goodsservice.client.IGoodsService;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
+import cn.edu.xmu.ooad.util.ReturnObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-public class IGoodsServiceImpl {
+public class IGoodsServiceImpl implements IGoodsService {
 
     @Autowired
     GoodsSkuDao goodsSkuDao;
@@ -28,7 +24,21 @@ public class IGoodsServiceImpl {
         if(goodsSkuPo == null){
             return null;
         }
-        GoodsSku goodsSku = new GoodsSku(goodsSkuPo);
+        GoodsSku goodsSku = new GoodsSku();
+        goodsSku.setStatecode(goodsSkuPo.getState());
+        goodsSku.setDetail(goodsSkuPo.getDetail());
+        goodsSku.setDisabled(goodsSkuPo.getDisabled());
+        goodsSku.setId(goodsSkuPo.getId());
+        goodsSku.setImageUrl(goodsSkuPo.getImageUrl());
+        goodsSku.setName(goodsSkuPo.getName());
+        goodsSku.setGoodsSpuId(goodsSkuPo.getGoodsSpuId());
+        goodsSku.setSkuSn(goodsSkuPo.getSkuSn());
+        goodsSku.setOriginalPrice(goodsSkuPo.getOriginalPrice());
+        goodsSku.setConfiguration(goodsSkuPo.getConfiguration());
+        goodsSku.setWeight(goodsSkuPo.getWeight());
+        goodsSku.setInventory(goodsSkuPo.getInventory());
+        goodsSku.setGmtCreate(goodsSkuPo.getGmtCreate());
+        goodsSku.setGmtModified(goodsSkuPo.getGmtModified());
         return goodsSku;
     }
 }

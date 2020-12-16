@@ -20,3 +20,23 @@ spring:
     port: 6379
     # Redis服务器连接密码
     password: 123456
+dubbo:
+  # 配置服务信息
+  application:
+    name: goods-service
+    # 禁用QOS同一台机器可能会有端口冲突现象
+    qos-enable: false
+    qos-accept-foreign-ip: false
+  scan:
+    # dubbo 服务扫描基准包
+    base-packages: cn.edu.xmu.goodsservice
+  protocol:
+    # dubbo 协议
+    name: dubbo
+    # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
+    port: -1
+  registry:
+    address: nacos://114.215.198.238:8848
+#  consumer:
+#    timeout: 4000
+#    check: false

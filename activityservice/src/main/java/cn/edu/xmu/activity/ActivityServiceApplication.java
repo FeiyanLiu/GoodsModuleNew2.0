@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
  * @author Feiyan Liu
  * @date Created at 2020/11/28 23:30
  */
-@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.ooad","cn.edu.xmu.activity","cn.edu.xmu.goods"})
+@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.ooad","cn.edu.xmu.activity"})
 @MapperScan("cn.edu.xmu.activity.mapper")
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 public class ActivityServiceApplication {

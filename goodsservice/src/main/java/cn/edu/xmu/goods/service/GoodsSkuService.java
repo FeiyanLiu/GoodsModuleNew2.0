@@ -13,6 +13,8 @@ import cn.edu.xmu.goods.model.po.GoodsSpuPo;
 import cn.edu.xmu.goods.model.po.GoodsSpuPoExample;
 import cn.edu.xmu.goods.model.po.ShopPo;
 import cn.edu.xmu.goods.model.vo.*;
+import cn.edu.xmu.goodsservice.client.IActivityService;
+import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ImgHelper;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -20,6 +22,7 @@ import cn.edu.xmu.ooad.util.ReturnObject;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +63,10 @@ public class GoodsSkuService {
 
     @Autowired
     ShopService shopService;
+
+    @DubboReference(check = false)
+    IActivityService iActivityService;
+
     @Value("${goodsservice.dav.username}")
     private String davUsername;
 
@@ -216,18 +223,17 @@ public class GoodsSkuService {
         logger.debug("service: get Sku by id: "+ id);
         ReturnObject<GoodsSkuPo> goodsSkuReturnObject = goodsSkuDao.getSkuById(id);
         GoodsSkuPo goodsSkuPo = goodsSkuReturnObject.getData();
-        GoodsSku goodsSku = new GoodsSku(goodsSkuPo);
-
-        if(goodsSku != null){
-            logger.info("GoodsSku != null");
+        if(goodsSkuPo == null){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
+        GoodsSku goodsSku = new GoodsSku(goodsSkuPo);
         GoodsSkuRetVo retVo = goodsSku.createVo();
-        GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoBySkuId(id).getData();
+        //GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoBySkuId(id).getData();
         //GoodsSpu goodsSpu = new GoodsSpu(goodsSpuPo);
-        GoodsSpuRetVo goodsSpuRetVo = goodsSpuService.findSpuById(goodsSpuPo.getId()).getData();
+        GoodsSpuRetVo goodsSpuRetVo = goodsSpuService.findSpuById(goodsSkuPo.getGoodsSpuId()).getData();
         retVo.setState((int)goodsSku.getStatecode());
         retVo.setGoodsSpu(goodsSpuRetVo);
-        retVo.setPrice(getPriceById(id));
+        retVo.setPrice(getPriceById(id).intValue());
         if(retVo.getGoodsSpu() != null){
             logger.info("GoodsSpu != null");
         }
@@ -377,21 +383,25 @@ public class GoodsSkuService {
 
     
     @Transactional
-    public Integer getPriceById(Long goodsSkuId) {
-        Integer result=null;
+    public Long getPriceById(Long goodsSkuId) {
+        Long result = null;
+        //result = iActivityService.getFlashSalePriceBySkuId(goodsSkuId);
+        if(result != null){
+            return  result;
+        }
         ReturnObject<List> listReturnObject = floatPriceDao.getFloatPriceBySkuId(goodsSkuId);
         List<FloatPrice> target=listReturnObject.getData();
         if(target != null){
             for(FloatPrice aFloatPrice : target){
                 if(LocalDateTime.now().isAfter(aFloatPrice.getBeginTime())&&LocalDateTime.now().isBefore(aFloatPrice.getEndTime())){
-                    Integer item= Math.toIntExact(aFloatPrice.getActivityPrive());
+                    Long item= aFloatPrice.getActivityPrive();
                     result = item;
                 }
             }
         }
 
         if(result == null){
-            return goodsSkuDao.getSkuById(goodsSkuId).getData().getOriginalPrice().intValue();
+            return goodsSkuDao.getSkuById(goodsSkuId).getData().getOriginalPrice();
         }
         return result;
     }
@@ -407,7 +417,7 @@ public class GoodsSkuService {
         vo.setSkuName(goodsSkuPo.getName());
         vo.setSpuName(goodsSpuPo.getName());
         //vo.setQuantity(goodsSkuPo.getInventory());
-        vo.setPrice(getPriceById(Sku));
+        vo.setPrice(getPriceById(Sku).intValue());
         vo.setGmtCreate(goodsSkuPo.getGmtCreate());
         vo.setGmtModified(goodsSkuPo.getGmtModified());
         return vo;

@@ -18,42 +18,52 @@ import java.time.LocalDateTime;
 @Data
 public class Brand implements VoObject{
 
-//    private Long id;
-//
-//    private String name;
-//
-//    private String imageUrl;
-//
-//    private String detail;
-//
-//    private LocalDateTime gmtCreate;
-//
-//    private LocalDateTime gmtModified;
+    private Long id;
 
-    private BrandPo brandPo;
+    private String name;
+
+    private String imageUrl;
+
+    private String detail;
+
+    private LocalDateTime gmtCreate;
+
+    private LocalDateTime gmtModified;
+
+    //private BrandPo brandPo;
 
     public Brand(BrandPo brandPo){
-        this.brandPo = brandPo;
+        setGmtCreate(brandPo.getGmtCreate());
+        setGmtModified(brandPo.getGmtModified());
+        setName(brandPo.getName());
+        setImageUrl(brandPo.getImageUrl());
+        setDetail(brandPo.getDetail());;
+        setId(brandPo.getId());
     }
 
     public Brand(UpdateBrandVoBody vo) {
-        this.brandPo = new BrandPo();
-        this.brandPo.setDetail(vo.getDetail());
-        this.brandPo.setName(vo.getName());
+        setDetail(vo.getDetail());
+        setName(vo.getName());
     }
 
-    public BrandPo getPo(){
-        return this.brandPo;
+    public BrandPo getBrandPo(){
+        BrandPo brandPo = new BrandPo();
+        brandPo.setGmtCreate(getGmtCreate());
+        brandPo.setGmtModified(getGmtModified());
+        brandPo.setName(getName());
+        brandPo.setImageUrl(getImageUrl());
+        brandPo.setDetail(getDetail());;
+        brandPo.setId(getId());
+        return brandPo;
     }
 
     public Brand(BrandRetVo brandRetVo){
-        this.brandPo = new BrandPo();
-        brandPo.setDetail(brandRetVo.getDetail());
-        brandPo.setId(brandRetVo.getId());
-        brandPo.setImageUrl(brandRetVo.getImageUrl());
-        brandPo.setName(brandRetVo.getName());
-        brandPo.setGmtCreate(brandRetVo.getGmtCreate());
-        brandPo.setGmtModified(brandRetVo.getGmtModified());
+        setDetail(brandRetVo.getDetail());
+        setId(brandRetVo.getId());
+        setImageUrl(brandRetVo.getImageUrl());
+        setName(brandRetVo.getName());
+        setGmtCreate(brandRetVo.getGmtCreate());
+        setGmtModified(brandRetVo.getGmtModified());
     }
 
     @Override
@@ -66,51 +76,5 @@ public class Brand implements VoObject{
         return new BrandSimpleRetVo(this);
     }
 
-    public Long getId() {
-        return brandPo.getId();
-    }
 
-    public void setId(Long id) {
-        brandPo.setId(id);
-    }
-
-    public String getName() {
-        return brandPo.getName();
-    }
-
-    public void setName(String name) {
-        brandPo.setName(name);
-    }
-
-    public String getDetail() {
-        return brandPo.getDetail();
-    }
-
-    public void setDetail(String detail) {
-        brandPo.setDetail(detail);
-    }
-
-    public LocalDateTime getGmtCreate() {
-        return brandPo.getGmtCreate();
-    }
-
-    public void setGmtCreate(LocalDateTime gmtCreate) {
-        brandPo.setGmtCreate(gmtCreate);
-    }
-
-    public LocalDateTime getGmtModified() {
-        return brandPo.getGmtModified();
-    }
-
-    public void setGmtModified(LocalDateTime gmtModified) {
-        brandPo.setGmtModified(gmtModified);
-    }
-
-    public String getImageUrl() {
-        return brandPo.getImageUrl();
-    }
-
-    public void setImageUrl(String imageUrl) {
-        brandPo.setImageUrl(imageUrl);
-    }
 }

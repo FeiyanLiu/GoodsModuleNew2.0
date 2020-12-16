@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Yancheng Lai
@@ -40,6 +41,9 @@ public class GoodsSkuDao {
 
     public static final Logger logger = LoggerFactory.getLogger(GoodsSkuDao.class);
 
+    public static String randomUUID() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
     /**
     * @Description: 分页获取Sku信息
     * @Param: [shopId, skuSn, spuId, spuSn, page, pagesize]
@@ -172,24 +176,25 @@ public class GoodsSkuDao {
 
     public ReturnObject<GoodsSkuSimpleRetVo> insertGoodsSku(GoodsSku goodsSku) {
 
-//        GoodsSkuPo goodsSkuPo = goodsSku.getPo();
+        GoodsSkuPo goodsSkuPo = goodsSku.getPo();
         ReturnObject<GoodsSkuSimpleRetVo> retObj = null;
-//        try{
-//            goodsSkuPo.setGmtModified(LocalDateTime.now());
-//            goodsSkuPo.setGmtCreate(LocalDateTime.now());
-//            goodsSkuPo.setState((byte)GoodsSku.State.WAITING.getCode());
-//            int ret = goodsSkuPoMapper.insert(goodsSkuPo);
-//            if (ret == 0) {
-//                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("Insert false：" + goodsSkuPo.getName()));
-//            } else {
-//                goodsSku.setId(goodsSkuPo.getId());
-//                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(goodsSku.createSimpleVo());
-//            }
-//        }
-//        catch (DataAccessException e) {
-//                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(ResponseCode.INTERNAL_SERVER_ERR, String.format("Database Error: %s", e.getMessage()));
-//        }
-      return retObj;
+        try{
+            goodsSkuPo.setGmtModified(LocalDateTime.now());
+            goodsSkuPo.setGmtCreate(LocalDateTime.now());
+            goodsSkuPo.setSkuSn("sku-"+randomUUID());
+            goodsSkuPo.setState((byte)GoodsSku.State.WAITING.getCode());
+            int ret = goodsSkuPoMapper.insert(goodsSkuPo);
+            if (ret == 0) {
+                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("Insert false：" + goodsSkuPo.getName()));
+            } else {
+                goodsSku.setId(goodsSkuPo.getId());
+                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(goodsSku.createSimpleVo());
+            }
+        }
+        catch (DataAccessException e) {
+                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(ResponseCode.INTERNAL_SERVER_ERR, String.format("Database Error: %s", e.getMessage()));
+        }
+        return retObj;
    }
 
     /** 
@@ -201,22 +206,22 @@ public class GoodsSkuDao {
     */
 
     public ReturnObject updateSku(GoodsSku goodsSku, Long shopId,Long id){
-//        GoodsSkuPo newPo = goodsSku.getPo();
-//        GoodsSkuPo oldPo = goodsSkuPoMapper.selectByPrimaryKey(id);
-//        if(oldPo == null){
-//            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-//        }
-//        if(checkSkuIdInShop(shopId,id)==false){
-//            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
-//        }
-//        newPo.setId(id);
-//        newPo.setId(id);
-//        newPo.setGmtModified(LocalDateTime.now());
-//
-//        int upd = goodsSkuPoMapper.updateByPrimaryKeySelective(goodsSku.getGoodsSkuPo());
-//        if(upd == 0){
-//            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-//        }
+        GoodsSkuPo newPo = goodsSku.getPo();
+        GoodsSkuPo oldPo = goodsSkuPoMapper.selectByPrimaryKey(id);
+        if(oldPo == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        if(checkSkuIdInShop(shopId,id)==false){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+        newPo.setId(id);
+        newPo.setId(id);
+        newPo.setGmtModified(LocalDateTime.now());
+
+        int upd = goodsSkuPoMapper.updateByPrimaryKeySelective(goodsSku.getPo());
+        if(upd == 0){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
         return new ReturnObject<>(ResponseCode.OK);
     }
 

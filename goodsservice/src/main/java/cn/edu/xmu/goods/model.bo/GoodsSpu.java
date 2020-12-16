@@ -19,12 +19,8 @@ import java.time.LocalDateTime;
 
 @Data
 public class GoodsSpu implements VoObject, Serializable {
-
-
     String name;
-    Long weight;
     String imageUrl;
-    Integer inventory;
     String detail;
     LocalDateTime gmtCreate;
     LocalDateTime gmtModified;
@@ -59,7 +55,23 @@ public class GoodsSpu implements VoObject, Serializable {
            return new GoodsSpuRetVo(this);
     }
 
-
+    public GoodsSpuPo getGoodsSpuPo(){
+        GoodsSpuPo goodsSpuPo = new GoodsSpuPo();
+        goodsSpuPo.setBrandId(getBrandId());
+        goodsSpuPo.setCategoryId(getCategoryId());
+        goodsSpuPo.setDetail(getDetail());
+        goodsSpuPo.setDisabled(getDisabled());
+        goodsSpuPo.setFreightId(getFreightId());
+        goodsSpuPo.setId(getId());
+        goodsSpuPo.setImageUrl(getImageUrl());
+        goodsSpuPo.setName(getName());
+        goodsSpuPo.setShopId(getShopId());
+        goodsSpuPo.setSpec(getSpec());
+        goodsSpuPo.setGoodsSn(getGoodsSn());
+        goodsSpuPo.setGmtCreate(getGmtCreate());
+        goodsSpuPo.setGmtModified(getGmtModified());
+        return goodsSpuPo;
+    }
 
 
     @Override
