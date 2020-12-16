@@ -434,12 +434,12 @@ public class GoodsSkuDao {
 
         GoodsSpuPoExample eexample = new GoodsSpuPoExample();
         GoodsSpuPoExample.Criteria ccriteria = eexample.createCriteria();
-        criteria.andIdIn(spuIds);
+        ccriteria.andIdIn(spuIds);
         List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(eexample);
 
         List<Long> shopIds = new ArrayList<>();
-        for (GoodsSkuPo goodsSkuPo: goodsSkuPos){
-            shopIds.add(goodsSkuPo.getGoodsSpuId());
+        for (GoodsSpuPo goodsSpuPo: goodsSpuPos){
+            shopIds.add(goodsSpuPo.getShopId());
         }
         return shopIds;
     }
