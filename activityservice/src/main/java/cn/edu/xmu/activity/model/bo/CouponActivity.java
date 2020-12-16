@@ -4,6 +4,7 @@ package cn.edu.xmu.activity.model.bo;
 import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.vo.CouponActivityRetVo;
 
+import cn.edu.xmu.activity.model.vo.CouponActivitySimpleRetVo;
 import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 import cn.edu.xmu.ooad.model.VoObject;
@@ -68,7 +69,7 @@ public class CouponActivity implements VoObject {
 
     @Override
     public VoObject createSimpleVo() {
-        return new CouponActivityRetSimpleVo(this);
+        return new CouponActivitySimpleRetVo(this);
     }
 
     public CouponActivityPo createPo() {
