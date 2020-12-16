@@ -400,6 +400,8 @@ public class CouponActivityService {
             CouponSkuPo couponSkuPo = couponSkuDao.getCouponSkuById(id);
             if (couponSkuPo == null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            if(goodsService.getShopIdBySpuId(id)!=shopId)
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(couponSkuPo.getActivityId());
             //判断活动状态是否为下线
             if (couponActivityPo.getState() != CouponActivity.State.OFFLINE.getCode())
@@ -436,8 +438,6 @@ public class CouponActivityService {
      * @param userId
      * @param id
      * @description: 用户领取优惠券
-     * bug：用户领取完优惠券之后要减优惠券数量 优惠券数量是0不能领取 这个方法的返回值写得有问题
-     * bug: 优惠券sn的生成还没写
      * @return: cn.edu.xmu.ooad.util.ReturnObject
      * @author: Feiyan Liu
      * @date: Created at 2020/12/3 22:44
