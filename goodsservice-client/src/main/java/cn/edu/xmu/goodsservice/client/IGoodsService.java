@@ -19,4 +19,7 @@ public interface IGoodsService {
     GoodsSimpleSpu getSimpleSpuById(Long id);
 
     List<ShopVo> getShopVoBySkuIdList(List<Long> ids);
+
+    List<GoodsSku> getGoodsSkuBySkuIdList(List<Long> ids);
+
 }
