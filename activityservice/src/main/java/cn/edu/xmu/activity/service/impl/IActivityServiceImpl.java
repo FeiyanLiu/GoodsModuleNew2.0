@@ -2,6 +2,7 @@ package cn.edu.xmu.activity.service.impl;
 
 
 import cn.edu.xmu.goodsservice.client.IActivityService;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,8 @@ import java.time.LocalDateTime;
  * @author Feiyan Liu
  * @date Created at 2020/12/14 21:55
  */
+
+@DubboService
 public class IActivityServiceImpl implements IActivityService {
     @Override
     public Long getFlashSalePriceBySkuId(Long id) {
