@@ -5,8 +5,10 @@ import cn.edu.xmu.goods.dao.GoodsSkuDao;
 import cn.edu.xmu.goods.dao.GoodsSpuDao;
 import cn.edu.xmu.goods.dao.ShopDao;
 import cn.edu.xmu.goods.model.po.GoodsSkuPo;
+import cn.edu.xmu.goods.model.po.GoodsSpuPo;
 import cn.edu.xmu.goods.model.po.ShopPo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.ooad.util.ReturnObject;
@@ -25,6 +27,15 @@ public class IGoodsServiceImpl implements IGoodsService {
 
     @Autowired
     ShopDao shopDao;
+
+    @Override
+    public Long getShopIdBySpuId(Long id) {
+        GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoById(id).getData();
+        if(goodsSpuPo == null){
+            return null;
+        }
+        return goodsSpuPo.getShopId();
+    }
 
     @Transactional
     public GoodsSku getSkuById(Long id){
@@ -62,4 +73,22 @@ public class IGoodsServiceImpl implements IGoodsService {
         shopSimple.setShopName(shopPo.getName());
         return shopSimple;
     }
+
+    @Override
+    public GoodsSimpleSpu getSimpleSpuById(Long id) {
+        GoodsSpuPo data = goodsSpuDao.getGoodsSpuPoById(id).getData();
+        if(data == null){
+            return null;
+        }
+        GoodsSimpleSpu goodsSimpleSpu = new GoodsSimpleSpu();
+        goodsSimpleSpu.setDisabled(data.getDisabled());
+        goodsSimpleSpu.setGmtCreated(data.getGmtCreate());
+        goodsSimpleSpu.setGmtModified(data.getGmtModified());
+        goodsSimpleSpu.setGoodsSn(data.getGoodsSn());
+        goodsSimpleSpu.setId(data.getId());
+        goodsSimpleSpu.setImageUrl(data.getImageUrl());
+        goodsSimpleSpu.setName(data.getName());
+        return goodsSimpleSpu;
+    }
+
 }

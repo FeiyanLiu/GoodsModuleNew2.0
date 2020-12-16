@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  **/
 @SpringBootApplication(scanBasePackages = {"cn.edu.xmu.goodsservice","cn.edu.xmu.activity","cn.edu.xmu.goods"})
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
+
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
