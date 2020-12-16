@@ -5,6 +5,7 @@ import cn.edu.xmu.activity.mapper.CouponSkuPoMapper;
 import cn.edu.xmu.activity.model.bo.CouponSku;
 import cn.edu.xmu.activity.model.po.CouponSkuPo;
 import cn.edu.xmu.activity.model.po.CouponSkuPoExample;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.Page;
@@ -41,25 +42,27 @@ public class CouponSkuDao implements InitializingBean {
     }
 
     /**
-     * @param SkuId
      * @param activityId
      * @description:加入新的优惠商品
      * @return: cn.edu.xmu.ooad.util.ReturnObject
      * @author: Feiyan Liu
      * @date: Created at 2020/11/30 4:11
      */
-    public ReturnObject addCouponSku(Long SkuId, Long activityId) {
+    public ReturnObject addCouponSku(Long[] skuIds, Long activityId) {
         ReturnObject retObj = null;
         //数据插入优惠商品表
-        CouponSku couponSku = new CouponSku();
-        couponSku.setSkuId(SkuId);
-        couponSku.setActivityId(activityId);
-        CouponSkuPo couponSkuPo = couponSku.createPo();
         try {
-            couponSkuMapper.insert(couponSkuPo);
-            //插入成功
-            logger.debug("insertCouponSku: insert couponSku = " + couponSkuPo.toString());
-            retObj = new ReturnObject<>(couponSku);
+            for(Long skuId:skuIds)
+            {
+                CouponSku couponSku = new CouponSku();
+                couponSku.setSkuId(skuId);
+                couponSku.setActivityId(activityId);
+                CouponSkuPo couponSkuPo = couponSku.createPo();
+                couponSkuMapper.insert(couponSkuPo);
+                //插入成功
+                logger.debug("insertCouponSku: insert couponSku = " + couponSkuPo.toString());
+            }
+            retObj = new ReturnObject();
         } catch (Exception e) {
             logger.error("严重错误：" + e.getMessage());
             return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,
@@ -75,15 +78,14 @@ public class CouponSkuDao implements InitializingBean {
      * @author: Feiyan Liu
      * @date: Created at 2020/11/30 22:17
      */
-    public List<CouponSkuPo> getCouponSkuListByActivityId(Long id,Integer page,Integer pageSize) {
+    public PageInfo<CouponSkuPo> getCouponSkuListByActivityId(Long id,Integer page,Integer pageSize) {
         PageHelper.startPage(page,pageSize);
         CouponSkuPoExample example = new CouponSkuPoExample();
         CouponSkuPoExample.Criteria criteria = example.createCriteria();
         criteria.andActivityIdEqualTo(id);
         List<CouponSkuPo> couponSkuPos = couponSkuMapper.selectByExample(example);
-
         logger.debug("getCouponSkuByActivityId: retCouponSku" + couponSkuPos);
-        return couponSkuPos;
+        return new PageInfo<>(couponSkuPos);
     }
 
     public List<CouponSkuPo> getCouponSkuListBySkuId(Long id) {

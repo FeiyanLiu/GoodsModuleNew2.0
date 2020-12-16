@@ -12,6 +12,8 @@ import cn.edu.xmu.activity.model.po.CouponSkuPo;
 import cn.edu.xmu.activity.model.vo.CouponStateVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
+import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ImgHelper;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -28,8 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -223,11 +227,8 @@ public class CouponActivityService{
             //如果活动状态不是上线 不允许查看
             if(couponActivityPo.getState()!=CouponActivity.State.ONLINE.getCode())
                 return new ReturnObject<>(ResponseCode.COUPONACT_STATENOTALLOW);
-           List<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id,page,pageSize);
+           List<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id,page,pageSize).getList();
            List<Long> skuIds=couponSkuPos.stream().map(couponSkuPo->couponSkuPo.getSkuId()).collect(Collectors.toList());
-           //goodsService.ge
-
-
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
@@ -243,15 +244,12 @@ public class CouponActivityService{
      */
     @Transactional
     
-    public ReturnObject getCouponActivityById(Long id,Long shopId) {
+    public ReturnObject getCouponActivityById(Long id) {
         try {
             CouponActivityPo po = couponActivityDao.getCouponActivityById(id);
             //若活动不存在
             if (po == null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-            //如果活动不属于本商店
-            if(po.getShopId()!=shopId)
-                return new ReturnObject<>(ResponseCode.AUTH_NOT_ALLOW);
             CouponActivity couponActivity = new CouponActivity(po);
             return new ReturnObject(couponActivity.createVo());
         } catch (Exception e) {
@@ -329,29 +327,30 @@ public class CouponActivityService{
     
     public ReturnObject addCouponSku(Long shopId, Long[] skuIds, Long activityId) {
         try {
-            //1. 判断活动状态是否为下线
+            //判断活动状态是否为下线
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(activityId);
             if(couponActivityPo.getState()!=CouponActivity.State.OFFLINE.getCode())
                 return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
-            //2.判断商品是否存在
-            for(Long id:skuIds)
-            {
-                 GoodsSku goodsSku=goodsService.getSkuById(id);
-                //若商品不存在
-                if (goodsSku==null) {
-                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-                }
-               // 3.判断此商品的shopId和管理员的shopId是否相同
-//            if (goodsService.getSkuById(id).getShop().getId() != shopId)
-//                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("新增优惠商品失败，此商品非用户店铺的商品"));
-//                //4.判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
-                Boolean result = (Boolean) checkCouponActivityParticipation(id, couponActivityPo.getBeginTime(), couponActivityPo.getEndTime()).getData();
-                if (result) {
-                    logger.debug("the sku id=" + id + " already has other activity at the same time.");
-                    return new ReturnObject<>(ResponseCode.SKU_PARTICIPATE);
-                }
-                couponSkuDao.addCouponSku(id, activityId);
+            //判断商品是否都存在
+            List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos=goodsService.getGoodsSkuListBySkuIdList(Arrays.asList(skuIds));
+            if(goodsSkuSimpleRetVos.size()<skuIds.length)
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            //判断商品是否都属于此店铺
+            List<ShopVo> shopVos=goodsService.getShopVoBySkuIdList(Arrays.asList(skuIds));
+            for(ShopVo vo:shopVos) {
+                if (vo.getId() != shopId)
+                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             }
+              for(Long id:skuIds) {
+                  //判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
+                  Boolean result = (Boolean) checkCouponActivityParticipation(id, couponActivityPo.getBeginTime(), couponActivityPo.getEndTime()).getData();
+                  if (result==true) {
+                      logger.debug("the sku id=" + id + " already has other activity at the same time.");
+                      return new ReturnObject<>(ResponseCode.SKU_PARTICIPATE);
+                  }
+              }
+                couponSkuDao.addCouponSku(skuIds, activityId);
+
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
