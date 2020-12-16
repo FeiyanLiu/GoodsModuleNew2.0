@@ -2,6 +2,7 @@ package cn.edu.xmu.activity.controller;
 
 
 import cn.edu.xmu.activity.model.bo.CouponActivity;
+import cn.edu.xmu.activity.model.vo.CouponActivitySimpleVo;
 import cn.edu.xmu.activity.model.vo.CouponActivityVo;
 import cn.edu.xmu.activity.service.CouponActivityService;
 import cn.edu.xmu.ooad.annotation.Audit;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -278,7 +280,10 @@ public class CouponController {
     @Audit
     @GetMapping("/shops/{shopId}/couponactivities/{id}")
     public Object getCouponActivity(@PathVariable("shopId") Long shopId, @PathVariable("id") Long id, @Depart Long departId) {
-        ReturnObject returnObject = couponActivityService.getCouponActivityById(id,shopId);
+        if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
+
+        ReturnObject returnObject = couponActivityService.getCouponActivityById(id);
         if (returnObject.getData() != null) {
             return ResponseUtil.ok(returnObject.getData());
         } else {
@@ -286,11 +291,11 @@ public class CouponController {
         }
     }
 
-    @ApiOperation(value = "管理员修改己方优惠活动")
+    @ApiOperation(value = "管理员修改己方优惠活动,下线状态才能修改")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "shopId", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
-            @ApiImplicitParam(name = "id", value = "优惠商品id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "id", value = "优惠活动id", required = true, dataType = "Integer", paramType = "path"),
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -299,14 +304,11 @@ public class CouponController {
     @Audit
     @PutMapping("/shops/{shopId}/couponactivities/{id}")
     public Object updateCouponActivity(@PathVariable Long shopId, @PathVariable Long id,
-                                       @Validated @RequestBody CouponActivityVo vo, BindingResult bindingResult, @LoginUser Long userId) {
-        Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (null != errors) {
-            return errors;
-        }
+                                       @Validated @RequestBody CouponActivitySimpleVo vo,@LoginUser Long userId) {
+        if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
         CouponActivity couponActivity = vo.createCouponActivity();
         couponActivity.setId(id);
-        couponActivity.setShopId(shopId);
         couponActivity.setGmtModified(LocalDateTime.now());
         //couponActivity.setModifiedBy(userId);
         ReturnObject returnObject = couponActivityService.updateCouponActivity(couponActivity);
@@ -317,7 +319,7 @@ public class CouponController {
         }
     }
 
-    @ApiOperation(value = "管理员下线己方优惠活动")
+    @ApiOperation(value = "管理员删除己方优惠活动")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "shopId", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
@@ -330,17 +332,15 @@ public class CouponController {
     @Audit
     @DeleteMapping("/shops/{shopId}/couponactivities/{id}")
     public Object deleteCouponActivity(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
-        if (shopId.equals(departId)) {
-            ReturnObject returnObject = couponActivityService.deleteCouponActivity(departId,id);
+        if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
+        ReturnObject returnObject = couponActivityService.deleteCouponActivity(departId,id);
             if (returnObject.getData() != null) {
                 return Common.getRetObject(returnObject);
             } else {
                 return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
             }
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("departId不匹配")), httpServletResponse);
         }
-    }
 
     @ApiOperation(value = "管理员为己方优惠活动新增限定范围")
     @ApiImplicitParams({
@@ -355,12 +355,8 @@ public class CouponController {
     @Audit
     @PostMapping("/shops/{shopId}/couponactivities/{id}/skus")
     public Object addCouponSku(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId,
-                               @Validated @RequestBody Long[] skuArray, BindingResult bindingResult,
-                               @LoginUser Long userId) {
-        Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (null != errors) {
-            return errors;
-        }
+                               @Validated @RequestBody @NotBlank Long[] skuArray) {
+
             ReturnObject returnObject = couponActivityService.addCouponSku(shopId, skuArray, id);
             if (returnObject.getData() != null) {
                 return Common.getRetObject(returnObject);
@@ -382,17 +378,15 @@ public class CouponController {
     @Audit
     @DeleteMapping("/shops/{shopId}/couponactivities/{id}/skus")
     public Object deleteCouponSku(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
-        if (shopId.equals(departId)) {
-            ReturnObject returnObject = couponActivityService.deleteCouponSku(departId,id);
+        if(!couponActivityService.checkCouponActivityShop(shopId, id))
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
+        ReturnObject returnObject = couponActivityService.deleteCouponSku(id);
             if (returnObject.getData() != null) {
                 return Common.getRetObject(returnObject);
             } else {
                 return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
             }
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("departId不匹配")), httpServletResponse);
-        }
-    }
+         }
 
     @ApiOperation(value = "买家查看优惠券列表")
     @ApiImplicitParams({

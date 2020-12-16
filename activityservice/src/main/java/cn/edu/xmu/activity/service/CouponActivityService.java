@@ -375,7 +375,7 @@ public class CouponActivityService{
      */
     @Transactional
     
-    public ReturnObject deleteCouponSku(Long shopId,Long id) {
+    public ReturnObject deleteCouponSku(Long id) {
         try {
             CouponSkuPo couponSkuPo = couponSkuDao.getCouponSkuById(id);
             if (couponSkuPo == null)
@@ -384,8 +384,7 @@ public class CouponActivityService{
             //判断活动状态是否为下线
             if(couponActivityPo.getState()!=CouponActivity.State.OFFLINE.getCode())
                 return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
-          couponSkuDao.deleteCouponSku(id);
-            return new ReturnObject();
+            return couponSkuDao.deleteCouponSku(id);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);

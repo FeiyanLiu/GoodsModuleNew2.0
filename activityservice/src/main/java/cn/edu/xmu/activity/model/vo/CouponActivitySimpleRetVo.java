@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * @date Created at 2020/11/30 3:30
  */
 @Data
-public class CouponActivitySimpleRetVo {
+public class CouponActivitySimpleRetVo implements VoObject{
     Long id;
     String name;
     String imageUrl;
@@ -29,5 +29,15 @@ public class CouponActivitySimpleRetVo {
         this.beginTime = couponActivity.getBeginTime().toString();
         this.endTime = couponActivity.getEndTime().toString();
         this.couponTime = couponActivity.getCouponTime().toString();
+    }
+
+    @Override
+    public Object createVo() {
+        return null;
+    }
+
+    @Override
+    public Object createSimpleVo() {
+        return null;
     }
 }
