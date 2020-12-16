@@ -1,4 +1,4 @@
-package cn.edu.xmu.goods.service.Impl;
+package cn.edu.xmu.goods.service;
 
 
 import cn.edu.xmu.goods.dao.GoodsSkuDao;
@@ -11,17 +11,17 @@ import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@DubboService
+@DubboService(version = "2.7.8")
 public class IGoodsServiceImpl implements IGoodsService {
 
     @Autowired
@@ -32,6 +32,9 @@ public class IGoodsServiceImpl implements IGoodsService {
 
     @Autowired
     ShopDao shopDao;
+
+    @Autowired
+    GoodsSkuService goodsSkuService;
 
     @Override
     public Long getShopIdBySpuId(Long id) {
@@ -111,5 +114,31 @@ public class IGoodsServiceImpl implements IGoodsService {
             shopVos.add(shopVo);
         }
         return shopVos;
+    }
+
+    @Override
+    public List<GoodsSkuSimpleRetVo> getGoodsSkuListBySkuIdList(List<Long> skuIds){
+
+        List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getGoodsSkuPoListBySkuIdList(skuIds);
+
+        if(goodsSkuPos == null){
+            return null;
+        }
+        List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos = new ArrayList<>();
+        for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
+            GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSkuSimpleRetVo();
+            goodsSkuSimpleRetVo.setName(goodsSkuPo.getName());
+            goodsSkuSimpleRetVo.setDisabled(goodsSkuPo.getDisabled());
+            goodsSkuSimpleRetVo.setId(goodsSkuPo.getId());
+            goodsSkuSimpleRetVo.setImageUrl(goodsSkuPo.getImageUrl());
+            goodsSkuSimpleRetVo.setInventory(goodsSkuPo.getInventory());
+            goodsSkuSimpleRetVo.setSkuSn(goodsSkuPo.getSkuSn());
+            goodsSkuSimpleRetVo.setOriginalPrice(goodsSkuPo.getOriginalPrice());
+            goodsSkuSimpleRetVo.setPrice(goodsSkuService.getPriceById(goodsSkuPo.getId()).intValue());
+            goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
+        }
+
+        return goodsSkuSimpleRetVos;
+
     }
 }

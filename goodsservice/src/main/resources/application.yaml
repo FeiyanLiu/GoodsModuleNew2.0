@@ -104,7 +104,6 @@ pagehelper:
   helper-dialect: mysql
 
 
-
 dubbo:
   # 配置服务信息
   application:

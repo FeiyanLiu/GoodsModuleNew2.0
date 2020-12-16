@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
  * @Description:价格浮动控制器
  */
 @RestController
-@RequestMapping(value="/shops",produces = "application/json;charset+UTF-8")
+@RequestMapping(value="/goods",produces = "application/json;charset+UTF-8")
 public class FloatPriceController {
     private  static  final Logger logger = LoggerFactory.getLogger(FloatPriceController.class);
 

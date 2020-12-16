@@ -11,6 +11,9 @@ import cn.edu.xmu.ooad.util.ImgHelper;
 import cn.edu.xmu.ooad.util.JacksonUtil;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import cn.edu.xmu.orderservice.client.OrderService;
+import cn.edu.xmu.orderservice.model.bo.FreightModel;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +56,9 @@ public class GoodsSpuService{
 
     @Autowired
     GoodsCategoryDao goodsCategoryDao;
+
+//    @DubboReference(check = false)
+//    OrderService orderService;
 
     //@Autowired
     //ShopService shopService;
@@ -108,7 +114,12 @@ public class GoodsSpuService{
                 goodsSpuRetVo.setCategory(goodsCategorySimpleVo);
             }
 
-            goodsSpuRetVo.setFreightId(goodsSpuPo.getFreightId());
+//            Long freightId = goodsSpuPo.getFreightId();
+//            FreightModel freightModel = orderService.getFreightModelById(freightId);
+//            if(freightModel != null){
+//                goodsSpuRetVo.setFreightModel(freightModel);
+//            }
+
             Spec s = new Spec();
             String specJson = goodsSpuPo.getSpec();
             if(specJson!=null && (!specJson.contentEquals("default")))
