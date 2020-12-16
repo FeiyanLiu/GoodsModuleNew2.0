@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 spring:
   boot:
     admin:
@@ -40,47 +39,4 @@ dubbo:
     address: nacos://193.112.59.84:8848
 #  consumer:
 #    timeout: 4000
-=======
-spring:
-  boot:
-    admin:
-      client:
-        url: http://localhost:8081
-  datasource:
-    url: jdbc:mysql://localhost:3306/oomall?serverTimezone=GMT%2B8
-    username: dbuser
-    password: 123456
-    druid:
-      stat-view-servlet:
-        login-username: admin
-        login-password: 123456
-        enabled: true
-        url-pattern: /druid/*
-  redis:
-    # Redis服务器地址
-    host: localhost
-    # Redis服务器连接端口
-    port: 6379
-    # Redis服务器连接密码
-    password: 123456
-dubbo:
-  # 配置服务信息
-  application:
-    name: activity-service
-    # 禁用QOS同一台机器可能会有端口冲突现象
-    qos-enable: false
-    qos-accept-foreign-ip: false
-  scan:
-    # dubbo 服务扫描基准包
-    base-packages: cn.edu.xmu.activity
-  protocol:
-    # dubbo 协议
-    name: dubbo
-    # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
-    port: -1
-  registry:
-    address: nacos://193.112.59.84:8848
-#  consumer:
-#    timeout: 4000
->>>>>>> 8b6f493691a74d7b21e5f442f0e456c2b176c239
 #    check: false
