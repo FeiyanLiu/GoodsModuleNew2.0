@@ -12,6 +12,7 @@ import cn.edu.xmu.activity.model.po.CouponSkuPo;
 import cn.edu.xmu.activity.model.vo.CouponStateVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ImgHelper;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -223,11 +224,15 @@ public class CouponActivityService{
             //如果活动状态不是上线 不允许查看
             if(couponActivityPo.getState()!=CouponActivity.State.ONLINE.getCode())
                 return new ReturnObject<>(ResponseCode.COUPONACT_STATENOTALLOW);
-           List<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id,page,pageSize);
-           List<Long> skuIds=couponSkuPos.stream().map(couponSkuPo->couponSkuPo.getSkuId()).collect(Collectors.toList());
-           goodsService.ge
-
-
+            PageInfo<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id,page,pageSize);
+           List<Long> skuIds=couponSkuPos.getList().stream().map(couponSkuPo->couponSkuPo.getSkuId()).collect(Collectors.toList());
+           List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos=goodsService.getGoodsSkuListBySkuIdList(skuIds);
+            PageInfo<VoObject> returnObject = new PageInfo(goodsSkuSimpleRetVos);
+            returnObject.setPages(couponSkuPos.getPages());
+            returnObject.setPageNum(couponSkuPos.getPageNum());
+            returnObject.setPageSize(couponSkuPos.getPageSize());
+            returnObject.setTotal(couponSkuPos.getTotal());
+            return new ReturnObject<>(returnObject);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);

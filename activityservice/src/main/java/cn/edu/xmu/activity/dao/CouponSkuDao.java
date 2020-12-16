@@ -5,6 +5,7 @@ import cn.edu.xmu.activity.mapper.CouponSkuPoMapper;
 import cn.edu.xmu.activity.model.bo.CouponSku;
 import cn.edu.xmu.activity.model.po.CouponSkuPo;
 import cn.edu.xmu.activity.model.po.CouponSkuPoExample;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.Page;
@@ -75,15 +76,14 @@ public class CouponSkuDao implements InitializingBean {
      * @author: Feiyan Liu
      * @date: Created at 2020/11/30 22:17
      */
-    public List<CouponSkuPo> getCouponSkuListByActivityId(Long id,Integer page,Integer pageSize) {
+    public PageInfo<CouponSkuPo> getCouponSkuListByActivityId(Long id,Integer page,Integer pageSize) {
         PageHelper.startPage(page,pageSize);
         CouponSkuPoExample example = new CouponSkuPoExample();
         CouponSkuPoExample.Criteria criteria = example.createCriteria();
         criteria.andActivityIdEqualTo(id);
         List<CouponSkuPo> couponSkuPos = couponSkuMapper.selectByExample(example);
-
         logger.debug("getCouponSkuByActivityId: retCouponSku" + couponSkuPos);
-        return couponSkuPos;
+        return new PageInfo<>(couponSkuPos);
     }
 
     public List<CouponSkuPo> getCouponSkuListBySkuId(Long id) {
