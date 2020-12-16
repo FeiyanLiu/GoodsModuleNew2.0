@@ -247,15 +247,12 @@ public class CouponActivityService{
      */
     @Transactional
     
-    public ReturnObject getCouponActivityById(Long id,Long shopId) {
+    public ReturnObject getCouponActivityById(Long id) {
         try {
             CouponActivityPo po = couponActivityDao.getCouponActivityById(id);
             //若活动不存在
             if (po == null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-            //如果活动不属于本商店
-            if(po.getShopId()!=shopId)
-                return new ReturnObject<>(ResponseCode.AUTH_NOT_ALLOW);
             CouponActivity couponActivity = new CouponActivity(po);
             return new ReturnObject(couponActivity.createVo());
         } catch (Exception e) {
