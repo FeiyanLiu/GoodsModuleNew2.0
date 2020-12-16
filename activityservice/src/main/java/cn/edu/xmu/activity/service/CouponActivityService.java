@@ -10,7 +10,6 @@ import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.po.CouponPo;
 import cn.edu.xmu.activity.model.po.CouponSkuPo;
 import cn.edu.xmu.activity.model.vo.CouponStateVo;
-
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.ooad.model.VoObject;
@@ -32,6 +31,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -85,33 +85,18 @@ public class CouponActivityService{
         return new ReturnObject<>(states);
     }
     /**
-     * @param skuId
      * @param couponActivity
-     * @description:新建己方优惠活动 bug：要判断是否要插入优惠券 优惠券的生成形式还没设计 暂时是领一张生成一张
+     * @description:新建己方优惠活动 优惠券暂时是领一张生成一张
      * @return: cn.edu.xmu.ooad.util.ReturnObject
      * @author: Feiyan Liu
      * @date: Created at 2020/11/30 4:33
      */
     @Transactional
     
-    public ReturnObject createCouponActivity(Long shopId, Long skuId, CouponActivity couponActivity) {
+    public ReturnObject createCouponActivity(Long shopId, CouponActivity couponActivity) {
         ReturnObject ret = new ReturnObject();
-        //判断商品是否存在
         try {
-           GoodsSku goodsSku = goodsService.getSkuById(skuId);
-            if (goodsSku.getId() == null)
-               return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("新增优惠商品失败，优惠商品不存在 id：" + skuId));
-//            //判断商品是否属于此商铺
-//           if (goodsSku.getShop().getId() != shopId)
-//               return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE, String.format("创建优惠活动失败，商品非用户店铺的商品"));
-            //判断商品同一时段是否有其他活动（不同时间段有不同活动是可以的）
-            boolean result = (Boolean) checkCouponActivityParticipation(skuId, couponActivity.getBeginTime(), couponActivity.getEndTime()).getData();
-            if (result) {
-                logger.debug("the sku id=" + skuId + " already has another activity at the same time.");
-                return new ReturnObject<>(ResponseCode.SKU_PARTICIPATE);
-            }
-            CouponActivityPo newPo = couponActivityDao.addCouponActivity(couponActivity, skuId);
-            couponSkuDao.addCouponSku(skuId, newPo.getId());
+            CouponActivityPo newPo = couponActivityDao.addCouponActivity(couponActivity);
             couponActivity.setId(newPo.getId());
             VoObject retVo = couponActivity.createVo();
             return new ReturnObject(retVo);
@@ -428,6 +413,9 @@ public class CouponActivityService{
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
+    public static String randomUUID() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
     /**
      * @param userId
      * @param id
@@ -463,7 +451,7 @@ public class CouponActivityService{
                 CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                 couponDao.addCoupon(couponPo);
             }
-            //需要优惠券则需进行限量操作
+            //需要优惠券
             else {
                 //查询用户是否领过优惠券
                 boolean haveCoupon = couponDao.haveCoupon(userId, id);
@@ -473,7 +461,7 @@ public class CouponActivityService{
                 {
                     CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                     for (int i = 0; i < couponActivityPo.getQuantity(); i++)
-                        couponDao.addCoupon(couponPo);//这里返回值循环赋值？？？
+                        couponDao.addCoupon(couponPo);
                 } else if (quantityType == 1) {
                     //判断数量是否足够
                     String couponQuantity=redisTemplate.opsForValue().decrement("coupon_"+couponActivityPo.getId()).toString();
@@ -489,9 +477,9 @@ public class CouponActivityService{
                         CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                         couponDao.addCoupon(couponPo);
                     }
+                    //数量不够了
                     else
-                        redisTemplate.delete("coupon_"+couponActivityPo.getId());
-                    //用户领取完优惠券之后要减优惠券数量
+                        return new ReturnObject(ResponseCode.COUPON_FINISH);
                 }
             }
             return returnObject;
@@ -569,7 +557,7 @@ public class CouponActivityService{
      */
     private CouponPo createCoupon(Long userId, Long id, CouponActivityPo couponActivityPo) {
         CouponPo couponPo = new CouponPo();
-        couponPo.setCouponSn("1");//要设计sn的生成算法
+        couponPo.setCouponSn(randomUUID());
         couponPo.setCustomerId(userId);
         couponPo.setActivityId(id);
         if(couponActivityPo.getValidTerm()==0)

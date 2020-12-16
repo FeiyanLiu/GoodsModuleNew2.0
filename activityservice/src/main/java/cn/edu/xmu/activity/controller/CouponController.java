@@ -12,8 +12,12 @@ import cn.edu.xmu.ooad.util.Common;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ResponseUtil;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import cn.edu.xmu.otherservice.client.OtherService;
+import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +44,8 @@ public class CouponController {
     private CouponActivityService couponActivityService;
     @Autowired
     private HttpServletResponse httpServletResponse;
+    @DubboReference(check=false)
+    OtherService otherService;
 
     public enum Timeline {
         WAITING(0, "待上线"),
@@ -113,6 +119,55 @@ public class CouponController {
             return description;
         }
     }
+
+    @ApiOperation(value = "获取优惠券的所有状态")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit
+    @GetMapping("/coupons/states")
+    public Object getCouponAllState() {
+        ReturnObject returnObject = couponActivityService.getCouponAllState();
+        if (returnObject.getData() != null)
+            return ResponseUtil.ok(returnObject.getData());
+        else {
+            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
+        }
+    }
+
+    @ApiOperation(value = "管理员新建己方优惠活动")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name = "shopId", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(paramType = "body", dataType = "CouponActivityVo", name = "vo", value = "优惠活动信息", required = true)
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit
+    @PostMapping("/shops/{shopId}/couponactivities")
+    public Object addCouponActivity(@Validated @RequestBody CouponActivityVo vo, BindingResult bindingResult,
+                                    @PathVariable Long id, @PathVariable Long shopId) {
+        Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if (null != errors) {
+            return errors;
+        }
+        CustomerVo customerVo=new CustomerVo();
+        customerVo.setId(id);
+        customerVo.setUserName(otherService.getUserById(id).getUserName());
+        CouponActivity couponActivity = vo.createCouponActivity();
+        couponActivity.setCreatedBy(customerVo);
+        ReturnObject returnObject = couponActivityService.createCouponActivity(shopId, id, couponActivity);
+        if (returnObject.getData() != null) {
+            return ResponseUtil.ok(returnObject.getData());
+        } else {
+            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
+        }
+    }
+
     @ApiOperation(value = "查看优惠活动详情")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
@@ -134,33 +189,7 @@ public class CouponController {
             }
     }
 
-    @ApiOperation(value = "管理员新建己方优惠活动")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
-            @ApiImplicitParam(name = "shopId", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
-            @ApiImplicitParam(name = "id", value = "优惠商品id", required = true, dataType = "Integer", paramType = "path"),
-            @ApiImplicitParam(paramType = "body", dataType = "CouponActivityVo", name = "vo", value = "优惠活动信息", required = true)
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @Audit
-    @PostMapping("/shops/{shopId}/skus/{id}/couponactivities")
-    public Object addCouponActivity(@Validated @RequestBody CouponActivityVo vo, BindingResult bindingResult,
-                                    @PathVariable Long id, @PathVariable Long shopId) {
-        Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (null != errors) {
-            return errors;
-        }
-        CouponActivity couponActivity = vo.createCouponActivity();
-        //couponActivity.setCreatorId(userId);
-        ReturnObject returnObject = couponActivityService.createCouponActivity(shopId, id, couponActivity);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
-    }
+
 
     /**
      * @description:查看上线的列表 可以根据shopId查看 也可以指定timeline查看
@@ -401,22 +430,6 @@ public class CouponController {
         }
     }
 
-    @ApiOperation(value = "获取优惠券的所有状态")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @GetMapping("/coupons/states")
-    public Object getCouponAllState() {
-        ReturnObject returnObject = couponActivityService.getCouponAllState();
-        if (returnObject.getData() != null)
-            return ResponseUtil.ok(returnObject.getData());
-         else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
-    }
 
     @ApiOperation(value = "SPU上传图片",  produces="application/json")
     @ApiImplicitParams({

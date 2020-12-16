@@ -71,14 +71,13 @@ public class CouponActivityDao implements InitializingBean {
      * @author: Feiyan Liu
      * @date: Created at 2020/11/30 3:49
      */
-    public CouponActivityPo addCouponActivity(CouponActivity couponActivity, Long SkuId) {
+    public CouponActivityPo addCouponActivity(CouponActivity couponActivity) {
         CouponActivityPo couponActivityPo = couponActivity.createPo();
         try {
             couponActivityMapper.insert(couponActivityPo);
             //插入成功
             logger.debug("insertCouponActivity: insert couponActivity = " + couponActivityPo.toString());
         } catch (Exception e) {
-            couponActivityPo = null;
             logger.error("严重错误：" + e.getMessage());
         }
         return couponActivityPo;

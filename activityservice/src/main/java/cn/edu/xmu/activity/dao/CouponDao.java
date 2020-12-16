@@ -121,9 +121,7 @@ public void addCoupon(CouponPo po)
     String json = JacksonUtil.toJson(po);
     Message message = MessageBuilder.withPayload(json).build();
     logger.info("addCouponMessage: message = " + message);
-
     rocketMQTemplate.sendOneWay("coupon-topic:1", message);
-
 }
 
 public boolean haveCoupon(Long userId,Long activityId)

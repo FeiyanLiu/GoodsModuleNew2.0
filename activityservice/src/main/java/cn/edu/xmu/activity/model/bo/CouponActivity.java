@@ -4,7 +4,8 @@ package cn.edu.xmu.activity.model.bo;
 import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.vo.CouponActivityRetSimpleVo;
 import cn.edu.xmu.activity.model.vo.CouponActivityRetVo;
-import cn.edu.xmu.activity.model.vo.UserRetVo;
+
+import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -33,8 +34,8 @@ public class CouponActivity implements VoObject {
     LocalDateTime gmtCreated;
     LocalDateTime gmtModified;
     String img;
-    UserRetVo createdBy = new UserRetVo();
-    UserRetVo modifiedBy = new UserRetVo();
+    CustomerVo createdBy = new CustomerVo();
+    CustomerVo modifiedBy = new CustomerVo();
     Long shopId;
     private Logger logger = LoggerFactory.getLogger(CouponActivity.class);
     public CouponActivity(CouponActivityPo po) {
@@ -51,8 +52,8 @@ public class CouponActivity implements VoObject {
         this.gmtCreated = po.getGmtCreate();
         this.modifiedBy.setId(po.getModiBy());
         this.createdBy.setId(po.getCreatedBy());
-        this.modifiedBy.setName("哈哈");
-        this.createdBy.setName("哈哈哈");
+//        this.modifiedBy.setName(po.getc);
+//        this.createdBy.setName("哈哈哈");
         this.img=po.getImageUrl();
     }
 
