@@ -56,11 +56,12 @@ public class CouponActivityService {
     CouponSkuDao couponSkuDao;
     @Autowired
     CouponDao couponDao;
-    @DubboReference(check = false)
+    private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
+
+   @DubboReference(check=false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
     @Resource
     RocketMQTemplate rocketMQTemplate;
-    private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
     /**

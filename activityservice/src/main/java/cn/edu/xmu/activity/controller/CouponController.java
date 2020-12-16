@@ -371,6 +371,7 @@ public class CouponController {
     @Audit
     @DeleteMapping("/shops/{shopId}/couponactivities/{id}/skus")
     public Object deleteCouponSku(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
+
          ReturnObject returnObject = couponActivityService.deleteCouponSku(id,shopId);
             if (returnObject.getData() != null) {
                 return Common.getRetObject(returnObject);

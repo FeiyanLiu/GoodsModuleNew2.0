@@ -1,5 +1,6 @@
 package cn.edu.xmu.activity.model.bo;
 
+import cn.edu.xmu.activity.model.bo.CouponActivity;
 import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.po.CouponPo;
 import cn.edu.xmu.activity.model.vo.CouponRetVo;
@@ -64,6 +65,7 @@ public Coupon()
     public Coupon(CouponPo po, CouponActivityPo couponActivityPo)
     {
         this.id=po.getId();
+        this.customerId=po.getCustomerId();
         this.name=po.getName();
         this.couponSn=po.getCouponSn();
         CouponActivity couponActivity=new CouponActivity(couponActivityPo);

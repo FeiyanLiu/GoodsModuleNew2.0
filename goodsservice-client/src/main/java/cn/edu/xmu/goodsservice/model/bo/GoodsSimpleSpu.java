@@ -3,6 +3,7 @@ package cn.edu.xmu.goodsservice.model.bo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
  * @create 2020-12-16 13:59
  */
 @Data
-public class GoodsSimpleSpu {
+public class GoodsSimpleSpu implements Serializable {
     private Long id;
     private String name;
     private String goodsSn;
