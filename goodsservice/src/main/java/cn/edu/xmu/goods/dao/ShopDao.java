@@ -52,6 +52,20 @@ public class ShopDao implements InitializingBean{
 
     }
 
+    /**
+    * @Description: IDlist得到shoplist
+    * @Param: [lst]
+    * @return: java.util.List<cn.edu.xmu.goods.model.po.ShopPo>
+    * @Author: Yancheng Lai
+    * @Date: 2020/12/16 17:01
+    */
+    public List<ShopPo> getShopPoListByIdList(List<Long> lst){
+        ShopPoExample example = new ShopPoExample();
+        ShopPoExample.Criteria criteria = example.createCriteria();
+        criteria.andIdIn(lst);
+        List<ShopPo> spo = shopPoMapper.selectByExample(example);
+        return spo;
+    }
 
     /**
      * @Description 检查店铺名是否重复

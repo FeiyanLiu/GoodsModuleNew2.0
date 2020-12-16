@@ -415,6 +415,35 @@ public class GoodsSkuDao {
         return goodsSkus;
     }
 
+    /** 
+    * @Description: 用skuid列表查shopid列表 
+    * @Param: [ids] 
+    * @return: java.util.List<java.lang.Long> 
+    * @Author: Yancheng Lai
+    * @Date: 2020/12/16 17:11
+    */
+    public List<Long>getShopIdListBySkuIdList(List<Long> ids){
+        GoodsSkuPoExample example = new GoodsSkuPoExample();
+        GoodsSkuPoExample.Criteria criteria = example.createCriteria();
+        criteria.andIdIn(ids);
+        List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(example);
+        List<Long> spuIds = new ArrayList<>();
+        for (GoodsSkuPo goodsSkuPo: goodsSkuPos){
+            spuIds.add(goodsSkuPo.getGoodsSpuId());
+        }
+
+        GoodsSpuPoExample eexample = new GoodsSpuPoExample();
+        GoodsSpuPoExample.Criteria ccriteria = eexample.createCriteria();
+        criteria.andIdIn(spuIds);
+        List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(eexample);
+
+        List<Long> shopIds = new ArrayList<>();
+        for (GoodsSkuPo goodsSkuPo: goodsSkuPos){
+            shopIds.add(goodsSkuPo.getGoodsSpuId());
+        }
+        return shopIds;
+    }
+
     public List<Long> getSkuIdListByShopId(Long shopId){
         GoodsSpuPoExample example = new GoodsSpuPoExample();
         GoodsSpuPoExample.Criteria criteria = example.createCriteria();

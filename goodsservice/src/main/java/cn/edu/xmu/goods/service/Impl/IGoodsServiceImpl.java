@@ -11,11 +11,16 @@ import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
+import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
 @DubboService
 public class IGoodsServiceImpl implements IGoodsService {
 
@@ -91,4 +96,20 @@ public class IGoodsServiceImpl implements IGoodsService {
         return goodsSimpleSpu;
     }
 
+    @Override
+    public List<ShopVo> getShopVoBySkuIdList(List<Long> ids) {
+        List<ShopVo> shopVos= new ArrayList<>();
+        List<Long> lst = goodsSkuDao.getShopIdListBySkuIdList(ids);
+        List<ShopPo> shopPos = shopDao.getShopPoListByIdList(lst);
+        for(ShopPo shopPo : shopPos){
+            ShopVo shopVo = new ShopVo();
+            shopVo.setShopName(shopPo.getName());
+            shopVo.setGmtModified(shopPo.getGmtModified());
+            shopVo.setGmtCreate(shopPo.getGmtCreate());
+            shopVo.setState(shopPo.getState());
+            shopVo.setId(shopPo.getId());
+            shopVos.add(shopVo);
+        }
+        return shopVos;
+    }
 }
