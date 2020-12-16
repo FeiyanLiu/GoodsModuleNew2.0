@@ -280,9 +280,6 @@ public class CouponController {
     @Audit
     @GetMapping("/shops/{shopId}/couponactivities/{id}")
     public Object getCouponActivity(@PathVariable("shopId") Long shopId, @PathVariable("id") Long id, @Depart Long departId) {
-        if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
-
         ReturnObject returnObject = couponActivityService.getCouponActivityById(id,shopId);
         if (returnObject.getData() != null) {
             return ResponseUtil.ok(returnObject.getData());
@@ -305,8 +302,6 @@ public class CouponController {
     @PutMapping("/shops/{shopId}/couponactivities/{id}")
     public Object updateCouponActivity(@PathVariable Long shopId, @PathVariable Long id,
                                        @Validated @RequestBody CouponActivitySimpleVo vo,@LoginUser Long userId) {
-        if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
         CouponActivity couponActivity = vo.createCouponActivity();
         couponActivity.setId(id);
         couponActivity.setGmtModified(LocalDateTime.now());
@@ -332,9 +327,7 @@ public class CouponController {
     @Audit
     @DeleteMapping("/shops/{shopId}/couponactivities/{id}")
     public Object deleteCouponActivity(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
-        if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
-        ReturnObject returnObject = couponActivityService.deleteCouponActivity(departId,id);
+         ReturnObject returnObject = couponActivityService.deleteCouponActivity(departId,id);
             if (returnObject.getData() != null) {
                 return Common.getRetObject(returnObject);
             } else {
@@ -378,9 +371,8 @@ public class CouponController {
     @Audit
     @DeleteMapping("/shops/{shopId}/couponactivities/{id}/skus")
     public Object deleteCouponSku(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
-        if(!couponActivityService.checkCouponActivityShop(shopId, id))
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
-        ReturnObject returnObject = couponActivityService.deleteCouponSku(id,shopId);
+
+         ReturnObject returnObject = couponActivityService.deleteCouponSku(id,shopId);
             if (returnObject.getData() != null) {
                 return Common.getRetObject(returnObject);
             } else {
@@ -392,6 +384,8 @@ public class CouponController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(paramType = "query", dataType = "Integer", name = "优惠券状态", value = "state", required = true),
+            @ApiImplicitParam(paramType = "query", name = "page", value = "页码", dataType = "Integer"),
+            @ApiImplicitParam(paramType = "query", name = "pageSize", value = "每页数目", dataType = "Integer")
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -429,7 +423,7 @@ public class CouponController {
 //            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
 //        }
 //    }
-    @ApiOperation(value = "用户领取优惠券")
+    @ApiOperation(value = "买家领取优惠券")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "id", value = "优惠活动id", required = true, dataType = "Array", paramType = "path"),
@@ -465,9 +459,6 @@ public class CouponController {
     public Object putCouponActivityOnShelves(@PathVariable("shopId") Long shopId,
                             @PathVariable("id") Long id){
 
-//        if(goodsSpuService.checkSpuIdInShop(shopId,id)==false){
-//            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
-//        }
         ReturnObject returnObject = couponActivityService.putCouponActivityOnShelves(shopId, id);
         return Common.decorateReturnObject(returnObject);
     }
@@ -485,10 +476,6 @@ public class CouponController {
     @PutMapping("/shops/{shopId}/couponactivities/{id}/offshelves")
     public Object putCouponActivityOffShelves(@PathVariable("shopId") Long shopId,
                             @PathVariable("id") Long id){
-
-//        if(goodsSpuService.checkSpuIdInShop(shopId,id)==false){
-//            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
-//        }
         ReturnObject returnObject = couponActivityService.putCouponActivityOffShelves(shopId, id);
         return Common.decorateReturnObject(returnObject);
     }

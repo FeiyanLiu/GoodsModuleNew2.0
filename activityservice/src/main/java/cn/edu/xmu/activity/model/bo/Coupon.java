@@ -1,5 +1,6 @@
 package cn.edu.xmu.activity.model.bo;
 
+import cn.edu.xmu.activity.model.bo.CouponActivity;
 import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.po.CouponPo;
 import cn.edu.xmu.activity.model.vo.CouponRetVo;

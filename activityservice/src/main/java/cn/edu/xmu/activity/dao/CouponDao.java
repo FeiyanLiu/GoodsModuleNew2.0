@@ -116,42 +116,25 @@ public class CouponDao implements InitializingBean {
         }
         return po;
     }
-public void addCoupon(CouponPo po)
-{
-    String json = JacksonUtil.toJson(po);
-    Message message = MessageBuilder.withPayload(json).build();
-    logger.info("addCouponMessage: message = " + message);
-    rocketMQTemplate.sendOneWay("coupon-topic:1", message);
-}
 
-public boolean haveCoupon(Long userId,Long activityId)
-{
-    CouponPoExample example=new CouponPoExample();
-    CouponPoExample.Criteria criteria=example.createCriteria();
-    criteria.andCustomerIdEqualTo(userId);
-    criteria.andActivityIdEqualTo(activityId);
-    boolean havaCoupon=false;
-    List<CouponPo> couponPos=couponMapper.selectByExample(example);
-    havaCoupon=!couponPos.isEmpty();
-    return havaCoupon;
-}
-public ReturnObject deleteCouponByActivityId(Long id)
-{
-    CouponPoExample example=new CouponPoExample();
-    CouponPoExample.Criteria criteria=example.createCriteria();
-    criteria.andActivityIdEqualTo(id);
-    criteria.andStateBetween((byte)Coupon.State.NOT_CLAIMED.getCode(),(byte)Coupon.State.CLAIMED.getCode());
-    try{
-        List<CouponPo> couponPos=couponMapper.selectByExample(example);
-        for(CouponPo po:couponPos)
-        {
-            couponMapper.deleteByPrimaryKey(po.getId());
+
+   public ReturnObject deleteCouponByActivityId(Long id)
+    {
+        CouponPoExample example=new CouponPoExample();
+        CouponPoExample.Criteria criteria=example.createCriteria();
+        criteria.andActivityIdEqualTo(id);
+        criteria.andStateBetween((byte)Coupon.State.NOT_CLAIMED.getCode(),(byte)Coupon.State.CLAIMED.getCode());
+        try{
+            List<CouponPo> couponPos=couponMapper.selectByExample(example);
+            for(CouponPo po:couponPos)
+            {
+                couponMapper.deleteByPrimaryKey(po.getId());
+            }
         }
+        catch (Exception e) {
+            logger.error("发生了严重的服务器内部错误：" + e.getMessage());
+        }
+        return null;
     }
-    catch (Exception e) {
-        logger.error("发生了严重的服务器内部错误：" + e.getMessage());
-    }
-    return null;
-}
 
 }
