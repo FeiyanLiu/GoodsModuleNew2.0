@@ -112,10 +112,10 @@ public class CouponSkuDao implements InitializingBean {
         try {
             int ret = couponSkuMapper.deleteByPrimaryKey(id);
             if (ret == 0) {
-                logger.debug("deleteCouponActivity: delete fail. user id: " + id);
+                logger.debug("deleteCouponSku: delete couponSku fail id: " + id);
                 returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             } else {
-                logger.debug("deleteCouponActivity: delete user success id: " + id);
+                logger.debug("deleteCouponSku: delete couponSku success id: " + id);
                 returnObject = new ReturnObject();
             }
         } catch (Exception e) {
