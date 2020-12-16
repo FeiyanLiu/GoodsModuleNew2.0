@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-@DubboService(version = "2.7.8")
+@DubboService(version = "2.7.8",group = "goods-service")
 public class IGoodsServiceImpl implements IGoodsService {
 
     @Autowired

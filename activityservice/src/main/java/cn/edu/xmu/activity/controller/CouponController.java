@@ -283,7 +283,7 @@ public class CouponController {
         if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
 
-        ReturnObject returnObject = couponActivityService.getCouponActivityById(id);
+        ReturnObject returnObject = couponActivityService.getCouponActivityById(id,shopId);
         if (returnObject.getData() != null) {
             return ResponseUtil.ok(returnObject.getData());
         } else {
@@ -380,7 +380,7 @@ public class CouponController {
     public Object deleteCouponSku(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
         if(!couponActivityService.checkCouponActivityShop(shopId, id))
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
-        ReturnObject returnObject = couponActivityService.deleteCouponSku(id);
+        ReturnObject returnObject = couponActivityService.deleteCouponSku(id,shopId);
             if (returnObject.getData() != null) {
                 return Common.getRetObject(returnObject);
             } else {

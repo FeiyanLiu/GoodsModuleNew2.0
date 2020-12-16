@@ -2,8 +2,8 @@ package cn.edu.xmu.activity.model.bo;
 
 import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.po.CouponPo;
-import cn.edu.xmu.activity.model.vo.CouponRetSimpleVo;
 import cn.edu.xmu.activity.model.vo.CouponRetVo;
+import cn.edu.xmu.activity.model.vo.CouponSimpleRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -78,6 +78,6 @@ public Coupon()
 
     @Override
     public VoObject createSimpleVo() {
-        return new CouponRetSimpleVo(this);
+        return new CouponSimpleRetVo(this);
     }
 }

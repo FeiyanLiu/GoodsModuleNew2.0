@@ -52,7 +52,7 @@ public class CouponActivityService{
     CouponDao couponDao;
     private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
 
-   @DubboReference(check=false)
+   @DubboReference(check=false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
     @Autowired
     RedisTemplate redisTemplate;

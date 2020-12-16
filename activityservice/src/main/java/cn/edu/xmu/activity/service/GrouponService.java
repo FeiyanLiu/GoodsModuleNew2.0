@@ -36,7 +36,7 @@ public class GrouponService {
     @Autowired
     GrouponDao grouponDao;
 
-    @DubboReference(check = false)
+    @DubboReference(check = false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
 
     /**

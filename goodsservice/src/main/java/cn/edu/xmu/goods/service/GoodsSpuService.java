@@ -57,8 +57,8 @@ public class GoodsSpuService{
     @Autowired
     GoodsCategoryDao goodsCategoryDao;
 
-//    @DubboReference(check = false)
-//    OrderService orderService;
+    @DubboReference(check = false)
+    OrderService orderService;
 
     //@Autowired
     //ShopService shopService;

@@ -9,7 +9,7 @@ import org.apache.dubbo.config.annotation.DubboService;
  * @date Created at 2020/12/14 21:55
  */
 
-@DubboService(version = "2.7.8")
+@DubboService(version = "2.7.8",group = "activity-service")
 public class IActivityServiceImpl implements IActivityService {
     @Override
     public Long getFlashSalePriceBySkuId(Long id) {
