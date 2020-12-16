@@ -172,7 +172,7 @@ public class GoodsSpuService{
             vo.setId(id);
             return goodsSpuDao.updateSpu(vo);
         } else {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
     }
 

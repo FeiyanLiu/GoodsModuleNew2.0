@@ -312,7 +312,6 @@ public class GoodsSkuService {
     @Transactional
     public Boolean deductStock(List<OrderItemVo> vo) {
         for(OrderItemVo itemVo: vo){
-            logger.info("s: check for "+itemVo.getSkuId());
             ReturnObject ret = goodsSkuDao.checkStock(itemVo.getSkuId(),itemVo.getQuantity());
             if(ret.getCode() == ResponseCode.OK){
                 continue;

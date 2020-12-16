@@ -332,6 +332,12 @@ public class GoodsServiceController {
     @Audit
     @DeleteMapping("/shops/{shopId}/skus/{id}")
     public Object revokeSku(@PathVariable Long shopId, @PathVariable Long id){
+        ReturnObject ret = goodsSkuService.revokeSku(shopId, id);
+        if(ret.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+            return new ResponseEntity(
+                    ResponseUtil.fail(ret.getCode(), ret.getErrmsg()),
+                    HttpStatus.FORBIDDEN);
+        }
         return Common.decorateReturnObject(goodsSkuService.revokeSku(shopId, id));
     }
 
@@ -357,10 +363,9 @@ public class GoodsServiceController {
     })
     //@Audit
     @PostMapping("/shops/{shopId}/spus/{id}/skus")
-    public Object insertSku(@Validated @RequestBody GoodsSkuVo vo, BindingResult bindingResult,
+    public Object createSKU(@Validated @RequestBody GoodsSkuVo vo, BindingResult bindingResult,
                              @PathVariable("shopId") Long shopId,
                              @PathVariable("id") Long id) {
-
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             logger.info("validate fail");
@@ -370,7 +375,6 @@ public class GoodsServiceController {
         ReturnObject<GoodsSkuSimpleRetVo> retObject = goodsSkuService.insertGoodsSku(goodsSku, shopId, id);
         if (retObject.getData() != null) {
             httpServletResponse.setStatus(HttpStatus.CREATED.value());
-            //return Common.getRetObject(retObject);
             ResponseCode code = retObject.getCode();
             switch (code){
                 case OK:
@@ -421,7 +425,11 @@ public class GoodsServiceController {
 
         GoodsSku goodsSku = new GoodsSku(vo);
         ReturnObject<VoObject> returnObject = goodsSkuService.updateSku(goodsSku, shopId, id);
-
+        if(returnObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.FORBIDDEN);
+        }
         if (returnObject.getCode() == ResponseCode.OK) {
             return Common.decorateReturnObject(returnObject);
         } else {
@@ -568,7 +576,13 @@ public class GoodsServiceController {
     @Audit
     @DeleteMapping("/shops/{shopId}/spus/{id}")
     public Object revokeSpu(@PathVariable Long shopId, @PathVariable Long id){
-        return Common.decorateReturnObject(goodsSpuService.revokeSpu(shopId, id));
+        ReturnObject returnObject = goodsSpuService.revokeSpu(shopId, id);
+        if(returnObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.FORBIDDEN);
+        }
+        return Common.decorateReturnObject(returnObject);
     }
 
 
@@ -589,7 +603,11 @@ public class GoodsServiceController {
                              HttpServletResponse httpServletResponse){
 
         ReturnObject<VoObject> returnObject = goodsSkuService.updateSkuOnShelves(shopId, id);
-
+        if(returnObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.FORBIDDEN);
+        }
         if (returnObject.getCode() == ResponseCode.OK) {
             return Common.decorateReturnObject(returnObject);
         } else {
@@ -613,10 +631,12 @@ public class GoodsServiceController {
                                      HttpServletResponse httpServletResponse){
 
         ReturnObject<VoObject> returnObject = goodsSkuService.updateSkuOffShelves(shopId, id);
-
-        if (returnObject.getCode() == ResponseCode.OK) {
-            return Common.decorateReturnObject(returnObject);
-        } else {
+        if(returnObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.FORBIDDEN);
+        }
+         else {
             return Common.decorateReturnObject(returnObject);
         }
     }
@@ -651,8 +671,14 @@ public class GoodsServiceController {
         ReturnObject<VoObject> retObject = brandService.insertGoodsBrand(shopId, spuId,id);
         if (retObject.getData() != null) {
             httpServletResponse.setStatus(HttpStatus.CREATED.value());
+
             return Common.decorateReturnObject(retObject);
         } else {
+            if(retObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+                return new ResponseEntity(
+                        ResponseUtil.fail(retObject.getCode(), retObject.getErrmsg()),
+                        HttpStatus.FORBIDDEN);
+            }
             return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
         }
     }
@@ -687,9 +713,16 @@ public class GoodsServiceController {
 
         ReturnObject<VoObject> retObject = brandService.deleteGoodsBrand(shopId, spuId,id);
         if (retObject.getData() != null) {
+
             httpServletResponse.setStatus(HttpStatus.CREATED.value());
+
             return Common.decorateReturnObject(retObject);
         } else {
+            if(retObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+                return new ResponseEntity(
+                        ResponseUtil.fail(retObject.getCode(), retObject.getErrmsg()),
+                        HttpStatus.FORBIDDEN);
+            }
             return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
         }
     }
@@ -713,7 +746,10 @@ public class GoodsServiceController {
                                @PathVariable("shopId") Long shopId,
                                @PathVariable("id") Long id){
         if(goodsSkuService.checkSkuIdInShop(shopId,id)==false){
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
+            ReturnObject ret = new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+            return new ResponseEntity(
+                    ResponseUtil.fail(ret.getCode(), ret.getErrmsg()),
+                    HttpStatus.FORBIDDEN);
         }
         ReturnObject returnObject = goodsSkuService.uploadSkuImg(id, shopId,multipartFile);
         return Common.decorateReturnObject(returnObject);
@@ -741,7 +777,10 @@ public class GoodsServiceController {
                                @PathVariable("id") Long id){
 
         if(goodsSpuService.checkSpuIdInShop(shopId,id)==false){
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
+            ReturnObject ret = new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+            return new ResponseEntity(
+                    ResponseUtil.fail(ret.getCode(), ret.getErrmsg()),
+                    HttpStatus.FORBIDDEN);
         }
         ReturnObject returnObject = goodsSpuService.uploadSpuImg(id, multipartFile);
         return Common.decorateReturnObject(returnObject);
@@ -803,6 +842,11 @@ public class GoodsServiceController {
             httpServletResponse.setStatus(HttpStatus.CREATED.value());
             return Common.decorateReturnObject(retObject);
         } else {
+            if(retObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+                return new ResponseEntity(
+                        ResponseUtil.fail(retObject.getCode(), retObject.getErrmsg()),
+                        HttpStatus.FORBIDDEN);
+            }
             return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
         }
     }
@@ -840,6 +884,11 @@ public class GoodsServiceController {
             httpServletResponse.setStatus(HttpStatus.CREATED.value());
             return Common.decorateReturnObject(retObject);
         } else {
+            if(retObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+                return new ResponseEntity(
+                        ResponseUtil.fail(retObject.getCode(), retObject.getErrmsg()),
+                        HttpStatus.FORBIDDEN);
+            }
             return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
         }
     }
