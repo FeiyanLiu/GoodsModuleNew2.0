@@ -6,7 +6,7 @@ import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 
 import java.util.List;
 
-public interface OtherForGoodsService {
+public interface OtherService {
     /**
      * @description:根据用户id获得UserSimpleRetVo 属性为id和name
      * @author: Feiyan Liu
