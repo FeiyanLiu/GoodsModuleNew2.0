@@ -1,4 +1,4 @@
-package cn.edu.xmu.goods.service;
+package cn.edu.xmu.goods.service.Impl;
 
 
 import cn.edu.xmu.goods.dao.GoodsSkuDao;
@@ -7,6 +7,7 @@ import cn.edu.xmu.goods.dao.ShopDao;
 import cn.edu.xmu.goods.model.po.GoodsSkuPo;
 import cn.edu.xmu.goods.model.po.GoodsSpuPo;
 import cn.edu.xmu.goods.model.po.ShopPo;
+import cn.edu.xmu.goods.service.GoodsSkuService;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;

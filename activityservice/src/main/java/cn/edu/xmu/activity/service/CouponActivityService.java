@@ -56,13 +56,12 @@ public class CouponActivityService {
     CouponSkuDao couponSkuDao;
     @Autowired
     CouponDao couponDao;
-    private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
-
-   @DubboReference(check=false,version = "2.7.8",group = "goods-service")
+    @DubboReference(check = false)
     IGoodsService goodsService;
     @Resource
     RocketMQTemplate rocketMQTemplate;
-    @Autowired
+    private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
+    @Resource
     private RedisTemplate<String, Serializable> redisTemplate;
     /**
      * @author 24320182203218
@@ -386,6 +385,7 @@ public class CouponActivityService {
         }
         return new ReturnObject();
     }
+
 
     /**
      * @param id
