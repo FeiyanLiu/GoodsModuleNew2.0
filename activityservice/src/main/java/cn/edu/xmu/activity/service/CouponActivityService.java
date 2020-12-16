@@ -250,12 +250,14 @@ public class CouponActivityService{
      */
     @Transactional
     
-    public ReturnObject getCouponActivityById(Long id) {
+    public ReturnObject getCouponActivityById(Long id,Long shopId) {
         try {
             CouponActivityPo po = couponActivityDao.getCouponActivityById(id);
             //若活动不存在
             if (po == null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            if(po.getShopId()!=shopId)
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             CouponActivity couponActivity = new CouponActivity(po);
             return new ReturnObject(couponActivity.createVo());
         } catch (Exception e) {
@@ -375,7 +377,7 @@ public class CouponActivityService{
      */
     @Transactional
     
-    public ReturnObject deleteCouponSku(Long id) {
+    public ReturnObject deleteCouponSku(Long id,Long shopId) {
         try {
             CouponSkuPo couponSkuPo = couponSkuDao.getCouponSkuById(id);
             if (couponSkuPo == null)
@@ -450,11 +452,10 @@ public class CouponActivityService{
                 CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                 couponDao.addCoupon(couponPo);
             }
-            //需要优惠券
+            //限量优惠券
             else {
                 //查询用户是否领过优惠券
-                boolean haveCoupon = couponDao.haveCoupon(userId, id);
-                if (haveCoupon)
+                if(redisTemplate.hasKey("coupon_"+id+"_"+userId))
                     return new ReturnObject<>(ResponseCode.USER_HASCOUPON);
                 if (quantityType == 0)//每人数量
                 {
@@ -463,15 +464,15 @@ public class CouponActivityService{
                         couponDao.addCoupon(couponPo);
                 } else if (quantityType == 1) {
                     //判断数量是否足够
-                    String couponQuantity=redisTemplate.opsForValue().decrement("coupon_"+couponActivityPo.getId()).toString();
-                    //如果redis中没有 是第一次访问
+                    Long couponQuantity=redisTemplate.opsForValue().decrement("coupon_"+couponActivityPo.getId());
+                    //如果redis中没有 是第一位领券的
                     if(couponQuantity==null)
                     {
                         redisTemplate.opsForValue().set("coupon_"+couponActivityPo.getId(),couponActivityPo.getQuantity()-1);
                         CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                         couponDao.addCoupon(couponPo);
                     }
-                    else if(Long.parseLong(couponQuantity)>=0)
+                    else if(couponQuantity>=0)
                     {
                         CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                         couponDao.addCoupon(couponPo);
