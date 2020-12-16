@@ -80,13 +80,12 @@ public class GoodsSpu implements VoObject, Serializable {
     }
 
 
-    //Spec转换还要做
     public GoodsSpu(GoodsSpuRetVo goodsSpuRetVo){
         this.setBrandId(goodsSpuRetVo.getBrand().getId());
         this.setCategoryId(goodsSpuRetVo.getCategory().getId());
         this.setDetail(goodsSpuRetVo.getDetail());
         this.setDisabled(goodsSpuRetVo.getDisabled());
-        this.setFreightId(goodsSpuRetVo.getFreightId());
+        this.setFreightId(goodsSpuRetVo.getFreightModel().getId());
         this.setId(goodsSpuRetVo.getId());
         this.setImageUrl(goodsSpuRetVo.getImageUrl());
         this.setName(goodsSpuRetVo.getName());

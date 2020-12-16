@@ -28,6 +28,8 @@ public class GoodsCategoryDao {
     @Autowired
     GoodsCategoryPoMapper goodsCategoryPoMapper;
 
+    @Autowired
+    GoodsSpuDao goodsSpuDao;
     /**
      * @Author：谢沛辰
      * @Date: 2020/12/8
@@ -111,9 +113,11 @@ public class GoodsCategoryDao {
                 List<GoodsCategoryPo> needToModified=media.getData();
                 for(int i=0;i<needToModified.size();i++){
                     tool=needToModified.get(i);
-                    tool.setPid((long) 0);
-                    goodsCategoryPoMapper.updateByPrimaryKey(tool);
+//                    tool.setPid((long) 0);
+                    ReturnObject r = goodsSpuDao.setCategoryIdDefault(id,0l);
+                    goodsCategoryPoMapper.deleteByPrimaryKey(tool.getId());
                 }
+
                 retObj=new ReturnObject<>();
             }
         }

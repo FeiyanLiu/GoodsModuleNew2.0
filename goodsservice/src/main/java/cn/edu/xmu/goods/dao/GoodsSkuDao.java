@@ -415,6 +415,15 @@ public class GoodsSkuDao {
         return goodsSkus;
     }
 
+    public List<GoodsSkuPo>getGoodsSkuPoListBySkuIdList(List<Long> skuIds){
+        GoodsSkuPoExample example = new GoodsSkuPoExample();
+        GoodsSkuPoExample.Criteria criteria = example.createCriteria();
+        criteria.andIdIn(skuIds);
+
+        List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(example);
+        return goodsSkuPos;
+    }
+
     /** 
     * @Description: 用skuid列表查shopid列表 
     * @Param: [ids] 

@@ -1,6 +1,7 @@
 package cn.edu.xmu.goods.model.vo;
 
 import cn.edu.xmu.goods.model.bo.*;
+import cn.edu.xmu.orderservice.model.bo.FreightModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import io.swagger.models.auth.In;
@@ -32,8 +33,8 @@ public class GoodsSpuRetVo {
     private BrandSimpleRetVo brand;
     @ApiModelProperty(value = "种类")
     private GoodsCategorySimpleVo category;
-    @ApiModelProperty(value = "运费模板id")
-    private Long freightId;
+//    @ApiModelProperty(value = "运费模板id")
+//    private Long freightId;
     @ApiModelProperty(value = "店铺")
     private ShopSimpleVo shop;
     @ApiModelProperty(value = "商品条码")
@@ -42,7 +43,8 @@ public class GoodsSpuRetVo {
     private String detail;
     @ApiModelProperty(value = "商品图片链接")
     private String imageUrl;
-
+    @ApiModelProperty(value = "运费模板")
+    private FreightModel freightModel;
     @ApiModelProperty(value = "规格")
     private Spec spec;
     @ApiModelProperty(value = "Sku")
@@ -66,7 +68,7 @@ public class GoodsSpuRetVo {
     public GoodsSpuRetVo(GoodsSpu goodsSpu){
         this.setId(goodsSpu.getId());
         this.setName(goodsSpu.getName());
-        this.setFreightId(goodsSpu.getFreightId());
+        //this.setFreightId(goodsSpu.getFreightId());
         this.setGoodsSn(goodsSpu.getGoodsSn());
         this.setDetail(goodsSpu.getDetail());
         this.setImageUrl(goodsSpu.getImageUrl());

@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author Yancheng Lai
  * createdBy Yancheng Lai 2020/12/1 21:40
@@ -12,7 +14,7 @@ import lombok.Data;
  **/
 @Data
 @ApiModel(description = "商品SKU简略视图对象")
-public class GoodsSkuSimpleRetVo {
+public class GoodsSkuSimpleRetVo implements Serializable {
     @ApiModelProperty(value = "Skuid")
     private Long id;
     @ApiModelProperty(value = "Sku条码")
@@ -48,4 +50,6 @@ public class GoodsSkuSimpleRetVo {
         //this.price = goodSku.getPrice();
         this.setSkuSn ( goodSku.getSkuSn());
     }
+
+    public GoodsSkuSimpleRetVo(){}
 }

@@ -225,13 +225,14 @@ public class CouponActivityService{
                 return new ReturnObject<>(ResponseCode.COUPONACT_STATENOTALLOW);
            List<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id,page,pageSize);
            List<Long> skuIds=couponSkuPos.stream().map(couponSkuPo->couponSkuPo.getSkuId()).collect(Collectors.toList());
-           goodsService.ge
+           //goodsService.ge
 
 
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
+        return new ReturnObject<>();
     }
     /**
      * @param id
