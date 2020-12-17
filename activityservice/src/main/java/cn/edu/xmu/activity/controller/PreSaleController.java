@@ -91,6 +91,9 @@ public class PreSaleController {
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
         logger.debug("selectAllPreSale: shopId = " + shopId + " timeline = " + timeline + "spuId = " + spuId + " page = " + page + "  pageSize =" + pageSize);
+        //校验timeline
+        if(!(timeline==null||timeline==0||timeline==1||timeline==2||timeline==3))
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         ReturnObject<PageInfo<VoObject>> returnObject = preSaleService.selectAllPreSale(shopId, timeline, shopId, page, pageSize);
         if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
             return Common.getPageRetObject(returnObject);

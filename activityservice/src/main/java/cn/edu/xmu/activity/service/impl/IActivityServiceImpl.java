@@ -1,4 +1,4 @@
-package cn.edu.xmu.activity.service.Impl;
+package cn.edu.xmu.activity.service.impl;
 
 
 import cn.edu.xmu.activity.dao.FlashSaleDao;

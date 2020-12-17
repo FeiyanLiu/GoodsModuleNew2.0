@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotBlank;
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -202,13 +203,17 @@ public class CouponController {
     @GetMapping("/couponactivities")
     public Object getOnlineCouponActivity(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize,
                                           @RequestParam(required = false) Long shopId, @RequestParam(required = false) Integer timeline) {
+        //校验timeline
+        if(!(timeline==null||timeline==0||timeline==1||timeline==2||timeline==3))
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
         LocalDateTime beginTime=null;
         LocalDateTime endTime=null;
         if(timeline!=null)
-        { beginTime= Timeline.getBeginTimeByCode(timeline);
-           endTime= Timeline.getEndTimeByCode(timeline);
+        {
+            beginTime= Timeline.getBeginTimeByCode(timeline);
+            endTime= Timeline.getEndTimeByCode(timeline);
         }
         ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getOnlineCouponActivities(shopId, beginTime,endTime, page, pageSize);
         return ResponseUtil.ok(returnObject.getData());
