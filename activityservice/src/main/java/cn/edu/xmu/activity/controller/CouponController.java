@@ -133,11 +133,7 @@ public class CouponController {
     @GetMapping("/coupons/states")
     public Object getCouponAllState() {
         ReturnObject returnObject = couponActivityService.getCouponAllState();
-        if (returnObject.getData() != null)
-            return ResponseUtil.ok(returnObject.getData());
-        else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        return Common.decorateReturnObject(returnObject);
     }
 
     @ApiOperation(value = "管理员新建己方优惠活动")
@@ -163,11 +159,7 @@ public class CouponController {
         CouponActivity couponActivity = vo.createCouponActivity();
         couponActivity.setCreatedBy(customerVo);
         ReturnObject returnObject = couponActivityService.createCouponActivity(shopId,couponActivity);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        return Common.decorateReturnObject(returnObject);
     }
 
 
@@ -241,7 +233,7 @@ public class CouponController {
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
         ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getInvalidCouponActivities(page, pageSize,id);
-        return ResponseUtil.ok(returnObject.getData());
+        return Common.decorateReturnObject(returnObject);
     }
 
     @ApiOperation(value = "查看优惠活动中的商品")
@@ -261,11 +253,7 @@ public class CouponController {
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
         ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getCouponSku(id, page, pageSize);
-        if (returnObject.getData() != null)
-            return ResponseUtil.ok(returnObject.getData());
-        else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        return Common.decorateReturnObject(returnObject);
     }
     @ApiOperation(value = "查看优惠活动详情")
     @ApiImplicitParams({
@@ -281,11 +269,7 @@ public class CouponController {
     @GetMapping("/shops/{shopId}/couponactivities/{id}")
     public Object getCouponActivity(@PathVariable("shopId") Long shopId, @PathVariable("id") Long id, @Depart Long departId) {
         ReturnObject returnObject = couponActivityService.getCouponActivityById(id,shopId);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        return Common.decorateReturnObject(returnObject);
     }
 
     @ApiOperation(value = "管理员修改己方优惠活动,下线状态才能修改")
@@ -307,11 +291,7 @@ public class CouponController {
         couponActivity.setGmtModified(LocalDateTime.now());
         //couponActivity.setModifiedBy(userId);
         ReturnObject returnObject = couponActivityService.updateCouponActivity(couponActivity);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        return Common.decorateReturnObject(returnObject);
     }
 
     @ApiOperation(value = "管理员删除己方优惠活动")
@@ -328,11 +308,7 @@ public class CouponController {
     @DeleteMapping("/shops/{shopId}/couponactivities/{id}")
     public Object deleteCouponActivity(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
          ReturnObject returnObject = couponActivityService.deleteCouponActivity(departId,id);
-            if (returnObject.getData() != null) {
-                return Common.getRetObject(returnObject);
-            } else {
-                return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-            }
+        return Common.decorateReturnObject(returnObject);
         }
 
     @ApiOperation(value = "管理员为己方优惠活动新增限定范围")
@@ -351,11 +327,7 @@ public class CouponController {
                                @Validated @RequestBody @NotBlank Long[] skuArray) {
 
             ReturnObject returnObject = couponActivityService.addCouponSku(shopId, skuArray, id);
-            if (returnObject.getData() != null) {
-                return Common.getRetObject(returnObject);
-            } else {
-                return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-            }
+        return Common.decorateReturnObject(returnObject);
     }
 
     @ApiOperation(value = "管理员删除己方优惠活动的某限定范围")
@@ -373,11 +345,7 @@ public class CouponController {
     public Object deleteCouponSku(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
 
          ReturnObject returnObject = couponActivityService.deleteCouponSku(id,shopId);
-            if (returnObject.getData() != null) {
-                return Common.getRetObject(returnObject);
-            } else {
-                return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-            }
+        return Common.decorateReturnObject(returnObject);
          }
 
     @ApiOperation(value = "买家查看优惠券列表")
@@ -397,11 +365,7 @@ public class CouponController {
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
         ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getCouponByUserId(id, state, page, pageSize);
-        if (returnObject.getData() != null)
-            return ResponseUtil.ok(returnObject.getData());
-        else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        return Common.decorateReturnObject(returnObject);
     }
 //    内部API
 //    @ApiOperation(value = "买家使用优惠券")
@@ -436,11 +400,8 @@ public class CouponController {
     @PostMapping("/couponactivities/{id}/usercoupons")
     public Object userGetCoupon(@PathVariable Long id, @LoginUser Long userId) {
         ReturnObject returnObject = couponActivityService.getCoupon(userId,id);
-        if (returnObject.getData() != null) {
-            return Common.getRetObject(returnObject);
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        return Common.decorateReturnObject(returnObject);
+
     }
 
 

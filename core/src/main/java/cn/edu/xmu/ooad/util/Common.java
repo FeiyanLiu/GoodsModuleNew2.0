@@ -197,6 +197,22 @@ public class Common {
                 }else{
                     return ResponseUtil.ok();
                 }
+            case RESOURCE_ID_OUTSCOPE:
+                //505:访问的资源不属于自己
+            case COUPON_NOTBEGIN:
+                //未到领券时间
+            case SKU_PARTICIPATE:
+                //商品已经参加了活动
+            case GROUPON_STATENOTALLOW:
+                //团购状态禁止
+            case PRESALE_STATENOTALLOW:
+                //预售状态禁止
+            case COUPON_FINISH:
+                //优惠券被领完了
+            case COUPONACT_STATENOTALLOW:
+                return new ResponseEntity(
+                        ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                        HttpStatus.FORBIDDEN);
             default:
                 return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
         }
