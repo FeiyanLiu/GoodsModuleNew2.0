@@ -1,5 +1,6 @@
 package cn.edu.xmu.activity.controller;
 
+import cn.edu.xmu.activity.model.vo.FlashSaleRetItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
 import cn.edu.xmu.activity.service.FlashSaleService;
@@ -13,11 +14,15 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -54,18 +59,13 @@ public class FlashSaleController {
             @ApiResponse(code = 0, message = "成功")
     })
     //@Audit //认证
-    @GetMapping("/timesegments/{id}/flashsales")
-    public Object getFlashSale(@PathVariable Long id) {
+    @GetMapping(value =
+            "/timesegments/{id}/flashsales")
+    public Flux<FlashSaleRetItemVo> getFlashSale(@PathVariable Long id) {
         if (logger.isDebugEnabled()) {
             logger.debug("FlashSaleInfo: timeSegmentId = " + id);
         }
-        ReturnObject<List> returnObject = flashSaleService.getFlashSaleById(id);
-
-        if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
-            return Common.getListRetObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
-        }
+        return flashSaleService.getFlashSale(id).map(x -> (FlashSaleRetItemVo) x.createVo());
     }
 
 /**
@@ -118,14 +118,18 @@ public class FlashSaleController {
     })
     //@Audit //认证
     @GetMapping("/flashsales/current")
-    public Object getFlashSale() {
-        ReturnObject<List> returnObject = flashSaleService.getCurrentFlashSale();
-        if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
-            return Common.getListRetObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
-        }
+    public Flux<FlashSaleRetItemVo> getFlashSale() {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        return flashSaleService.getCurrentFlashSale(localDateTime).map(x -> (FlashSaleRetItemVo) x.createVo());
     }
+    /**
+     * public Flux<FlashSaleRetItemVo> getFlashSale(@PathVariable Long id) {
+     *         if (logger.isDebugEnabled()) {
+     *             logger.debug("FlashSaleInfo: timeSegmentId = " + id);
+     *         }
+     *         return flashSaleService.getFlashSale(id).map(x -> (FlashSaleRetItemVo) x.createVo());
+     *     }
+     */
 
 /**
  * @Description: 修改秒杀活动信息 
