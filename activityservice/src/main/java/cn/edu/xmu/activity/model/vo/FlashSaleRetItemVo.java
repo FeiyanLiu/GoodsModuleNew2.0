@@ -24,13 +24,4 @@ public class FlashSaleRetItemVo {
 
     private LocalDateTime gmtModified;
 
-    public FlashSaleRetItemVo(FlashSaleRetItem flashSaleRetItem) {
-        id = flashSaleRetItem.getId();
-        goodsSkuId = flashSaleRetItem.getGoodsSkuId();
-        price = flashSaleRetItem.getPrice();
-        quantity = flashSaleRetItem.getQuantity();
-        gmtCreated = flashSaleRetItem.getGmtCreated();
-        gmtModified = flashSaleRetItem.getGmtModified();
-    }
-
 }

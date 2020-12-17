@@ -86,7 +86,14 @@ public class FlashSaleRetItem implements VoObject {
 
     @Override
     public Object createVo() {
-        return new FlashSaleRetItemVo(this);
+        FlashSaleRetItemVo flashSaleRetItemVo = new FlashSaleRetItemVo();
+        flashSaleRetItemVo.setGmtCreated(this.gmtCreated);
+        flashSaleRetItemVo.setGmtModified(this.gmtModified);
+        flashSaleRetItemVo.setGoodsSkuId(this.goodsSkuId);
+        flashSaleRetItemVo.setId(this.id);
+        flashSaleRetItemVo.setPrice(this.price);
+        flashSaleRetItemVo.setQuantity(this.quantity);
+        return flashSaleRetItemVo;
     }
 
     @Override
