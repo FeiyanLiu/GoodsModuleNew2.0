@@ -50,7 +50,7 @@ public class GoodsSpuRetVo {
     @ApiModelProperty(value = "Sku")
     private List<GoodsSkuSimpleRetVo> sku;
     @ApiModelProperty(value = "是否被逻辑删除")
-    private Byte disabled;
+    private Boolean disabled;
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime gmtCreate;
     @ApiModelProperty(value = "编辑时间")

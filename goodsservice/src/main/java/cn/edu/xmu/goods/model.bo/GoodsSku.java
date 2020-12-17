@@ -147,7 +147,12 @@ public class GoodsSku implements VoObject, Serializable {
     public GoodsSku(GoodsSkuRetVo goodsSkuRetVo){
         this.statecode = (byte)State.WAITING.getCode();
         this.setDetail(goodsSkuRetVo.getDetail());
-        this.setDisabled(goodsSkuRetVo.getDisabled());
+        if(goodsSkuRetVo.getDisabled()==true){
+            this.setDisabled((byte)1);
+        }
+        else {
+            this.setDisabled((byte)0);
+        }
         this.setId(goodsSkuRetVo.getId());
         this.setImageUrl(goodsSkuRetVo.getImageUrl());
         this.setName(goodsSkuRetVo.getName());

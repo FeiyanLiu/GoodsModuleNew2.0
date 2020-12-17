@@ -54,7 +54,7 @@ public class GoodsSkuRetVo {
     @ApiModelProperty(value = "Spu")
     private GoodsSpuRetVo goodsSpu;
     @ApiModelProperty(value = "是否被逻辑删除")
-    private Byte disabled;
+    private Boolean disabled;
 
     //price goodsSpu未初始化
     public GoodsSkuRetVo(GoodsSku goodsSku){
@@ -75,7 +75,11 @@ public class GoodsSkuRetVo {
         this.setName(goodsSku.getName());
         this.setConfiguration( goodsSku.getConfiguration());
         this.setDetail (goodsSku.getDetail());
-        this.setDisabled ( goodsSku.getDisabled());
+        if(goodsSku.getDisabled() == (byte)1){
+            this.setDisabled (true);
+        } else {
+            this.setDisabled(false);
+        }
         this.setGmtCreate ( goodsSku.getGmtCreate());
         this.setGmtModified ( goodsSku.getGmtModified());
         this.setId ( goodsSku.getId());

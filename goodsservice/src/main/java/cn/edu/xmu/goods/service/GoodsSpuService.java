@@ -57,6 +57,9 @@ public class GoodsSpuService{
     @Autowired
     GoodsCategoryDao goodsCategoryDao;
 
+    @Autowired
+    GoodsSkuService goodsSkuService;
+
     @DubboReference(check = false)
     OrderService orderService;
 
@@ -135,10 +138,22 @@ public class GoodsSpuService{
             List<GoodsSkuPo> Skus = goodsSkuDao.getSkuBySpuId(goodsSpuPo.getId());
             List<GoodsSkuSimpleRetVo> retSkus = new ArrayList<>();
             for( GoodsSkuPo goodsSkuPo : Skus) {
-                retSkus.add(new GoodsSkuSimpleRetVo(new GoodsSku(goodsSkuPo)));
+                GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSkuSimpleRetVo(new GoodsSku(goodsSkuPo));
+                goodsSkuSimpleRetVo.setPrice(goodsSkuService.getPriceById(goodsSkuPo.getId()));
+                retSkus.add(goodsSkuSimpleRetVo);
             }
             goodsSpuRetVo.setSku(retSkus);
-            //goodsSpuRetVo.setShop((ShopSimpleRetVo) shopService.getShopById(goodsSpuPo.getShopId()).getData().createSimpleVo());
+            goodsSpuRetVo.setId(goodsSpuPo.getId());
+            goodsSpuRetVo.setGoodsSn(goodsSpuPo.getGoodsSn());
+            goodsSpuRetVo.setDetail(goodsSpuPo.getDetail());
+            goodsSpuRetVo.setImageUrl(goodsSpuPo.getImageUrl());
+            if(goodsSpuPo.getDisabled()==(byte)1){
+                goodsSpuRetVo.setDisabled(true);
+            } else {
+                goodsSpuRetVo.setDisabled(false);
+            }
+            goodsSpuRetVo.setGmtModified(goodsSpuPo.getGmtModified());
+            goodsSpuRetVo.setGmtCreate(goodsSpuPo.getGmtCreate());
             returnObject = new ReturnObject<> (goodsSpuRetVo);
         } else {
             logger.info("findSpuById: Not Found");
