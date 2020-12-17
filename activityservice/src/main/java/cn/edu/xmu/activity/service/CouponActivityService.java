@@ -56,7 +56,7 @@ public class CouponActivityService {
     CouponSkuDao couponSkuDao;
     @Autowired
     CouponDao couponDao;
-    @DubboReference(check = false)
+    @DubboReference(check = false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
     @Resource
     RocketMQTemplate rocketMQTemplate;
@@ -355,9 +355,11 @@ public class CouponActivityService {
     @Transactional
     public ReturnObject addCouponSku(Long shopId, Long[] skuIds, Long activityId) {
         try {
-            //判断活动状态是否为下线
+
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(activityId);
-            if (couponActivityPo.getState() != CouponActivity.State.OFFLINE.getCode())
+            if(couponActivityPo==null)
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            if (couponActivityPo.getState() == CouponActivity.State.DELETED.getCode())
                 return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
             //判断商品是否都存在
             List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos = goodsService.getGoodsSkuListBySkuIdList(Arrays.asList(skuIds));
@@ -404,8 +406,8 @@ public class CouponActivityService {
             if(goodsService.getShopIdBySpuId(id)!=shopId)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(couponSkuPo.getActivityId());
-            //判断活动状态是否为下线
-            if (couponActivityPo.getState() != CouponActivity.State.OFFLINE.getCode())
+            //判断活动状态是否为删除
+            if (couponActivityPo.getState() == CouponActivity.State.DELETED.getCode())
                 return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
             return couponSkuDao.deleteCouponSku(id);
         } catch (Exception e) {
@@ -495,7 +497,7 @@ public class CouponActivityService {
                 {
                     CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                     for (int i = 0; i < couponActivityPo.getQuantity(); i++)
-                        sendCouponInsertMessage(couponPo);
+                        sendCouponMessage(couponPo);
                     //将结束时间转换为时间戳
                     long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8));
                     redisTemplate.opsForValue().set("coupon_" + id + "_" + userId, 1, second, TimeUnit.SECONDS);
@@ -657,17 +659,17 @@ public class CouponActivityService {
         else return false;
     }
 
-    public void sendCouponInsertMessage(CouponPo coupon) {
+    public void sendCouponMessage(CouponPo coupon) {
         String json = JacksonUtil.toJson(coupon);
         rocketMQTemplate.asyncSend("coupon-topic:1", MessageBuilder.withPayload(json).build(), new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
-                logger.info("sendOrderPayMessage: onSuccess result = " + sendResult + " time =" + LocalDateTime.now());
+                logger.info("sendCouponMessage: onSuccess result = " + sendResult + " time =" + LocalDateTime.now());
             }
 
             @Override
             public void onException(Throwable throwable) {
-                logger.info("sendOrderPayMessage: onException e = " + throwable.getMessage() + " time =" + LocalDateTime.now());
+                logger.info("sendCouponMessage: onException e = " + throwable.getMessage() + " time =" + LocalDateTime.now());
             }
         });
     }
