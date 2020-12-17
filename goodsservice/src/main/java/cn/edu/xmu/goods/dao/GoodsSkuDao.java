@@ -102,7 +102,7 @@ public class GoodsSkuDao {
 
     public boolean checkSkuIdInShop(Long shopId, Long skuId) {
         GoodsSkuPo goodsSkuPo = goodsSkuPoMapper.selectByPrimaryKey(skuId);
-        if (goodsSkuPo == null) {
+        if (goodsSkuPo == null ) {
             return false;
         }
         Long spuId = goodsSkuPo.getGoodsSpuId();
@@ -141,7 +141,7 @@ public class GoodsSkuDao {
         criteria.andIdEqualTo(id);
         GoodsSkuPo goodsSkuPo = goodsSkuPoMapper.selectByPrimaryKey(id);
         //shopid或skuid不存在
-        if ( goodsSkuPo == null) {
+        if ( goodsSkuPo == null || goodsSkuPo.getDisabled()!=0) {
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         if(checkSkuIdInShop(shopId,id)==false){
@@ -208,7 +208,7 @@ public class GoodsSkuDao {
     public ReturnObject updateSku(GoodsSku goodsSku, Long shopId,Long id){
         GoodsSkuPo newPo = goodsSku.getPo();
         GoodsSkuPo oldPo = goodsSkuPoMapper.selectByPrimaryKey(id);
-        if(oldPo == null){
+        if(oldPo == null || oldPo.getDisabled()!=0){
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         if(checkSkuIdInShop(shopId,id)==false){
@@ -246,7 +246,7 @@ public class GoodsSkuDao {
             return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,
                     String.format("Unknown Exception: %s", e.getMessage()));
         }
-        if(goodsSkuPo == null){
+        if(goodsSkuPo == null || goodsSkuPo.getDisabled()!=0){
             logger.info("po = null "+ id);
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
@@ -280,7 +280,7 @@ public class GoodsSkuDao {
     */
     public ReturnObject<VoObject> updateSkuOnShelves(Long shopId,Long id){
         GoodsSkuPo po = goodsSkuPoMapper.selectByPrimaryKey(id);
-        if(po == null){
+        if(po == null || po.getDisabled()!=0){
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         if(checkSkuIdInShop(shopId,id)==false){
@@ -302,7 +302,7 @@ public class GoodsSkuDao {
     */
     public ReturnObject<VoObject> updateSkuOffShelves(Long shopId,Long id){
         GoodsSkuPo po = goodsSkuPoMapper.selectByPrimaryKey(id);
-        if(po == null){
+        if(po == null ||po.getDisabled()!=0){
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         if(checkSkuIdInShop(shopId,id)==false){
@@ -344,7 +344,7 @@ public class GoodsSkuDao {
     public ReturnObject deductStock(Long skuId,Integer quantity) {
         GoodsSkuPo goodsSkuPo = goodsSkuPoMapper.selectByPrimaryKey(skuId);
         logger.info("ddfor "+skuId+" quan = "+quantity);
-        if (goodsSkuPo == null) {
+        if (goodsSkuPo == null ||goodsSkuPo.getDisabled()!=0) {
             //not found
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         } else {
@@ -372,7 +372,7 @@ public class GoodsSkuDao {
     public ReturnObject<Boolean> checkStock(Long skuId,Integer quantity) {
         GoodsSkuPo goodsSkuPo = goodsSkuPoMapper.selectByPrimaryKey(skuId);
         logger.info("checkfor "+skuId+" quan = "+quantity+"inv = "+goodsSkuPo.getInventory());
-        if (goodsSkuPo == null) {
+        if (goodsSkuPo == null || goodsSkuPo.getDisabled()!=0) {
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         } else {
             int inventory = goodsSkuPo.getInventory();

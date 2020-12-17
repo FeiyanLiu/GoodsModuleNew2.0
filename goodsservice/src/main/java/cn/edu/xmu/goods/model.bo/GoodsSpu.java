@@ -84,7 +84,12 @@ public class GoodsSpu implements VoObject, Serializable {
         this.setBrandId(goodsSpuRetVo.getBrand().getId());
         this.setCategoryId(goodsSpuRetVo.getCategory().getId());
         this.setDetail(goodsSpuRetVo.getDetail());
-        this.setDisabled(goodsSpuRetVo.getDisabled());
+        if(goodsSpuRetVo.getDisabled() == true){
+            this.setDisabled((byte)1);
+        }else {
+            this.setDisabled((byte)0);
+        }
+
         this.setFreightId(goodsSpuRetVo.getFreightModel().getId());
         this.setId(goodsSpuRetVo.getId());
         this.setImageUrl(goodsSpuRetVo.getImageUrl());

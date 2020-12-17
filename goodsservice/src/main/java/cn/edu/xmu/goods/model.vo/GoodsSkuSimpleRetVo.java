@@ -24,13 +24,13 @@ public class GoodsSkuSimpleRetVo {
     @ApiModelProperty(value = "原价")
     private Long originalPrice;
     @ApiModelProperty(value = "现价")
-    private Integer price;
+    private Long price;
     @ApiModelProperty(value = "图片链接")
     private String imageUrl;
     @ApiModelProperty(value = "库存量")
     private Integer inventory;
     @ApiModelProperty(value = "是否被逻辑删除")
-    private Byte disabled;
+    private Boolean disabled;
 
     /**
     * @Description: SKU返回简单视图
@@ -41,7 +41,12 @@ public class GoodsSkuSimpleRetVo {
     */
 
     public GoodsSkuSimpleRetVo(GoodsSku goodSku){
-        this.setDisabled( goodSku.getDisabled());
+        if(goodSku.getDisabled()==1){
+            this.setDisabled(true);
+        }
+        else {
+            this.setDisabled(false);
+        }
         this.setId (goodSku.getId());
         this.setImageUrl(goodSku.getImageUrl());
         this.setInventory( goodSku.getInventory());

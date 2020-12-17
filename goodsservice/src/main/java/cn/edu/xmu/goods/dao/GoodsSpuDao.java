@@ -159,7 +159,7 @@ public class GoodsSpuDao {
 
     public ReturnObject<VoObject> updateSpu(GoodsSpu goodsSpu){
         GoodsSpuPo po = goodsSpuPoMapper.selectByPrimaryKey(goodsSpu.getId());
-        if(po == null)
+        if(po == null || po.getDisabled() == 1)
         {
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
@@ -179,7 +179,7 @@ public class GoodsSpuDao {
         criteria.andIdEqualTo(id);
         GoodsSpuPo goodsSpuPo = goodsSpuPoMapper.selectByPrimaryKey(id);
         //shopid或spuid不存在
-        if ( goodsSpuPo == null) {
+        if ( goodsSpuPo == null || goodsSpuPo.getDisabled() == 1) {
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         if(checkSpuIdInShop(shopId,id)==false){
@@ -216,7 +216,7 @@ public class GoodsSpuDao {
     {
         GoodsSpuPo goodsSpuPo = goodsSpuPoMapper.selectByPrimaryKey(spuId);
             BrandPo brandPo = brandPoMapper.selectByPrimaryKey(id);
-            if(brandPo == null || goodsSpuPo == null ||goodsSpuPo.getDisabled()!= 0){
+            if(brandPo == null || goodsSpuPo == null  ||goodsSpuPo.getDisabled()!= 0){
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             }
             if(checkSpuIdInShop(shopId,spuId)==false){
@@ -405,7 +405,7 @@ public class GoodsSpuDao {
     {
         GoodsSpuPo goodsSpuPo = goodsSpuPoMapper.selectByPrimaryKey(spuId);
         GoodsCategoryPo goodsCategoryPo = goodsCategoryPoMapper.selectByPrimaryKey(id);
-        if(goodsCategoryPo == null || goodsSpuPo == null || goodsSpuPo.getCategoryId()!=id||goodsSpuPo.getDisabled()!= 0){
+        if(goodsCategoryPo == null || goodsSpuPo == null || goodsSpuPo.getDisabled()==1|| goodsSpuPo.getCategoryId()!=id||goodsSpuPo.getDisabled()!= 0){
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         if(checkSpuIdInShop(shopId,spuId)==false){
