@@ -21,6 +21,7 @@ public class TimeSegmentDao {
     private TimeSegmentPoMapper timeSegmentPoMapper;
 
     public List<TimeSegmentPo> getTimeSegmentPoByTime(LocalDateTime localDateTime){
+        localDateTime = LocalDateTime.of(2020,01,01,localDateTime.getHour(),localDateTime.getMinute(),localDateTime.getSecond());
         TimeSegmentPoExample timeSegmentPoExample = new TimeSegmentPoExample();
         TimeSegmentPoExample.Criteria criteria = timeSegmentPoExample.createCriteria();
         criteria.andEndTimeGreaterThanOrEqualTo(localDateTime);
