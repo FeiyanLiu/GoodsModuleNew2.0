@@ -4,6 +4,8 @@ import cn.edu.xmu.activity.dao.PreSaleDao;
 import cn.edu.xmu.activity.model.bo.PreSale;
 import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.vo.NewPreSaleVo;
+import cn.edu.xmu.activity.model.vo.PreSaleRetVo;
+import cn.edu.xmu.activity.model.vo.PreSaleVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
@@ -44,20 +46,24 @@ public class PreSaleService {
         return preSaleDao.getPreSaleInActivities(goodsSpuId, beginTime, endTime);
     }
 
+
     @Transactional
-    public ReturnObject<List> getPreSaleById(Long id, Byte state) {
-        ReturnObject<List> returnObject = preSaleDao.getPreSaleBySpuId(id, state);
+    public ReturnObject<List> getPreSaleById(Long shopId, Long id, Byte state) {
+        ReturnObject<List> returnObject = preSaleDao.getPreSaleBySpuId(shopId, id, state);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 存在错误则直接返回
-            return returnObject;
+            return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
         List<PreSalePo> preSalePos = returnObject.getData();
-        List<PreSale> preSales = new ArrayList<>(preSalePos.size());
+
+        List<VoObject> voObjects = new ArrayList<>(preSalePos.size());
         for (PreSalePo preSalePo : preSalePos) {
-            PreSale preSale = createPreSaleByPreSalePo(preSalePo);
-            preSales.add(preSale);
+            GoodsSku goodsSku = linshiNewGoodsSku(preSalePo.getGoodsSkuId());
+            ShopSimple shopSimple = linshiNewShopSimple(preSalePo.getShopId());
+            VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple).createVo();
+            voObjects.add(voObject);
         }
-        return new ReturnObject<>(preSales);
+        return new ReturnObject<>(voObjects);
     }
 
     /**
@@ -70,15 +76,29 @@ public class PreSaleService {
      */
     @Transactional
     public ReturnObject<PageInfo<VoObject>> selectAllPreSale(Long shopId, Byte timeline, Long spuId, Integer pageNum, Integer pageSize) {
-        List<PreSalePo> preSalePos = preSaleDao.selectAllPreSale(shopId, timeline, spuId, pageNum, pageSize);
-        List<VoObject> ret = new ArrayList<>(preSalePos.size());
-        for (PreSalePo preSalePo : preSalePos) {
-            PreSale preSale = createPreSaleByPreSalePo(preSalePo);
-            ret.add(preSale);
+        ReturnObject<PageInfo<PreSalePo>> returnPreSalePoPage = preSaleDao.selectAllPreSale(shopId, timeline, spuId, pageNum, pageSize);
+        if (returnPreSalePoPage.getCode().equals(ResponseCode.OK) == false) {
+            return new ReturnObject<>(returnPreSalePoPage.getCode(), returnPreSalePoPage.getErrmsg());
         }
-        PageHelper.startPage(pageNum, pageSize);
 
-        PageInfo<VoObject> of = PageInfo.of(ret);
+        PageInfo<PreSalePo> preSalePosPageInfo = returnPreSalePoPage.getData();
+        PageHelper.startPage(pageNum, pageSize);
+        List<VoObject> voObjects = new ArrayList<>(preSalePosPageInfo.getSize());
+        for (PreSalePo preSalePo : preSalePosPageInfo.getList()) {
+            // 目前暂时关闭 dubbo,后续连接上后再取消
+            // GoodsSku goodsSku = goodsService.getSkuById(preSalePo.getGoodsSkuId());
+            // ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
+            GoodsSku goodsSku = linshiNewGoodsSku(preSalePo.getGoodsSkuId());
+            ShopSimple shopSimple = linshiNewShopSimple(preSalePo.getShopId());
+            VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple).createVo();
+            voObjects.add(voObject);
+        }
+
+        PageInfo<VoObject> of = PageInfo.of(voObjects);
+        of.setPageSize(preSalePosPageInfo.getPageSize());
+        of.setTotal(preSalePosPageInfo.getTotal());
+        of.setPageNum(preSalePosPageInfo.getPageNum());
+        of.setSize(preSalePosPageInfo.getSize());
         return new ReturnObject<PageInfo<VoObject>>(of);
     }
 
@@ -98,18 +118,25 @@ public class PreSaleService {
         if (sku == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
+        // 商品是否为自家商品
+        GoodsSku goodsSku = goodsService.getSkuById(id);
+        if(shopId != goodsService.getShopIdBySpuId(goodsSku.getGoodsSpuId())){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         // 检查商品在beginTime 和 endTime是否参与了活动
         if (getPreSaleInActivities(id, vo.getBeginTime(), vo.getEndTime()) == true) {
             return new ReturnObject(ResponseCode.TIMESEG_CONFLICT);
         }
-        PreSalePo newPreSalePo = preSaleDao.createNewPreSaleByVo(vo, shopId, id);
-        // 如果插入成功,返回ID
-        if (newPreSalePo != null) {
-            PreSale newPreSale = createPreSaleByPreSalePo(newPreSalePo);
-            return new ReturnObject<>(newPreSale);
-        } else {
-            return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR);
+        ReturnObject<PreSalePo> returnObject = preSaleDao.createNewPreSaleByVo(vo, shopId, id);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 存在错误则直接返回
+            return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
+        PreSalePo newPreSalePo = returnObject.getData();
+        // 如果插入成功,获取信息,GoodsSku 前面已经获取
+        ShopSimple shopSimple = goodsService.getSimpleShopById(shopId);
+        VoObject vo1 = new PreSale(newPreSalePo, goodsSku, shopSimple).createVo();
+        return new ReturnObject<>(vo1);
     }
 
     /**
@@ -123,39 +150,65 @@ public class PreSaleService {
     @Transactional
     public ReturnObject updatePreSale(NewPreSaleVo newPreSaleVo, Long id) {
         ReturnObject retObj = null;
-        PreSalePo po = preSaleDao.getPreSalePo(id);
-        // 检查预售活动存在性(不存在或者已删除状态都会返回false)
-        if (po == null || po.getState() == PreSale.State.DELETE.getCode()) {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        ReturnObject<PreSalePo> returnObject = preSaleDao.getPreSalePo(id);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 存在错误则直接返回
+            return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
+        PreSalePo po = returnObject.getData();
+
         // 新版本下,预售活动信息下线状态可以改动,不需要看时间,只要在上线状态即使时间外也不行.
         if (po.getState() == PreSale.State.ON.getCode()) {
             return new ReturnObject<>(ResponseCode.PRESALE_STATENOTALLOW);
         }
-        preSaleDao.updatePreSale(newPreSaleVo, id);
-        PreSalePo preSalePo = preSaleDao.getPreSalePo(id);
-        PreSale preSale = createPreSaleByPreSalePo(preSalePo);
-        retObj = new ReturnObject<>(preSale);
+        ReturnObject returnObject1 = preSaleDao.updatePreSale(newPreSaleVo, id);
+        if(returnObject1.getCode() != ResponseCode.OK){
+            return returnObject1;
+        }
+
+        ReturnObject<PreSalePo> returnObject2 = preSaleDao.getPreSalePo(id);
+        if(returnObject2.getCode() != ResponseCode.OK){
+            return new ReturnObject(returnObject2.getCode(),returnObject2.getErrmsg());
+        }
+        PreSalePo preSalePo = returnObject2.getData();
+        GoodsSku goodsSku = linshiNewGoodsSku(preSalePo.getGoodsSkuId());
+        ShopSimple shopSimple = linshiNewShopSimple(preSalePo.getShopId());
+        PreSale newPreSale = new PreSale(preSalePo, goodsSku, shopSimple);
+        retObj = new ReturnObject<>(newPreSale);
         return retObj;
-
     }
 
-    /**
-     * 构造retVo
-     *
-     * @return
-     */
-    private PreSale createPreSaleByPreSalePo(PreSalePo preSalePo) {
-        GoodsSku sku = goodsService.getSkuById(preSalePo.getGoodsSkuId());
-        ShopSimple simpleShop = goodsService.getSimpleShopById(preSalePo.getShopId());
-
-        PreSale preSale = new PreSale(preSalePo, sku, simpleShop);
-        return preSale;
-    }
 
     @Transactional
-    public ReturnObject<Object> changePreSaleState(Long id, byte state) {
+    public ReturnObject changePreSaleState(Long id, Byte state) {
+        ReturnObject<PreSalePo> returnObject = preSaleDao.getPreSalePo(id);
+        if(returnObject.getCode() != ResponseCode.OK){
+            return returnObject;
+        }
+        PreSalePo data = returnObject.getData();
+        if(data)
+
         return preSaleDao.changePreSaleState(id, state);
     }
+
+
+    /*******************临时岗*********************/
+
+    private GoodsSku linshiNewGoodsSku(Long id) {
+        GoodsSku goodsSku = new GoodsSku();
+        goodsSku.setDetail("临时创建的,后面记得改成调用商品接口");
+        goodsSku.setName("临时测试");
+        goodsSku.setId(id);
+        return goodsSku;
+    }
+
+    private ShopSimple linshiNewShopSimple(Long id) {
+        ShopSimple shopSimple = new ShopSimple();
+        shopSimple.setShopName("临时店铺");
+        shopSimple.setId(id);
+        return shopSimple;
+    }
+    /****************************************/
+
 
 }

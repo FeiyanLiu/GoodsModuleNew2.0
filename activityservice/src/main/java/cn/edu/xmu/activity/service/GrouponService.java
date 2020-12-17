@@ -188,7 +188,7 @@ public class GrouponService {
     public ReturnObject changeGrouponState(Long shopId, Long id, Byte state) {
         ReturnObject<GrouponPo> returnObject = grouponDao.getGrouponPoByGrouponId(id);
         // 存在错误,往上层传
-        if (returnObject.getCode() == ResponseCode.INTERNAL_SERVER_ERR) {
+        if (returnObject.getCode() != ResponseCode.OK) {
             return returnObject;
         }
         GrouponPo grouponPo = returnObject.getData();

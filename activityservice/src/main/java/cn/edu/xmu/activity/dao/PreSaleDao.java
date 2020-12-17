@@ -9,11 +9,13 @@ import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -56,13 +58,21 @@ public class PreSaleDao implements InitializingBean {
         }
     }
 
-    public ReturnObject<List> getPreSaleBySpuId( Long id, Byte state) {
+    public ReturnObject<List> getPreSaleBySpuId(Long shopId, Long id, Byte state) {
         PreSalePoExample example = new PreSalePoExample();
         PreSalePoExample.Criteria criteria = example.createCriteria();
-        criteria.andGoodsSkuIdEqualTo(id);
+        // 只能查询自家的
+        criteria.andShopIdEqualTo(shopId);
+        // 删除态直接无视
         criteria.andStateNotEqualTo(PreSale.State.DELETE.getCode());
-        if (state != null) criteria.andStateEqualTo(state);
-        logger.debug("find PreSale By Id: Id = " + id + ";state = " + state);
+
+        if(id != null){
+            criteria.andGoodsSkuIdEqualTo(id);
+        }
+        if (state != null) {
+            criteria.andStateEqualTo(state);
+        }
+
         List<PreSalePo> preSalePos = null;
         try {
             preSalePos = preSalePoMapper.selectByExample(example);
@@ -74,6 +84,7 @@ public class PreSaleDao implements InitializingBean {
             logger.error("other exception : " + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
+
         return new ReturnObject<>(preSalePos);
     }
 
@@ -85,7 +96,7 @@ public class PreSaleDao implements InitializingBean {
      * @return ReturnObject<List> 活动列表
      * @author LJP_3424
      */
-    public List<PreSalePo> selectAllPreSale(Long shopId, Byte timeline, Long spuId, Integer pageNum, Integer pageSize) {
+    public ReturnObject<PageInfo<PreSalePo>> selectAllPreSale(Long shopId, Byte timeline, Long spuId, Integer pageNum, Integer pageSize) {
         PreSalePoExample example = new PreSalePoExample();
         PreSalePoExample.Criteria criteria = example.createCriteria();
         LocalDateTime tomorrow;
@@ -116,19 +127,19 @@ public class PreSaleDao implements InitializingBean {
         //分页查询
         PageHelper.startPage(pageNum, pageSize);
         logger.debug("page = " + pageNum + "pageSize = " + pageSize);
-        List<PreSalePo> preSalePos = null;
         try {
             //不加限定条件查询所有
-            preSalePos = preSalePoMapper.selectByExample(example);
+            List<PreSalePo> preSalePos = preSalePoMapper.selectByExample(example);
+            return new ReturnObject(PageInfo.of(preSalePos));
         } catch (DataAccessException e) {
             logger.error("selectAllPreSale: DataAccessException:" + e.getMessage());
-            //return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            //return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
-        return preSalePos;
+
     }
 
     /**
@@ -138,26 +149,32 @@ public class PreSaleDao implements InitializingBean {
      * @return ReturnObject
      * createdBy: LJP_3424
      */
-    public PreSalePo createNewPreSaleByVo(NewPreSaleVo vo, Long shopId, Long id) {
+    public ReturnObject<PreSalePo> createNewPreSaleByVo(NewPreSaleVo vo, Long shopId, Long id) {
+        // vo方法创建简单的PreSalePO
         PreSalePo preSalePo = vo.createPreSalePo();
+
+        // 完善PreSalePo的特点
         preSalePo.setState(PreSale.State.ON.getCode());
         preSalePo.setGoodsSkuId(id);
         preSalePo.setShopId(shopId);
         preSalePo.setGmtCreate(LocalDateTime.now());
-        ReturnObject<VoObject> retObj = null;
         try {
             int insertResult = preSalePoMapper.insert(preSalePo);
             if(insertResult != 0){
-                return preSalePo;
+                return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,"插入失败");
             }
-        } catch (DataAccessException e) {
+        }  catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
+           return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
-        return null;
+        return new ReturnObject<PreSalePo>(preSalePo);
     }
 
 
@@ -166,27 +183,29 @@ public class PreSaleDao implements InitializingBean {
      *
      * @author LJP_3424
      */
-    public Long updatePreSale(NewPreSaleVo preSaleVo, Long id) {
+    public ReturnObject updatePreSale(NewPreSaleVo preSaleVo, Long id) {
 
         PreSalePo preSalePo = preSaleVo.createPreSalePo();
         preSalePo.setId(id);
-        int ret;
         preSalePo.setGmtModified(LocalDateTime.now());
         try {
-            ret = preSalePoMapper.updateByPrimaryKeySelective(preSalePo);
+            int ret = preSalePoMapper.updateByPrimaryKeySelective(preSalePo);
+            if(ret == 0){
+                return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,"更新失败");
+            }else{
+                return new ReturnObject(ResponseCode.OK);
+            }
         }  catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-           /* retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));*/
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            /*retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));*/
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
-        // 这里可能存在空指针异常,在上一层捕获
-        return preSalePo.getId();
     }
 
 
@@ -239,21 +258,25 @@ public class PreSaleDao implements InitializingBean {
     }
 
 
-    public PreSalePo getPreSalePo(Long preSaleId){
+    public ReturnObject<PreSalePo> getPreSalePo(Long preSaleId){
         PreSalePo preSalePo = null;
         try {
             preSalePo = preSalePoMapper.selectByPrimaryKey(preSaleId);
+            if(preSalePo == null || preSalePo.getState() == PreSale.State.DELETE.getCode()){
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+            }else{
+                return new ReturnObject(preSalePo);
+            }
         } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-        }
-        if(preSalePo.getState() == PreSale.State.OFF.getCode()) {
-            return null;
-        }else {
-            return preSalePo;
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
     }
 }
