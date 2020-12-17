@@ -15,9 +15,7 @@ public class FlashSaleItemVo implements VoObject {
 
     private Long id;
 
-    private Long saleId;
-
-    //private Long goodsSkuId;
+    private GoodsSkuVo goodsSkuVo;
 
     private Long price;
 
