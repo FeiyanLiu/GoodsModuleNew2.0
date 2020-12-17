@@ -223,19 +223,23 @@ public class GoodsSkuService {
         logger.debug("service: get Sku by id: "+ id);
         ReturnObject<GoodsSkuPo> goodsSkuReturnObject = goodsSkuDao.getSkuById(id);
         GoodsSkuPo goodsSkuPo = goodsSkuReturnObject.getData();
-        if(goodsSkuPo == null){
+        if(goodsSkuPo == null || goodsSkuPo.getDisabled()!=0){
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         GoodsSku goodsSku = new GoodsSku(goodsSkuPo);
         GoodsSkuRetVo retVo = goodsSku.createVo();
         //GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoBySkuId(id).getData();
         //GoodsSpu goodsSpu = new GoodsSpu(goodsSpuPo);
-        GoodsSpuRetVo goodsSpuRetVo = goodsSpuService.findSpuById(goodsSkuPo.getGoodsSpuId()).getData();
+        ReturnObject<GoodsSpuRetVo> ret = goodsSpuService.findSpuById(goodsSkuPo.getGoodsSpuId());
+        if(ret.getCode() == ResponseCode.RESOURCE_ID_NOTEXIST){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        GoodsSpuRetVo goodsSpuRetVo = ret.getData();
         retVo.setState((int)goodsSku.getStatecode());
         retVo.setGoodsSpu(goodsSpuRetVo);
         retVo.setPrice(getPriceById(id).intValue());
-        if(retVo.getGoodsSpu() != null){
-            logger.info("GoodsSpu != null");
+        if(retVo.getGoodsSpu() == null ){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         return new ReturnObject<GoodsSkuRetVo> (retVo);
 

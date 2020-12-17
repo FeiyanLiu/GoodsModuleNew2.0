@@ -83,7 +83,7 @@ public class GoodsSpuService{
         ReturnObject<GoodsSpuRetVo> returnObject = null;
 
         GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoById(id).getData();
-        if(goodsSpuPo != null) {
+        if(goodsSpuPo != null && goodsSpuPo.getDisabled() ==0) {
             logger.info("findSpuById : " + returnObject);
             GoodsSpuRetVo goodsSpuRetVo = new GoodsSpuRetVo(new GoodsSpu(goodsSpuPo));
             //goodsSpuRetVo.setCategory(categoryService.findCategorySimpleVoById(goodsSpuPo.getCategoryId()).getData());
@@ -105,7 +105,7 @@ public class GoodsSpuService{
             }
 
             GoodsCategory goodsCategory = goodsCategoryDao.getCategoryById(goodsSpuPo.getCategoryId()).getData();
-            if(goodsCategory != null){
+            if(goodsCategory != null ){
                 GoodsCategorySimpleVo goodsCategorySimpleVo = goodsCategory.createSimpleVo();
                 if (goodsCategorySimpleVo == null){
                     logger.info("simplevo == null");
