@@ -186,9 +186,10 @@ public class PreSaleService {
             return returnObject;
         }
         PreSalePo data = returnObject.getData();
-        if(data)
-
+        if(data!=null)
         return preSaleDao.changePreSaleState(id, state);
+        else
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
     }
 
 

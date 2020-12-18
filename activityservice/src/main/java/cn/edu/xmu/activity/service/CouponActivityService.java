@@ -58,10 +58,10 @@ public class CouponActivityService {
     CouponDao couponDao;
     @DubboReference(check = false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
-    @Resource
+    @Autowired
     RocketMQTemplate rocketMQTemplate;
     private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
-    @Resource
+    @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
     /**
      * @author 24320182203218
@@ -454,15 +454,15 @@ public class CouponActivityService {
             //检测活动是否存在
             if (couponActivityPo == null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-            //设置缓存时间
-            long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8))-LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
-            redisTemplate.opsForValue().set(activityKey, JacksonUtil.toJson(couponActivityPo),second,TimeUnit.SECONDS);
+            String json=JacksonUtil.toJson(couponActivityPo);
+        redisTemplate.opsForValue().set(activityKey, json,600,TimeUnit.SECONDS);
+//            logger.debug(JacksonUtil.toJson(couponActivityPo));
         }
-        String json = redisTemplate.opsForValue().get(activityKey).toString();
+        String json = (String) redisTemplate.opsForValue().get(activityKey);
         ObjectMapper objectMapper = new ObjectMapper();
         CouponActivityPo couponActivityPo = null;
         try {
-            couponActivityPo = objectMapper.readValue(json, new TypeReference<CouponActivityPo>() {
+            couponActivityPo = objectMapper.readValue(json, new TypeReference<>() {
             });
         } catch (IOException e) {
             e.printStackTrace();

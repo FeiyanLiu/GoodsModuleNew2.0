@@ -14,7 +14,7 @@
         <module>activityservice</module>
         <module>goodsservice-client</module>
         <module>orderservice-client</module>
-        <module>otherservice</module>
+        <module>privilegeservice-client</module>
         <module>otherservice-client</module>
         <!--        <module>privilege</module>-->
 

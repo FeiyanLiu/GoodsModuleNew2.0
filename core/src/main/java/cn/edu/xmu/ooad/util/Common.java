@@ -158,9 +158,6 @@ public class Common {
         }
     }
 
-
-
-
     public static Object getNullRetObj(ReturnObject<Object> returnObject, HttpServletResponse httpServletResponse) {
         ResponseCode code = returnObject.getCode();
         switch (code) {
@@ -199,17 +196,6 @@ public class Common {
                 }
             case RESOURCE_ID_OUTSCOPE:
                 //505:访问的资源不属于自己
-            case COUPON_NOTBEGIN:
-                //未到领券时间
-            case SKU_PARTICIPATE:
-                //商品已经参加了活动
-            case GROUPON_STATENOTALLOW:
-                //团购状态禁止
-            case PRESALE_STATENOTALLOW:
-                //预售状态禁止
-            case COUPON_FINISH:
-                //优惠券被领完了
-            case COUPONACT_STATENOTALLOW:
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.FORBIDDEN);

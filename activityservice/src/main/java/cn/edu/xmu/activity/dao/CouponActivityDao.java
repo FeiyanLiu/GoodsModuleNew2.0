@@ -15,8 +15,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,6 +38,8 @@ public class CouponActivityDao implements InitializingBean {
     private CouponSkuDao couponSkuDao;
     @Autowired
     private CouponActivityPoMapper couponActivityMapper;
+    @Autowired
+    private RedisTemplate<String, Serializable> redisTemplate;
     /**
      * 是否初始化，生成signature和加密
      */
@@ -212,6 +216,7 @@ public class CouponActivityDao implements InitializingBean {
                 returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             } else {
                 logger.debug("updateCouponActivity: update user success : " + couponActivity.toString());
+                redisTemplate.delete("couponActivity_"+ couponActivityPo.getId());//从redis中删除数据
                 returnObject = new ReturnObject();
             }
         } catch (Exception e) {
@@ -235,10 +240,9 @@ public class CouponActivityDao implements InitializingBean {
         try {
             int ret = couponActivityMapper.updateByPrimaryKeySelective(po);
             if (ret == 0) {
-                logger.debug("deleteCouponActivity: delete fail. user id: " + id);
                 returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else {
-                logger.debug("deleteCouponActivity: delete user success id: " + id);
+            } else{
+                redisTemplate.delete("couponActivity_"+ po.getId());//从redis中删除数据
                 returnObject = new ReturnObject();
             }
         } catch (Exception e) {

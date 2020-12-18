@@ -1,4 +1,4 @@
-package cn.edu.xmu.goods.service.Impl;
+package cn.edu.xmu.goods.service.impl;
 
 
 import cn.edu.xmu.goods.dao.GoodsSkuDao;

@@ -1,5 +1,11 @@
 package cn.edu.xmu.activity.model.po;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+
 import java.time.LocalDateTime;
 
 public class CouponActivityPo {
@@ -28,6 +34,8 @@ public class CouponActivityPo {
      *
      * @mbg.generated
      */
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime beginTime;
 
     /**
@@ -37,6 +45,8 @@ public class CouponActivityPo {
      *
      * @mbg.generated
      */
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endTime;
 
     /**
@@ -46,6 +56,8 @@ public class CouponActivityPo {
      *
      * @mbg.generated
      */
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime couponTime;
 
     /**
@@ -127,6 +139,8 @@ public class CouponActivityPo {
      *
      * @mbg.generated
      */
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime gmtCreate;
 
     /**
@@ -136,6 +150,8 @@ public class CouponActivityPo {
      *
      * @mbg.generated
      */
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime gmtModified;
 
     /**

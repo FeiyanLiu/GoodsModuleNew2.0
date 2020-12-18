@@ -404,7 +404,6 @@ public class CouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 504, message = "操作id不存在")
     })
-    @Audit
     @PostMapping("/couponactivities/{id}/usercoupons")
     public Object userGetCoupon(@PathVariable Long id, @LoginUser Long userId) {
         ReturnObject returnObject = couponActivityService.getCoupon(userId,id);
