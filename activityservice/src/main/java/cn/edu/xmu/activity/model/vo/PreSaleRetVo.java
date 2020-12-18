@@ -3,6 +3,10 @@ package cn.edu.xmu.activity.model.vo;
 
 
 import cn.edu.xmu.activity.model.po.PreSalePo;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
+import cn.edu.xmu.goodsservice.model.bo.Shop;
+import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
+import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -22,12 +26,12 @@ public class PreSaleRetVo {
 
     private LocalDateTime payTime;
 
-
-
     private LocalDateTime endTime;
 
-    // private GoodsSpuVo goodsSpuVo;
-    // private ShopVo shopVo;
+    private GoodsSkuVo goodsSkuVo;
+
+    private ShopVo shopVo;
+
     private Byte state;
 
     private Integer quantity;
@@ -36,25 +40,32 @@ public class PreSaleRetVo {
 
     private Long restPayPrice;
 
-    private LocalDateTime gmtcreate;
+    private LocalDateTime gmtCreate;
 
     private LocalDateTime gmtModified;
 
+    public PreSaleRetVo(){};
 
-    public PreSaleRetVo(PreSalePo preSalePo) {
+    public PreSaleRetVo(PreSalePo preSalePo, GoodsSku goodsSku, ShopSimple shopSimple) {
 
-        // 缺少goodsSpuVo
-        // 缺少shopSpuVo
+        if(goodsSkuVo != null){
+            this.goodsSkuVo = goodsSkuVo;
+        }
+        if(shopVo != null){
+            this.shopVo = shopVo;
+        }
         this.id = preSalePo.getId();
         this.name = preSalePo.getName();
         this.beginTime = preSalePo.getBeginTime();
         this.payTime = preSalePo.getPayTime();
-        this.state = preSalePo.getState();
         this.endTime = preSalePo.getEndTime();
+
+
+        this.state = preSalePo.getState();
         this.quantity = preSalePo.getQuantity();
         this.advancePayPrice = preSalePo.getAdvancePayPrice();
         this.restPayPrice = preSalePo.getRestPayPrice();
-        this.gmtcreate = preSalePo.getGmtCreate();
+        this.gmtCreate = preSalePo.getGmtCreate();
         this.gmtModified = preSalePo.getGmtModified();
     }
 }

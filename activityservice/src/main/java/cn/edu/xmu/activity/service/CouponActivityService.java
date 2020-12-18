@@ -454,8 +454,8 @@ public class CouponActivityService {
             //检测活动是否存在
             if (couponActivityPo == null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-            //将结束时间转换为时间戳
-            long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8));
+            //设置缓存时间
+            long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8))-LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
             redisTemplate.opsForValue().set(activityKey, JacksonUtil.toJson(couponActivityPo),second,TimeUnit.SECONDS);
         }
         String json = redisTemplate.opsForValue().get(activityKey).toString();
@@ -498,8 +498,8 @@ public class CouponActivityService {
                     CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                     for (int i = 0; i < couponActivityPo.getQuantity(); i++)
                         sendCouponMessage(couponPo);
-                    //将结束时间转换为时间戳
-                    long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8));
+                    //设置结束时间
+                    long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8))-LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
                     redisTemplate.opsForValue().set("coupon_" + id + "_" + userId, 1, second, TimeUnit.SECONDS);
                 } else if (quantityType == 1) {
                     Long result = getCouponByLuaScript(key);

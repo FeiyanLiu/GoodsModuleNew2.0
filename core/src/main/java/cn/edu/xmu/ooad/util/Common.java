@@ -213,6 +213,10 @@ public class Common {
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.FORBIDDEN);
+            case FIELD_NOTVALID:
+                return new ResponseEntity(
+                        ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                        HttpStatus.BAD_REQUEST);
             default:
                 return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
         }

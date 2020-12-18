@@ -2,6 +2,8 @@ package cn.edu.xmu.activity.controller;
 
 
 import cn.edu.xmu.activity.model.bo.PreSale;
+import cn.edu.xmu.activity.model.bo.PreSale;
+import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.vo.NewPreSaleVo;
 import cn.edu.xmu.activity.model.vo.PreSaleStateVo;
 import cn.edu.xmu.activity.service.PreSaleService;
@@ -91,6 +93,9 @@ public class PreSaleController {
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
         logger.debug("selectAllPreSale: shopId = " + shopId + " timeline = " + timeline + "spuId = " + spuId + " page = " + page + "  pageSize =" + pageSize);
+        //校验timeline
+        if(!(timeline==null||timeline==0||timeline==1||timeline==2||timeline==3))
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         ReturnObject<PageInfo<VoObject>> returnObject = preSaleService.selectAllPreSale(shopId, timeline, shopId, page, pageSize);
         if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
             return Common.getPageRetObject(returnObject);
@@ -110,24 +115,24 @@ public class PreSaleController {
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "shopId", value = "店铺id", required = true, dataType = "Integer", paramType = "path"),
-            @ApiImplicitParam(name = "id", value = "商品skuId", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "skuId", value = "商品skuId", required = false, dataType = "Integer", paramType = "path"),
             @ApiImplicitParam(paramType = "query", dataType = "Integer", name = "state", value = "活动所处阶段", required = false)
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
     //@Audit //认证
-    @GetMapping("/shops/{shopId}/spus/{id}/presales")
+    @GetMapping("/shops/{shopId}/presales")
     public Object getPreSale(
             @PathVariable Long shopId,
-            @PathVariable Long id,
+            @RequestParam(required = false) Long id,
             @RequestParam(required = false) Byte state) {
         //
         if (logger.isDebugEnabled()) {
             logger.debug("PreSaleInfo: skuId = " + id + " shopId = " + shopId);
         }
 
-        ReturnObject<List> returnObject = preSaleService.getPreSaleById(id, state);
+        ReturnObject<List> returnObject = preSaleService.getPreSaleById(shopId ,id, state);
 
         if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
             return Common.getListRetObject(returnObject);
@@ -205,6 +210,10 @@ public class PreSaleController {
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             return returnObject;
+        }
+        // 此处判断时间上是否冲突
+        if(vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime()) > 0){
+            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
         }
         ReturnObject retObject = preSaleService.updatePreSale(vo, id);
         if (retObject.getCode() == ResponseCode.OK) {
@@ -294,4 +303,29 @@ public class PreSaleController {
             return ResponseUtil.fail(retObject.getCode());
         }
     }
+
+    // 可修改状体检测
+    public ReturnObject confirmPreSaleId(PreSalePo PreSalePo, Long shopId) {
+
+        // 错误路径1,该id不存在
+        if (PreSalePo == null) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 错误路径2,不是自家活动
+        if (PreSalePo.getShopId().longValue() != shopId.longValue()) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
+        // 错误路径3,状态不允许,并且目前只需要下线就能修改,不需要管改的结果
+        // 时段冲突也不需要考虑,因为在下线状态,考虑的事情,扔给上线吧
+        // 参数校验方面 Vo检测未来 Controller检测开始大于结束
+        if (PreSalePo.getState() != PreSale.State.OFF.getCode()) {
+            return new ReturnObject(ResponseCode.PRESALE_STATENOTALLOW);
+        }
+
+        // 校验成功,通过
+        return new ReturnObject(ResponseCode.OK);
+    }
+
+/*************通用函数结束************/
 }

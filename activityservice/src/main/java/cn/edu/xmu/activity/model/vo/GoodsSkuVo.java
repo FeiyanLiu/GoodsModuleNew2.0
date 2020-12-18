@@ -17,5 +17,4 @@ public class GoodsSkuVo {
     String imageUrl;
     Integer inventory;
     String detail;
-
 }
