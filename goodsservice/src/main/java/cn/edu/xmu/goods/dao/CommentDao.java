@@ -62,20 +62,14 @@ public class CommentDao implements InitializingBean{
      * @Description 新增sku评论
      * @author Ruzhen Chang
      */
-    public ReturnObject newGoodsSkuComment(long goodsSkuId,long customerId,long orderItemId,byte type,String content){
+    public ReturnObject newGoodsSkuComment(Long orderItemId, Comment comment){
         ReturnObject retobj=null;
-        CommentPo commentPo=new CommentPo();
+        CommentPo commentPo=comment.getCommentPo();
+        commentPo.setGmtModified(LocalDateTime.now());
         try {
             retobj = new ReturnObject(commentPoMapper.insert(commentPo));
             logger.debug("success apply comment:" + commentPo.getId());
-            commentPo.setState((byte) Comment.State.NEW.getCode().intValue());
-            commentPo.setContent(content);
-            commentPo.setCustomerId(customerId);
-            commentPo.setGoodsSkuId(goodsSkuId);
-            commentPo.setGmtCreate(LocalDateTime.now());
-            commentPo.setGmtModified(LocalDateTime.now());
-            commentPo.setOrderitemId(orderItemId);
-            commentPo.setType(type);
+
         }catch (DataAccessException e){
             logger.debug("apply comment failed:"+e.getMessage());
             retobj =new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST,String.format("发生数据库错误：%s",e.getMessage()));
@@ -88,26 +82,14 @@ public class CommentDao implements InitializingBean{
      * @Param shopId
      * @author Ruzhen Chang
      */
-    public List<CommentPo> getGoodsSkuAllCommentList(long goodsSkuId,byte state){
+    public PageInfo<CommentPo> getCommentListByGoodsSkuId(long goodsSkuId, Integer page, Integer pageSize){
+        PageHelper.startPage(page,pageSize);
         CommentPoExample example=new CommentPoExample();
         CommentPoExample.Criteria criteria=example.createCriteria();
         criteria.andGoodsSkuIdEqualTo(goodsSkuId);
-        criteria.andStateEqualTo(state);
         List<CommentPo> commentPos=commentPoMapper.selectByExample(example);
-
-        for(CommentPo commentPo:commentPos) {
-            try {
-                if((byte)commentPo.getState()==Comment.State.NORM.getCode()) {
-                    commentPos.add(commentPo);
-                    logger.debug("getGoodsSkuCommentList: goodsSkuId = " + commentPo.getGoodsSkuId());
-                }else {
-                    logger.debug("getGoodsSkuCommentList: id not exist = " + commentPo.getGoodsSkuId());
-                }
-            } catch (DataAccessException e) {
-                logger.debug("getGoodsSkuCommentList:" + e.getMessage());
-            }
-        }
-        return commentPos;
+        logger.debug("getCommentIdListByGoodsSkuId:" +goodsSkuId);
+        return new PageInfo<>(commentPos);
     }
 
 
@@ -115,13 +97,16 @@ public class CommentDao implements InitializingBean{
      * @Description 根据商品skuId获得评论id列表
      * @author Ruzhen Chang
      */
-    public PageInfo<CommentPo> getCommentListByGoodsSkuId(Long goodsSkuId, Integer page, Integer pageSize){
+    public PageInfo<CommentPo> getCommentListByGoodsSkuIdList(List<Long> goodsSkuIdList, Integer page, Integer pageSize){
         PageHelper.startPage(page,pageSize);
         CommentPoExample example=new CommentPoExample();
         CommentPoExample.Criteria criteria=example.createCriteria();
-        criteria.andGoodsSkuIdEqualTo(goodsSkuId);
-        List<CommentPo> commentPos=commentPoMapper.selectByExample(example);
-        logger.debug("getCommentIdListByGoodsSkuId:" +goodsSkuId);
+        List<CommentPo> commentPos=null;
+        for(Long goodsSkuId:goodsSkuIdList){
+            criteria.andGoodsSkuIdEqualTo(goodsSkuId);
+            criteria.andStateNotEqualTo((byte)Comment.State.FORBID.getCode().intValue());
+            commentPos.addAll(commentPoMapper.selectByExample(example));
+        }
         return new PageInfo<>(commentPos);
     }
 
