@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
@@ -23,6 +25,8 @@ public class CouponActivitySimpleVo {
     @ApiModelProperty(value = "优惠券数量，0-不用优惠券")
     int quantity;
 
+    @Max(value = 1)
+    @Min(value=0)
     @NotBlank(message = "必须输入优惠券数量类型")
     @ApiModelProperty(value = "优惠券数量类型")
     Byte quantityType;

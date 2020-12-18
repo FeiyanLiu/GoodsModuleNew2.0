@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -290,8 +291,10 @@ public class CouponController {
     @Audit
     @PutMapping("/shops/{shopId}/couponactivities/{id}")
     public Object updateCouponActivity(@PathVariable Long shopId, @PathVariable Long id,
-                                       @Validated @RequestBody CouponActivitySimpleVo vo,@LoginUser Long userId) {
+                                       @Validated @RequestBody@NotNull CouponActivitySimpleVo vo,@LoginUser Long userId) {
         CouponActivity couponActivity = vo.createCouponActivity();
+        if(couponActivity.getBeginTime().isAfter(couponActivity.getEndTime()))
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         couponActivity.setId(id);
         couponActivity.setGmtModified(LocalDateTime.now());
         //couponActivity.setModifiedBy(userId);
