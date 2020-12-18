@@ -276,13 +276,13 @@ public class GoodsServiceController {
             if(page <= 0 || pageSize <= 0) {
                 retObject = Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID), httpServletResponse);
             } else {
-                ReturnObject<PageInfo<GoodsSkuRetVo>> returnObject = goodsSkuService.findAllSkus(
+                ReturnObject<PageInfo<GoodsSkuSimpleRetVo>> returnObject = goodsSkuService.findAllSkus(
                         shopId, skuSn, spuId,spuSn, page, pageSize);
                 logger.debug("findSkus: getSkus = " + returnObject);
                 ResponseCode code = returnObject.getCode();
                 switch (code){
                     case OK:
-                        PageInfo<GoodsSkuRetVo> objs = returnObject.getData();
+                        PageInfo<GoodsSkuSimpleRetVo> objs = returnObject.getData();
                         if (objs != null){
                             List<Object> voObjs = new ArrayList<>(objs.getList().size());
                             for (Object data : objs.getList()) {

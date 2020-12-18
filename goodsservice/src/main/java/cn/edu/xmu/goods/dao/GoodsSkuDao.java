@@ -44,54 +44,27 @@ public class GoodsSkuDao {
     public static String randomUUID() {
         return UUID.randomUUID().toString().replace("-", "");
     }
-    /**
-    * @Description: 分页获取Sku信息
-    * @Param: [shopId, skuSn, spuId, spuSn, page, pagesize]
-    * @return: com.github.pagehelper.PageInfo<cn.edu.xmu.goods.model.vo.GoodsSkuRetVo> 返回Vo
-    * @Author: Yancheng Lai
-    * @Date: 2020/12/2 23:18
-    */
-    public PageInfo<GoodsSkuRetVo> findAllGoodSkus(Long shopId, String skuSn, Long spuId, String spuSn, Integer page, Integer pagesize) {
-        GoodsSpuPoExample spuPoExample = new GoodsSpuPoExample();
-        GoodsSpuPoExample.Criteria criteria = spuPoExample.createCriteria();
-        GoodsSkuPoExample skuPoExample = new GoodsSkuPoExample();
-        GoodsSkuPoExample.Criteria ccriteria = skuPoExample.createCriteria();
-        if(shopId != null)
-            criteria.andShopIdEqualTo(shopId);
-        if(spuId != null)
-            criteria.andIdEqualTo(spuId);
-        if(spuSn != null)
-            criteria.andGoodsSnEqualTo(spuSn);
-        List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(spuPoExample);
-        GoodsSkuPo goodsSkuPo = null;
-        List<GoodsSkuPo> goodsSkuPos = null;
-        List<GoodsSkuRetVo> goodsSkuRetVos = null;
-        if(goodsSpuPos.size() > 0) {
-            for (GoodsSpuPo goodsSpuPo : goodsSpuPos) {
-                if(skuSn != null) {
-                    ccriteria.andSkuSnEqualTo(skuSn);
-                }
-                ccriteria.andGoodsSpuIdEqualTo(goodsSpuPo.getId());
-                goodsSkuPos = goodsSkuPoMapper.selectByExample(skuPoExample);
 
-            }
-        } else if(goodsSpuPos.size() == 0){
-            goodsSkuPos = null;
-        } else {
-            if(skuSn != null) {
-                ccriteria.andSkuSnEqualTo(skuSn);
-            }
-            goodsSkuPos = goodsSkuPoMapper.selectByExample(skuPoExample);
-        }
-
-        for(GoodsSkuPo goodsSkuRetPo: goodsSkuPos){
-            GoodsSkuRetVo goodsSkuRetVo = new GoodsSku(goodsSkuPo).createVo();
-            GoodsSpuRetVo goodsSpuRetVo = new GoodsSpuRetVo();
-            goodsSkuRetVos.add(new GoodsSku(goodsSkuPo).createVo());
-        }
-
-        return new PageInfo<>(goodsSkuRetVos);
+    public List<GoodsSkuPo> getSkuPoBySkuSn(String SkuSn){
+        GoodsSkuPoExample example = new GoodsSkuPoExample();
+        GoodsSkuPoExample.Criteria criteria = example.createCriteria();
+        criteria.andSkuSnEqualTo(SkuSn);
+        return goodsSkuPoMapper.selectByExample(example);
     }
+
+    public List<GoodsSkuPo> getAllSkus(){
+        GoodsSkuPoExample example = new GoodsSkuPoExample();
+        GoodsSkuPoExample.Criteria criteria = example.createCriteria();
+        return goodsSkuPoMapper.selectByExample(example);
+    }
+
+    public List<GoodsSkuPo> getGoodsSkuPoListBySpuIdList(List<Long> goodsSpuPoIds){
+        GoodsSkuPoExample example = new GoodsSkuPoExample();
+        GoodsSkuPoExample.Criteria criteria = example.createCriteria();
+        criteria.andGoodsSpuIdIn(goodsSpuPoIds);
+        return goodsSkuPoMapper.selectByExample(example);
+    }
+
     /** 
     * @Description: 查询该sku是否位于shop内
     * @Param: [skuId, id] 

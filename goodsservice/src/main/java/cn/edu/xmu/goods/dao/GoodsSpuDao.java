@@ -440,4 +440,30 @@ public class GoodsSpuDao {
         }
         return ret;
     }
+    /**
+    * @Description: 查询spu
+    * @Param: [shopId, spuId, spuSn]
+    * @return: java.util.List<java.lang.Long>
+    * @Author: Yancheng Lai
+    * @Date: 2020/12/18 16:55
+    */
+    public List<Long> queryOnSpu(Long shopId,Long spuId,String spuSn){
+        GoodsSpuPoExample goodsSpuPoExample =  new GoodsSpuPoExample();
+        GoodsSpuPoExample.Criteria criteria = goodsSpuPoExample.createCriteria();
+        if(shopId != null){
+          criteria.andShopIdEqualTo(shopId);
+        }
+        if(spuId != null){
+            criteria.andIdEqualTo(spuId);
+        }
+        if(spuSn != null){
+            criteria.andGoodsSnEqualTo(spuSn);
+        }
+        List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(goodsSpuPoExample);
+        List<Long> res = new ArrayList<>();
+        for(GoodsSpuPo goodsSpuPo : goodsSpuPos){
+            res.add(goodsSpuPo.getId());
+        }
+        return res;
+    }
 }

@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.github.pagehelper.PageInfo;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public class GoodsSkuService {
     @Autowired
     ShopService shopService;
 
-    @DubboReference(check = false,version = "2.7.8",group = "activity-service")
+    @DubboReference(version = "2.7.8",group = "activity-service",check = false)
     IActivityService iActivityService;
 
     @Value("${goodsservice.dav.username}")
@@ -87,13 +87,63 @@ public class GoodsSkuService {
     * @Date: 2020/12/2 22:06
     */
     
-    public ReturnObject<PageInfo<GoodsSkuRetVo>> findAllSkus(Long shopId, String skuSn, Long spuId, String spuSn, Integer page, Integer pagesize) {
+    public ReturnObject<PageInfo<GoodsSkuSimpleRetVo>> findAllSkus(Long shopId, String skuSn, Long spuId, String spuSn, Integer page, Integer pagesize) {
 
         PageHelper.startPage(page, pagesize,true,true,null);
 
-        PageInfo<GoodsSkuRetVo> returnObject = goodsSkuDao.findAllGoodSkus(shopId, skuSn, spuId, spuSn, page, pagesize);
+        //PageInfo<GoodsSkuSimpleRetVo> returnObject = goodsSkuDao.findAllGoodSkus(shopId, skuSn, spuId, spuSn, page, pagesize);
 
-        return new ReturnObject<>(returnObject);
+        List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos = new ArrayList<>();
+
+        //sku not null others null
+        if(skuSn != null && shopId == null && spuId == null && spuSn == null){
+            List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getSkuPoBySkuSn(skuSn);
+            for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
+                GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSku(goodsSkuPo).createSimpleVo();
+                goodsSkuSimpleRetVo.setPrice(getPriceById(goodsSkuPo.getId()));
+                goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
+            }
+        } else if (skuSn != null && !( shopId == null && spuId == null && spuSn == null)){
+            // sku not null othsrs not null
+            List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getSkuPoBySkuSn(skuSn);
+            for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
+                GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoById(goodsSkuPo.getId()).getData();
+                boolean flag = true;
+                if(shopId != null && shopId != goodsSpuPo.getShopId()){
+                    flag = false;
+                }
+                if(spuId != null &&spuId != goodsSpuPo.getId()){
+                    flag = false;
+                }
+                if(spuSn!= null && spuId != goodsSpuPo.getId()){
+                    flag = false;
+                }
+                if(flag){
+                    GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSku(goodsSkuPo).createSimpleVo();
+                    goodsSkuSimpleRetVo.setPrice(getPriceById(goodsSkuPo.getId()));
+                    goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
+                }
+            }
+        } else if (skuSn == null && shopId == null && spuId == null && spuSn == null){
+            //all null
+            List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getAllSkus();
+            for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
+                GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSku(goodsSkuPo).createSimpleVo();
+                goodsSkuSimpleRetVo.setPrice(getPriceById(goodsSkuPo.getId()));
+                goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
+            }
+        } else {
+            List<Long> goodsSpuPoIds = goodsSpuDao.queryOnSpu(shopId,spuId,spuSn);
+            List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getGoodsSkuPoListBySpuIdList(goodsSpuPoIds);
+            for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
+                GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSku(goodsSkuPo).createSimpleVo();
+                goodsSkuSimpleRetVo.setPrice(getPriceById(goodsSkuPo.getId()));
+                goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
+            }
+        }
+
+
+        return new ReturnObject<>(new PageInfo<>(goodsSkuSimpleRetVos));
     }
     /** 
     * @Description: 逻辑删除Sku，先检查，后删除

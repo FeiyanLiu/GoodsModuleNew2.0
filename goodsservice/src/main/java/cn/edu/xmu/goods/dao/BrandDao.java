@@ -66,11 +66,12 @@ public class BrandDao {
     * @Date: 2020/12/11 20:52
     */
     public ReturnObject<Brand> getBrandById(Long id) {
-        Brand brand = new Brand(brandPoMapper.selectByPrimaryKey(id));
-        if(brand == null){
+        BrandPo brandPo = brandPoMapper.selectByPrimaryKey(id);
+        if(brandPo == null){
             logger.info("brand == null");
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
+        Brand brand = new Brand(brandPo);
         logger.info("get brand by id: "+ brand.getId().toString());
         return new ReturnObject<>(brand);
     }
