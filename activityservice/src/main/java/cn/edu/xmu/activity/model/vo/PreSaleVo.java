@@ -3,6 +3,11 @@ package cn.edu.xmu.activity.model.vo;
 
 
 import cn.edu.xmu.activity.model.bo.PreSale;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
+import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
+import cn.edu.xmu.ooad.model.VoObject;
+import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -12,7 +17,7 @@ import java.time.LocalDateTime;
  * @create 2020-12-02 0:49
  */
 @Data
-public class PreSaleVo {
+public class PreSaleVo implements VoObject{
     private Long id;
 
     private String name;
@@ -23,7 +28,6 @@ public class PreSaleVo {
 
     private LocalDateTime endTime;
 
-
     private Byte state;
 
     private Integer quantity;
@@ -32,22 +36,26 @@ public class PreSaleVo {
 
     private Long restPayPrice;
 
+    private GoodsSkuSimpleRetVo goodsSku;
+
+    private ShopSimple shop;
 
     private LocalDateTime gmtCreate;
 
     private LocalDateTime gmtModified;
 
-    public PreSaleVo(PreSale preSale) {
-        this.id = preSale.getId();
-        this.name = preSale.getName();
-        this.beginTime = preSale.getBeginTime();
-        this.payTime = preSale.getPayTime();
-        this.state = preSale.getState();
-        this.endTime = preSale.getEndTime();
-        this.quantity = preSale.getQuantity();
-        this.advancePayPrice = preSale.getAdvancePayPrice();
-        this.restPayPrice = preSale.getRestPayPrice();
-        this.gmtCreate = preSale.getGmtCreate();
-        this.gmtModified = preSale.getGmtModified();
+
+    public PreSaleVo() {
+
+    }
+
+    @Override
+    public Object createVo() {
+        return null;
+    }
+
+    @Override
+    public Object createSimpleVo() {
+        return null;
     }
 }

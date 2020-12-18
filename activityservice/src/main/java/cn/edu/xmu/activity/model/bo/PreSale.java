@@ -4,6 +4,7 @@ import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.vo.PreSaleVo;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 
@@ -64,8 +65,8 @@ public class PreSale implements VoObject {
         this.restPayPrice = po.getRestPayPrice();
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
-        this.goodsSku = goodsSku;
-        this.shopSimple = shopSimple;
+        this.goodsSku = new GoodsSkuSimpleRetVo(goodsSku);
+        this.shop = shopSimple;
     }
 
     private Long id;
@@ -74,8 +75,8 @@ public class PreSale implements VoObject {
     private LocalDateTime payTime;
     private LocalDateTime endTime;
     private Byte state;
-    private GoodsSku goodsSku;
-    private ShopSimple shopSimple;
+    private GoodsSkuSimpleRetVo goodsSku;
+    private ShopSimple shop;
     private Integer quantity;
     private Long advancePayPrice;
     private Long restPayPrice;
@@ -85,8 +86,21 @@ public class PreSale implements VoObject {
 
 
     @Override
-    public Object createVo() {
-        return new PreSaleVo(this);
+    public VoObject createVo() {
+        PreSaleVo preSaleVo = new PreSaleVo();
+        preSaleVo.setAdvancePayPrice(this.advancePayPrice);
+        preSaleVo.setBeginTime(this.beginTime);
+        preSaleVo.setEndTime(this.endTime);
+        preSaleVo.setGmtCreate(this.gmtCreate);
+        preSaleVo.setGoodsSku(this.goodsSku);
+        preSaleVo.setId(this.id);
+        preSaleVo.setName(this.name);
+        preSaleVo.setPayTime(this.payTime);
+        preSaleVo.setQuantity(this.quantity);
+        preSaleVo.setRestPayPrice(this.restPayPrice);
+        preSaleVo.setShop(this.shop);
+        preSaleVo.setState(this.state);
+        return preSaleVo;
     }
 
     @Override

@@ -19,13 +19,10 @@ public class NewPreSaleVo {
     @NotNull
     private String name;
     @Future(message = "时间段已过")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime beginTime;
     @Future(message = "时间段已过")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime payTime;
     @Future(message = "时间段已过")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endTime;
     @NotNull
     @Min(0)
