@@ -37,7 +37,7 @@ public class FloatPriceRetVo {
     public modifiedBy modified=new modifiedBy();
     private Integer quantity;
 
-    public FloatPriceRetVo(FloatPrice floatPrice,Long createdId,Long modifiedId){
+    public FloatPriceRetVo(FloatPrice floatPrice,Long createdId,Long modifiedId,String username){
         this.id=floatPrice.getId();
         this.activityPrive=floatPrice.getActivityPrive();
         this.beginTime=floatPrice.getBeginTime().toString();
@@ -48,6 +48,8 @@ public class FloatPriceRetVo {
         this.valid=floatPrice.getValid();
         created.setId(createdId);
         modified.setId(modifiedId);
+        created.setUserName(username);
+        modified.setUserName(username);
     }
 }
 
