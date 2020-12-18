@@ -15,20 +15,21 @@ import java.time.LocalDateTime;
 @Data
 @ApiModel("评论传值对象")
 public class CommentVo {
-    @ApiModelProperty(value = "活动id")
+    @ApiModelProperty(value = "评论id")
     Long id;
     //@ApiModelProperty(value = "顾客")
     //simpleUser
     @ApiModelProperty(value = "评论的SKU id")
     Long goodsSkuId;
     @ApiModelProperty(value = "评价类型 0好评，1中评，2差评")
-    Integer type;
+    Byte type;
     @ApiModelProperty(value = "内容")
     String content;
     @ApiModelProperty(value = "状态")
     Comment.State state;
-    @ApiModelProperty(value="订单商品id")
-    Long orderItemId;
+    @ApiModelProperty(value = "创建时间")
+    LocalDateTime gmtCreate;
+    @ApiModelProperty(value = "修改时间")
     LocalDateTime gmtModified;
 
     public Comment createComment(){
@@ -38,7 +39,6 @@ public class CommentVo {
         comment.setType(this.type);
         comment.setContent(this.content);
         comment.setState(this.state);
-        comment.setOrderItemId(this.orderItemId);
         return comment;
 
     }
