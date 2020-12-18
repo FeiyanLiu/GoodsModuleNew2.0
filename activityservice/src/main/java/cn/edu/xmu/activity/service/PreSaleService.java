@@ -186,7 +186,7 @@ public class PreSaleService {
             return returnObject;
         }
         PreSalePo data = returnObject.getData();
-        if(data)
+        //if(data)
 
         return preSaleDao.changePreSaleState(id, state);
     }

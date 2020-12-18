@@ -63,15 +63,7 @@ public class FlashSaleDao implements InitializingBean {
         return longs;
     }
 
-    /**
-     * @param goodsSpuId
-     * @param beginTime
-     * @param endTime
-     * @Description: 通过SPU获取集合内SKU是否参与秒杀活动
-     * @return: boolean
-     * @Author: LJP_3424
-     * @Date: 2020/12/6 1:02
-     */
+
     //! 临时更改,需要重新写
     public FlashSaleItemPo getFlashSaleItemBetweenTimeByGoodsSkuId(Long goodsSkuId, LocalDateTime beginTime, LocalDateTime endTime) {
 
@@ -227,13 +219,6 @@ public class FlashSaleDao implements InitializingBean {
         }
     }
 
-    /**
-     * @param null
-     * @Description: 向秒杀活动中添加SKU
-     * @return:
-     * @Author: LJP_3424
-     * @Date: 2020/12/6 1:05
-     */
     public ReturnObject<List> insertSkuIntoFlashSale(NewFlashSaleItemVo newFlashSaleItemVo, Long id) {
         Integer flashMaxSize = 5;
         FlashSaleItemPoExample flashSaleItemPoExample = new FlashSaleItemPoExample();
