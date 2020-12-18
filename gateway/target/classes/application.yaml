@@ -1,0 +1,152 @@
+server:
+  port: 8084
+
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - HEAD
+              - OPTIONS
+      routes:
+        - id: user
+          uri: http://127.0.0.1:8083
+          predicates:
+            - Path=/users,/users/**,/shops/{did}/users/{id}/ban,​/shops​/{did}​/users​/{id}​/release
+
+        - id: cart
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/carts,/carts/{id}
+
+        - id: footprints
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/shops/{did}/footprints
+
+        - id: favorite
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/favorites,/favorites/goods/{skuId},/favorites/{id}
+
+        - id: advertise
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/shops/{did}/advertisement/{id}/default,/shops/{did}/advertisement/{id}/offshelves,/shops/{did}/advertisement/{id}/onshelves,/shops/{did}/advertisement/{id},/shops/{did}/advertisement/{id}/audit,/advertisement/states,/shops/{did}/timesegments/{id}/advertisement,/shops/{did}/advertisement/{id}/uploadImg,/shops/{did}/timesegments/{id}/advertisement,/advertisement/current
+
+        - id: aftersale
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/aftersales,/aftersales/states,/aftersales/{id},/aftersales/{id}/sendback,/orderItems/{id}/aftersales,/shops/{id}/aftersales,/shops/{shopId}/aftersales/{id},/shops/{shopId}/aftersales/{id}/confirm,/shops/{shopId}/aftersales/{id}/receive,/shops/{shopId}/aftersales/{id}/deliver
+
+        - id: address
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/addresses,/addresses/{id}/default,/addresses/{id},/region/{id}/ancestor,/shops/{did}/regions/{id}/subregions,/shops/{did}/regions/{id}
+
+        - id: share
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/skus/{id}/shares,/shares,/shops/{did}/skus/{id}/shares,/beshared,/shops/{did}/skus/{id}/beshared,/shops/{shopId}/skus/{id}/shareactivities,/shareactivities,/shops/{shopId}/shareactivities/{id},/shops/{shopId}/shareactivities/{id}/online
+
+        - id: order
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/orders,/orders/**,/shops/{shopId}/orders,/shops/{shopId}/orders/{id},/shops/{shopId}/orders/{id}/deliver
+
+        - id: freight
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=​/region​/{rid}​/price,/shops/{id}/freightmodels,/shops/{shopId}/freightmodels/{id}/clone,/shops/{shopId}/freightmodels/{id},/shops/{shopId}/freight_models/{id}/default,/shops/{shopId}/freightmodels/{id}/**,/shops/{shopId}/weightItems/{id},/shops/{shopId}/pieceItems/{id}
+
+        - id: payment
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/payments/**,/orders/{id}/payments,/shops/{shopId}/orders/{id}/payments,/aftersales/{id}/payments,/shops/{shopId}/aftersales/{id}/payments
+
+        - id: goods
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/skus/states,/skus,/shops/{shopId}/spus/{id}/skus,/shops/{shopId}/skus/{id}/uploadImg,/shops/{shopId}/skus/{id},/spus/{id},/share/{sid}/skus/{id},/shops/{id}/spus,/shops/{shopId}/spus/{id},/shops/{shopId}/skus/{id}/onshelves,/shops/{shopId}/skus/{id}/offshelves,/shops/{shopId}/skus/{id}/floatPrices,/shops/{shopId}/floatPrices/{id},/shops/{id}/brands,/shops/{shopId}/brands/{id}/uploadImg,/brands,/shops/{shopId}/brands/{id},/shops/{shopId}/spus/{spuId}/categories/{id},/shops/{shopId}/spus/{spuId}/brands/{id}
+
+        - id: time
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/shops/{did}/advertisement/timesegments,/shops/{did}/advertisement/timesegments/{id},/shops/{did}/flashsale/timesegments,/shops/{did}/flashsale/timesegments/{id}
+              
+        - id: flashsale
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/timesegments/{id}/flashsales,/shops/{did}/timesegments/{id}/flashsales,/flashsales/current,/shops/{did}/flashsales/{id},/shops/{did}/flashsales/{id}/onshelves,/shops/{did}/flashsales/{id}/offshelves,/shops/{did}/flashsales/{id}/flashitems,/shops/{did}/flashsales/{fid}/flashitems/{id}
+
+        - id: comment
+          uri: http://127.0.0.1:8080
+          predicates:
+           - Path=/comments/states,/orderitems/{id}/comments,/skus/{id}/comments,​/shops​/{did}​/comments​/{id}​/confirm,​/comments,​/shops​/{id}​/comments​/all
+
+        - id: coupon
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/coupons/states,/shops/{shopId}/couponactivities,/shops/{shopId}/couponactivities/{id}/uploadImg,/couponactivities,/shops/{id}/couponactivities/invalid,/couponactivities/{id}/skus,/shops/{shopId}/couponactivities/{id},/shops/{shopId}/couponactivities/{id}/skus,/shops/{shopId}/couponskus/{id},/coupons,/couponactivities/{id}/usercoupons,/shops/{shopId}/couponactivities/{id}/onshelves,/shops/{shopId}/couponactivities/{id}/offshelves
+
+        - id: presale
+          uri: http://127.0.0.1:8080
+          predicates:
+            - Path=/presales/states,/presales,/shops/{shopId}/presales,/shops/{shopId}/skus/{id}/presales,/shops/{shopId}/presales/{id},/shops/{shopId}/presales/{id}/onshelves,/shops/{shopId}/presales/{id}/offshelves,/groupons/states,/groupons,/shops/{id}/groupons,/shops/{shopId}/spus/{id}/groupons,/shops/{shopId}/groupons/{id},/shops/{shopId}/groupons/{id}/onshelves,/shops/{shopId}/groupons/{id}/offshelves
+
+        - id: groupon
+          uri: http://127.0.0.1:8080
+          predicates:
+           - Path=/groupons/states,/groupons,/shops/{id}/groupons,/shops/{shopId}/spus/{id}/groupons,/shops/{shopId}/groupons/{id},/shops/{shopId}/groupons/{id}/onshelves,/shops/{shopId}/groupons/{id}/offshelves
+
+        - id: shops​
+          uri: http://127.0.0.1:8080
+          predicates:
+           - Path=/shops/states,/shops,/shops/{id},/shops/{shopId}/newshops/{id}/audit,/shops/{id}/onshelves,/shops/{id}/offshelves
+
+        - id: category
+          uri: http://127.0.0.1:8080
+          predicates:
+           - Path=/categories/**
+
+        - id: orders
+          uri: http://127.0.0.1:8090
+          predicates:
+            - Path=/orders,/orders/{id},/orders/states,/orders/{id}/groupon-normal,/orders/{id}/confirm,/shops/{shopId}/orders,/shops/{shopId}/orders/{id},/shops/{shopId}/orders/{id}/deliver
+          filters:
+            - PrefixPath=/order
+
+        - id: freights
+          uri: http://127.0.0.1:8090
+          predicates:
+            - Path=/region/{rid}/price,/shops/{id}/freightmodels,/shops/{shopId}/freightmodels/{id}/clone,/shops/{shopId}/freightmodels/{id},/shops/{shopId}/freight_models/{id}/default,/shops/{shopId}/freightmodels/{id}/**,/shops/{shopId}/weightItems/{id},/shops/{shopId}/pieceItems/{id}
+          filters:
+            - PrefixPath=/freight
+              #            - Auth=authorization
+
+        - id: payments
+          uri: http://127.0.0.1:8090
+          predicates:
+            - Path=/payments/**,/orders/{id}/payments,/shops/{shopId}/orders/{id}/payments,/aftersales/{id}/payments,/shops/{shopId}/aftersales/{id}/payments,/shops/{shopId}/payments/{id}/refunds,/shops/{shopId}/orders/{id}/refunds,/shops/{shopId}/aftersales/{id}/refunds,/orders/{id}/refunds,/aftersales/{id}/refunds
+          filters:
+            - PrefixPath=/payment
+        #            - Auth=authorization
+
+
+
+management:
+  endpoint:
+    gateway:
+      enabled: true
+
+
