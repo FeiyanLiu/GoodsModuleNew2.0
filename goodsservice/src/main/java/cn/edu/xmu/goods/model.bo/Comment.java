@@ -2,9 +2,13 @@ package cn.edu.xmu.goods.model.bo;
 
 
 import cn.edu.xmu.goods.model.po.CommentPo;
+import cn.edu.xmu.goods.model.vo.CommentVoBody;
 import cn.edu.xmu.ooad.model.VoObject;
+import io.lettuce.core.StrAlgoArgs;
+import io.netty.channel.SimpleUserEventChannelHandler;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +20,20 @@ public class Comment implements VoObject{
 
     public Comment() {
 
+    }
+
+    public CommentPo getCommentPo() {
+        CommentPo commentPo=new CommentPo();
+        commentPo.setContent(getContent());
+        commentPo.setCustomerId(getCustomerId());
+        commentPo.setState((byte) Comment.State.NEW.getCode().intValue());
+        commentPo.setId(getId());
+        commentPo.setGmtCreate(getGmtCreate());
+        commentPo.setGmtModified(getGmtModified());
+        commentPo.setType(getType());
+        commentPo.setGoodsSkuId(getGoodsSkuId());
+        commentPo.setOrderitemId(getOrderItemId());
+        return commentPo;
     }
 
     /**
@@ -57,20 +75,24 @@ public class Comment implements VoObject{
         }
     }
 
-    private long id;
+    private Long id;
 
-    private long customerId;
+    private Long customerId;
 
-    private long goodsSkuId;
+    private Long goodsSkuId;
 
-    private long orderItemId;
+    private Long orderItemId;
 
-    private int type;
+    private Byte type;
     /*评价等级 0好评1中评2差评*/
 
     private String content;
 
     private State state=State.NEW;
+
+    private LocalDateTime gmtCreate;
+
+    private LocalDateTime gmtModified;
 
     public Comment(CommentPo po){
         this.id=po.getId();
@@ -82,6 +104,11 @@ public class Comment implements VoObject{
         if(null!=po.getState()){
             this.state=State.getTypeByCode(po.getState().intValue());
         }
+    }
+
+    public Comment(CommentVoBody vo){
+        setType(vo.getType());
+        setContent(vo.getContent());
     }
 
     @Override
