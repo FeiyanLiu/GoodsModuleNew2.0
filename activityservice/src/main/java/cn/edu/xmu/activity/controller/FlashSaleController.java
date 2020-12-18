@@ -59,8 +59,7 @@ public class FlashSaleController {
             @ApiResponse(code = 0, message = "成功")
     })
     //@Audit //认证
-    @GetMapping(value =
-            "/timesegments/{id}/flashsales")
+    @GetMapping(value = "/timesegments/{id}/flashsales",produces=MediaType.APPLICATION_STREAM_JSON_VALUE)
     public Flux<FlashSaleRetItemVo> getFlashSale(@PathVariable Long id) {
         if (logger.isDebugEnabled()) {
             logger.debug("FlashSaleInfo: timeSegmentId = " + id);
@@ -83,8 +82,9 @@ public class FlashSaleController {
             @ApiResponse(code = 0, message = "成功")
     })
     //@Audit
-    @PostMapping("/timesegments/{id}/flashsales")
+    @PostMapping("/shops/{did}/timesegments/{id}/flashsales")
     public Object insertFlashSale(
+            @PathVariable Long did,
             @PathVariable Long id,
             @Validated @RequestBody NewFlashSaleVo vo,
             BindingResult bindingResult) {
@@ -92,9 +92,13 @@ public class FlashSaleController {
         if (bindingResult.hasErrors()) {
             return Common.processFieldErrors(bindingResult, httpServletResponse);
         }
+        LocalDateTime now = LocalDateTime.now();
+        if(vo.getFlashDate().compareTo(LocalDateTime.of(now.getYear(),now.getMonth(),now.getDayOfMonth(),23,59,59)) < 0){
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
+        }
         ReturnObject returnObject = flashSaleService.createNewFlashSale(vo, id);
-        if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
-            return Common.getListRetObject(returnObject);
+        if (returnObject.getCode().equals(ResponseCode.OK)) {
+            return Common.getRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
         }
@@ -117,7 +121,8 @@ public class FlashSaleController {
             @ApiResponse(code = 0, message = "成功")
     })
     //@Audit //认证
-    @GetMapping("/flashsales/current")
+    // produces=MediaType.APPLICATION_STREAM_JSON_VALUE 使得返回的数据不会被[   ,    ]包裹起来
+    @GetMapping(value = "/flashsales/current",produces=MediaType.APPLICATION_STREAM_JSON_VALUE)
     public Flux<FlashSaleRetItemVo> getFlashSale() {
         LocalDateTime localDateTime = LocalDateTime.now();
         return flashSaleService.getCurrentFlashSale(localDateTime).map(x -> (FlashSaleRetItemVo) x.createVo());
@@ -229,8 +234,6 @@ public class FlashSaleController {
 
     /**
      * @Description:
-     *
-     * @param fid
      * @param id
      * @return: java.lang.Object
      * @Author: LJP_3424
@@ -254,32 +257,4 @@ public class FlashSaleController {
     }
 
 
-/**
- * @Description: 获取秒杀活动商品 
- *
- * @param id 
- * @param page 
- * @param pageSize 
- * @return: java.lang.Object 
- * @Author: LJP_3424
- * @Date: 2020/12/6 1:06
- */
-    @ApiOperation(value = "获取秒杀活动商品")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "query", name = "id", value = "秒杀活动id", required = false, dataType = "Integer"),
-            @ApiImplicitParam(paramType = "query", name = "page", value = "页码", required = false, dataType = "Integer"),
-            @ApiImplicitParam(paramType = "query", name = "pageSize", value = "页面大小", required = false, dataType = "Integer")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功")
-    })
-    @GetMapping("/flashsales/{id}/flashitems")
-    public Object selectAllFlashSale(
-            @PathVariable(required = true) Long id,
-            @RequestParam(required = false, defaultValue = "1") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer pageSize
-    ) {
-        ReturnObject<PageInfo<VoObject>> returnObject = flashSaleService.selectAllFlashSale(id, page, pageSize);
-        return Common.getPageRetObject(returnObject);
-    }
 }

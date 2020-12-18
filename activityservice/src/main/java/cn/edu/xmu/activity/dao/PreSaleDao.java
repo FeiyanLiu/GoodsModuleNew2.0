@@ -41,20 +41,32 @@ public class PreSaleDao implements InitializingBean {
 
     }
 
-    public boolean getPreSaleInActivities(Long goodsSpuId, LocalDateTime beginTime, LocalDateTime endTime) {
+
+    public ReturnObject<Boolean> checkPreSaleInActivities(Long goodsSkuId, LocalDateTime beginTime, LocalDateTime endTime) {
         PreSalePoExample example = new PreSalePoExample();
         PreSalePoExample.Criteria criteria1 = example.createCriteria();
+
         criteria1.andEndTimeGreaterThan(beginTime);
         criteria1.andBeginTimeLessThan(endTime);
-        criteria1.andGoodsSkuIdEqualTo(goodsSpuId);
+        criteria1.andGoodsSkuIdEqualTo(goodsSkuId);
         criteria1.andStateEqualTo(PreSale.State.ON.getCode());
+        List<PreSalePo> preSalePos = null;
         // 这里使用select,实际上自己写count可以得到更高的效率
-        List<PreSalePo> preSalePos = preSalePoMapper.selectByExample(example);
+        try {
+             preSalePos = preSalePoMapper.selectByExample(example);
+        } catch (DataAccessException e) {
+            logger.error("selectAllPreSale: DataAccessException:" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 其他Exception错误
+            logger.error("other exception : " + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        }
         //返回为空则不存在,返回false ,不为空说明查询到了
         if (preSalePos.size() == 0) {
-            return false;
+            return new ReturnObject<Boolean>(false);
         } else {
-            return true;
+            return new ReturnObject<Boolean>(true);
         }
     }
 
@@ -66,7 +78,7 @@ public class PreSaleDao implements InitializingBean {
         // 删除态直接无视
         criteria.andStateNotEqualTo(PreSale.State.DELETE.getCode());
 
-        if(id != null){
+        if (id != null) {
             criteria.andGoodsSkuIdEqualTo(id);
         }
         if (state != null) {
@@ -100,7 +112,7 @@ public class PreSaleDao implements InitializingBean {
         PreSalePoExample example = new PreSalePoExample();
         PreSalePoExample.Criteria criteria = example.createCriteria();
         LocalDateTime tomorrow;
-        if(timeline != null) {
+        if (timeline != null) {
             switch (timeline) {
                 case 0:
                     //
@@ -143,8 +155,6 @@ public class PreSaleDao implements InitializingBean {
     }
 
     /**
-     *
-     *
      * @param vo vo对象
      * @return ReturnObject
      * createdBy: LJP_3424
@@ -160,13 +170,13 @@ public class PreSaleDao implements InitializingBean {
         preSalePo.setGmtCreate(LocalDateTime.now());
         try {
             int insertResult = preSalePoMapper.insert(preSalePo);
-            if(insertResult != 0){
-                return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,"插入失败");
+            if (insertResult != 0) {
+                return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR, "插入失败");
             }
-        }  catch (DataAccessException e) {
+        } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-           return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
@@ -184,88 +194,68 @@ public class PreSaleDao implements InitializingBean {
      * @author LJP_3424
      */
     public ReturnObject updatePreSale(NewPreSaleVo preSaleVo, Long id) {
-
-        PreSalePo preSalePo = preSaleVo.createPreSalePo();
+        PreSalePo preSalePo = new PreSalePo();
         preSalePo.setId(id);
-        preSalePo.setGmtModified(LocalDateTime.now());
-        try {
-            int ret = preSalePoMapper.updateByPrimaryKeySelective(preSalePo);
-            if(ret == 0){
-                return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,"更新失败");
-            }else{
-                return new ReturnObject(ResponseCode.OK);
-            }
-        }  catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
-            // 属未知错误
-            logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));
-        }
+
+        preSalePo.setName(preSaleVo.getName());
+        preSalePo.setAdvancePayPrice(preSaleVo.getAdvancePayPrice());
+        preSalePo.setRestPayPrice(preSaleVo.getRestPayPrice());
+        preSalePo.setBeginTime(preSaleVo.getBeginTime());
+        preSalePo.setPayTime(preSaleVo.getPayTime());
+        preSalePo.setEndTime(preSaleVo.getEndTime());
+
+        return updateValue(preSalePo);
     }
 
 
     /**
-     * @Description:  
-     *
      * @param id
-     * @param state 
-     * @return: cn.edu.xmu.ooad.util.ReturnObject<java.lang.Object> 
+     * @param state
+     * @Description:
+     * @return: cn.edu.xmu.ooad.util.ReturnObject<java.lang.Object>
      * @Author: LJP_3424
      * @Date: 2020/12/11 16:26
      */
     public ReturnObject<Object> changePreSaleState(Long id, Byte state) {
-        PreSalePo po = preSalePoMapper.selectByPrimaryKey(id);
-
-        // 不存在或删除态拒绝
-        if (po == null || po.getState() == PreSale.State.DELETE.getCode()) {
-            logger.info("活动不存在或已被删除：id = " + id);
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-        // 状态重复或者 上线态转删除
-        if (po.getState() == state || (state == PreSale.State.DELETE.getCode() && po.getState() == PreSale.State.ON.getCode())) {
-            return new ReturnObject<>(ResponseCode.PRESALE_STATENOTALLOW);
-        }
-        // po.setState(state);
-        // 这里采用部分更新,防止数据更改
         PreSalePo preSalePo = new PreSalePo();
-        preSalePo.setId(po.getId());
+        preSalePo.setId(id);
         preSalePo.setState(state);
-        ReturnObject<Object> retObj = new ReturnObject<>(ResponseCode.OK);
-        int ret = 0;
+        return updateValue(preSalePo);
+    }
+
+
+    public ReturnObject<PreSalePo> getPreSalePoByPreSaleId(Long preSaleId) {
+        PreSalePo preSalePo = null;
         try {
-            ret = preSalePoMapper.updateByPrimaryKeySelective(preSalePo);
+            preSalePo = preSalePoMapper.selectByPrimaryKey(preSaleId);
+            if (preSalePo == null || preSalePo.getState() == PreSale.State.DELETE.getCode()) {
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+            } else {
+                return new ReturnObject(preSalePo);
+            }
         } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
-        if (ret == 0) {
-            logger.info("活动不存在或已被删除：id = " + id);
-            retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-        return retObj;
     }
 
-
-    public ReturnObject<PreSalePo> getPreSalePo(Long preSaleId){
-        PreSalePo preSalePo = null;
+    /**
+     * 删除和更新都用update,两者结构相同,数据处理好后直接调用这个即可
+     */
+    private ReturnObject updateValue(PreSalePo preSalePo) {
         try {
-            preSalePo = preSalePoMapper.selectByPrimaryKey(preSaleId);
-            if(preSalePo == null || preSalePo.getState() == PreSale.State.DELETE.getCode()){
+            int ret = preSalePoMapper.updateByPrimaryKeySelective(preSalePo);
+            if (ret == 1) {
+                return new ReturnObject(ResponseCode.OK);
+            } else {
                 return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-            }else{
-                return new ReturnObject(preSalePo);
             }
         } catch (DataAccessException e) {
             // 数据库错误

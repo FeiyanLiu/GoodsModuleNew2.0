@@ -211,16 +211,10 @@ public class PreSaleController {
         if (null != returnObject) {
             return returnObject;
         }
-        // 此处判断时间上是否冲突
-        if(vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime()) > 0){
-            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
+        if (vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime())>0) {
+            return Common.getRetObject(new ReturnObject<>(ResponseCode.Log_Bigger));
         }
-        ReturnObject retObject = preSaleService.updatePreSale(vo, id);
-        if (retObject.getCode() == ResponseCode.OK) {
-            return ResponseUtil.ok(retObject.getData());
-        } else {
-            return ResponseUtil.fail(retObject.getCode());
-        }
+        return Common.getRetObject(preSaleService.updatePreSale(vo, shopId, id));
     }
 
     /**
@@ -242,7 +236,7 @@ public class PreSaleController {
         if (logger.isDebugEnabled()) {
             logger.debug("deleteUser: id = " + id);
         }
-        ReturnObject retObject = preSaleService.changePreSaleState(id, PreSale.State.DELETE.getCode());
+        ReturnObject retObject = preSaleService.changePreSaleState(shopId,id, PreSale.State.DELETE.getCode());
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {
@@ -269,12 +263,7 @@ public class PreSaleController {
         if (logger.isDebugEnabled()) {
             logger.debug("deleteUser: id = " + id);
         }
-        ReturnObject retObject = preSaleService.changePreSaleState(id, PreSale.State.ON.getCode());
-        if (retObject.getCode() == ResponseCode.OK) {
-            return ResponseUtil.ok();
-        } else {
-            return ResponseUtil.fail(retObject.getCode());
-        }
+        return Common.getRetObject(preSaleService.changePreSaleState(shopId,id, PreSale.State.ON.getCode()));
     }
 
     /**
@@ -296,36 +285,6 @@ public class PreSaleController {
         if (logger.isDebugEnabled()) {
             logger.debug("deleteUser: id = " + id);
         }
-        ReturnObject retObject = preSaleService.changePreSaleState(id, PreSale.State.OFF.getCode());
-        if (retObject.getCode() == ResponseCode.OK) {
-            return ResponseUtil.ok();
-        } else {
-            return ResponseUtil.fail(retObject.getCode());
-        }
+        return Common.getRetObject(preSaleService.changePreSaleState(shopId,id, PreSale.State.OFF.getCode()));
     }
-
-    // 可修改状体检测
-    public ReturnObject confirmPreSaleId(PreSalePo PreSalePo, Long shopId) {
-
-        // 错误路径1,该id不存在
-        if (PreSalePo == null) {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-        // 错误路径2,不是自家活动
-        if (PreSalePo.getShopId().longValue() != shopId.longValue()) {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
-        }
-
-        // 错误路径3,状态不允许,并且目前只需要下线就能修改,不需要管改的结果
-        // 时段冲突也不需要考虑,因为在下线状态,考虑的事情,扔给上线吧
-        // 参数校验方面 Vo检测未来 Controller检测开始大于结束
-        if (PreSalePo.getState() != PreSale.State.OFF.getCode()) {
-            return new ReturnObject(ResponseCode.PRESALE_STATENOTALLOW);
-        }
-
-        // 校验成功,通过
-        return new ReturnObject(ResponseCode.OK);
-    }
-
-/*************通用函数结束************/
 }

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -63,7 +64,6 @@ public class FlashSaleDao implements InitializingBean {
         return longs;
     }
 
-
     //! 临时更改,需要重新写
     public FlashSaleItemPo getFlashSaleItemBetweenTimeByGoodsSkuId(Long goodsSkuId, LocalDateTime beginTime, LocalDateTime endTime) {
 
@@ -71,12 +71,12 @@ public class FlashSaleDao implements InitializingBean {
         /* 取出所有的 timeSegmentID --> beginTime && endTime
          * SkuId-->SaleId-->-->timeSegmentId--Map-->beginTime&&endTime 减少数据库访问次数
          */
-        TimeSegmentPoExample timeSegmentPoExample = new TimeSegmentPoExample();
-        List<TimeSegmentPo> timeSegmentPos = timeSegmentPoMapper.selectByExample(timeSegmentPoExample);
         FlashSaleItemPoExample flashSaleItemPoExample = new FlashSaleItemPoExample();
         FlashSaleItemPoExample.Criteria criteriaItem = flashSaleItemPoExample.createCriteria();
+
         // List 转Map
-        Map<Long, TimeSegmentPo> mappedTimeSegmentPo = timeSegmentPos.stream().collect(Collectors.toMap(TimeSegmentPo::getId, (p) -> p));
+        Map<Long, TimeSegmentPo> mappedTimeSegmentPo = getTimeSegmentMap();
+
         criteriaItem.andGoodsSkuIdEqualTo(goodsSkuId);
         List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(flashSaleItemPoExample);
         for (FlashSaleItemPo flashSaleItemPo : flashSaleItemPos) {
@@ -94,6 +94,15 @@ public class FlashSaleDao implements InitializingBean {
             }
         }
         return null;
+    }
+
+    private Map<Long, TimeSegmentPo> getTimeSegmentMap() {
+        TimeSegmentPoExample timeSegmentPoExample = new TimeSegmentPoExample();
+        TimeSegmentPoExample.Criteria criteria = timeSegmentPoExample.createCriteria();
+        // 取出所有的秒杀时段
+        criteria.andTypeEqualTo((byte) 1);
+        List<TimeSegmentPo> timeSegmentPos = timeSegmentPoMapper.selectByExample(timeSegmentPoExample);
+        return timeSegmentPos.stream().collect(Collectors.toMap(TimeSegmentPo::getId, (p) -> p));
     }
 /*
 *
@@ -185,13 +194,29 @@ public class FlashSaleDao implements InitializingBean {
         return flashSalePo.getId();
     }
 
-    public int countFlashSaleByTimeSegmentId(Long id) {
+    public ReturnObject<Boolean> checkFlashSaleInActivity(Long id) {
         FlashSalePoExample example = new FlashSalePoExample();
         FlashSalePoExample.Criteria criteria = example.createCriteria();
         criteria.andTimeSegIdEqualTo(id);
         logger.debug("findFlashSaleById: Time" + "SegmentId = " + id);
-        List<FlashSalePo> flashSalePos = flashSalePoMapper.selectByExample(example);
-        return flashSalePos.size();
+        try {
+            List<FlashSalePo> flashSalePos = flashSalePoMapper.selectByExample(example);
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+        if (flashSalePos.size() > 0) {
+            return new ReturnObject<Boolean>(true);
+        } else {
+            return new ReturnObject<Boolean>(false);
+        }
     }
 
     public FlashSalePo getFlashSaleByFlashSaleId(Long flashSaleId) {
@@ -281,12 +306,33 @@ public class FlashSaleDao implements InitializingBean {
         return flashSalePoMapper.selectByExample(flashSalePoExample);
     }
 
-    public ReturnObject deleteFlashSale(Long id){
+    public ReturnObject deleteFlashSale(Long id) {
         int ret = flashSalePoMapper.deleteByPrimaryKey(id);
-        if(ret == 0){
+        if (ret == 0) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         return new ReturnObject(ResponseCode.OK);
     }
 
+    public ReturnObject<Long> insertFlashSale(FlashSalePo flashSalePo) {
+        FlashSalePoExample flashSalePoExample = new FlashSalePoExample();
+        try {
+            int ret = flashSalePoMapper.insertSelective(flashSalePo);
+            if(ret == 1){
+                return new ReturnObject<Long>(flashSalePo.getId());
+            }else{
+                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,"插入失败");
+            }
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+    }
 }

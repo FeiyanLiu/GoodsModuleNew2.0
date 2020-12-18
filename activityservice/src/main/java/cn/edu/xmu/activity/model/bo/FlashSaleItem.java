@@ -5,6 +5,7 @@ import cn.edu.xmu.activity.model.po.FlashSaleItemPo;
 import cn.edu.xmu.activity.model.vo.FlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.FlashSaleRetItemVo;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 
@@ -18,22 +19,11 @@ import java.time.LocalDateTime;
 @Data
 public class FlashSaleItem implements VoObject , Serializable {
 
-    public FlashSaleItem(FlashSaleItemPo flashSaleItemPo, GoodsSku goodsSku) {
-        this.goodsSku = goodsSku;
-        this.id = flashSaleItemPo.getId();
-        this.saleId = flashSaleItemPo.getSaleId();
-        this.gmtCreated = flashSaleItemPo.getGmtCreate();
-        this.goodsSkuId = flashSaleItemPo.getGoodsSkuId();
-        this.gmtModified = flashSaleItemPo.getGmtModified();
-        this.price = flashSaleItemPo.getPrice();
-        this.quantity = flashSaleItemPo.getQuantity();
-    }
-    private GoodsSku goodsSku;
     private Long id;
 
     private Long saleId;
 
-    private Long goodsSkuId;
+    private GoodsSkuSimpleRetVo goodsSku;
 
     private Long price;
 
@@ -51,15 +41,15 @@ public class FlashSaleItem implements VoObject , Serializable {
         flashSaleItemVo.setGmtModified(this.gmtModified);
         flashSaleItemVo.setPrice(this.price);
         flashSaleItemVo.setQuantity(this.quantity);
-        flashSaleItemVo.setGoodsSkuId(this.goodsSkuId);
+        flashSaleItemVo.setGoodsSku(this.goodsSku);
         return flashSaleItemVo;
     }
 
-    public FlashSaleItem(FlashSaleItemPo flashSaleItemPo) {
+    public FlashSaleItem(FlashSaleItemPo flashSaleItemPo,GoodsSku goodsSku) {
         this.id = flashSaleItemPo.getId();
         this.saleId = flashSaleItemPo.getSaleId();
         this.gmtCreated = flashSaleItemPo.getGmtCreate();
-        this.goodsSkuId = flashSaleItemPo.getGoodsSkuId();
+        this.goodsSku = new GoodsSkuSimpleRetVo(goodsSku);
         this.gmtModified = flashSaleItemPo.getGmtModified();
         this.price = flashSaleItemPo.getPrice();
         this.quantity = flashSaleItemPo.getQuantity();

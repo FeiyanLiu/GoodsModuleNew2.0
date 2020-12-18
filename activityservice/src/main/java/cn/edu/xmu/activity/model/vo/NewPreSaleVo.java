@@ -25,13 +25,13 @@ public class NewPreSaleVo {
     @Future(message = "时间段已过")
     private LocalDateTime endTime;
     @NotNull
-    @Min(0)
+    @Min(value = 0,message = "为自然数")
     private Integer quantity;
     @NotNull
-    @Min(1)
+    @Min(value = 0,message = "不应小于0")
     private Long advancePayPrice;
     @NotNull
-    @Min(1)
+    @Min(value = 0,message = "不应小于0")
     private Long restPayPrice;
 
     public PreSalePo createPreSalePo(){

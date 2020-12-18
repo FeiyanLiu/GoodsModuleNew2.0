@@ -5,20 +5,14 @@ import cn.edu.xmu.activity.dao.FlashSaleItemDao;
 import cn.edu.xmu.activity.dao.TimeSegmentDao;
 import cn.edu.xmu.activity.model.bo.FlashSale;
 import cn.edu.xmu.activity.model.bo.FlashSaleItem;
-import cn.edu.xmu.activity.model.bo.FlashSaleRetItem;
 import cn.edu.xmu.activity.model.po.FlashSaleItemPo;
-import cn.edu.xmu.activity.model.po.FlashSaleItemPoExample;
 import cn.edu.xmu.activity.model.po.FlashSalePo;
 import cn.edu.xmu.activity.model.po.TimeSegmentPo;
-import cn.edu.xmu.activity.model.vo.FlashSaleRetItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
-import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,10 +92,11 @@ public class FlashSaleService {
     }
 
     @Transactional
-    public boolean getFlashSaleInActivities(Long goodsSpuId, LocalDateTime beginTime, LocalDateTime endTime) {
+    public boolean checkFlashSaleInActivities(Long goodsSpuId, LocalDateTime beginTime, LocalDateTime endTime) {
         List<Long> goodsSkuIds = getGoodsSpuIdsToSkuIds(goodsSpuId);
         for (Long goodsSkuId : goodsSkuIds) {
             if (flashSaleDao.getFlashSaleItemBetweenTimeByGoodsSkuId(goodsSkuId, beginTime, endTime) != null) {
+
                 return true;
             }
         }
@@ -129,34 +124,34 @@ public class FlashSaleService {
         return reactiveRedisTemplate.opsForSet().members(currentNow).map(x -> (FlashSaleItem) x);
     }
 
-    private GoodsSku getGoodsSku(Long id){
+    private GoodsSku getGoodsSku(Long id) {
         GoodsSku goodsSku = new GoodsSku();
         goodsSku.setSkuSn("skusntest11");
         goodsSku.setId(111L);
         goodsSku.setDetail("这个是临时测试,记得调用接口");
         return goodsSku;
     }
+
     @Transactional
     public ReturnObject createNewFlashSale(NewFlashSaleVo vo, Long id) {
-        try {
-            if (flashSaleDao.countFlashSaleByTimeSegmentId(id) < flashSaleMaxSize) {
-                Long flashSaleId = flashSaleDao.createNewFlashSaleByVo(vo, id);
-                // 返回插入的秒杀
-                return new ReturnObject<>(new FlashSale(flashSaleDao.getFlashSaleByFlashSaleId(flashSaleId)));
-            } else {
-                return new ReturnObject(ResponseCode.FLASHSALE_OUTLIMIT);
-            }
-        } catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
-            // 属未知错误
-            logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        ReturnObject<Boolean> checkResult = flashSaleDao.checkFlashSaleInActivity(id);
+        if(checkResult.getCode() != ResponseCode.OK){
+            return new ReturnObject(checkResult.getCode(),checkResult.getErrmsg());
         }
+        if (checkResult.getData()) {
+            return new ReturnObject(ResponseCode.FLASHSALE_OUTLIMIT);
+        }
+
+        FlashSalePo flashSalePo = new FlashSalePo();
+        flashSalePo.setFlashDate(vo.getFlashDate());
+        flashSalePo.setGmtCreate(LocalDateTime.now());
+        flashSalePo.setState(FlashSale.State.ON.getCode());
+        flashSalePo.setTimeSegId(id);
+        ReturnObject<Long> returnObject = flashSaleDao.insertFlashSale(flashSalePo);
+        if(returnObject.getCode() != ResponseCode.OK){
+            return new ReturnObject(returnObject.getCode(),returnObject.getErrmsg());
+        }
+
     }
 
     /**
@@ -210,38 +205,6 @@ public class FlashSaleService {
     public ReturnObject insertSkuIntoPreSale(NewFlashSaleItemVo newFlashSaleItemVo, Long id) {
         ReturnObject<List> retObj = flashSaleDao.insertSkuIntoFlashSale(newFlashSaleItemVo, id);
         return retObj;
-    }
-
-    /**
-     * 分页查询所有预售活动
-     *
-     * @param pageNum  页数
-     * @param pageSize 每页大小
-     * @return ReturnObject<PageInfo < VoObject>> 分页返回预售信息
-     * @author LJP_3424
-     */
-    public ReturnObject<PageInfo<VoObject>> selectAllFlashSale(Long id, Integer pageNum, Integer pageSize) {
-        List<FlashSaleItemPo> flashSaleItemPos = null;
-
-        logger.debug("page = " + pageNum + "pageSize = " + pageSize);
-        try {
-            //分页查询
-            PageHelper.startPage(pageNum, pageSize);
-            flashSaleItemPos = flashSaleDao.selectAllFlashSale(id, pageNum, pageSize);
-            List<VoObject> ret = new ArrayList<>(flashSaleItemPos.size());
-            for (FlashSaleItemPo po : flashSaleItemPos) {
-                ret.add(new FlashSaleItem(po));
-            }
-            PageInfo<VoObject> flashSalePage = PageInfo.of(ret);
-            return new ReturnObject<PageInfo<VoObject>>(flashSalePage);
-        } catch (DataAccessException e) {
-            logger.error("selectAllFlashSale: DataAccessException:" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
-            // 其他Exception错误
-            logger.error("other exception : " + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        }
     }
 
     @Transactional

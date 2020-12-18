@@ -3,6 +3,7 @@ package cn.edu.xmu.activity.service;
 
 import cn.edu.xmu.activity.dao.GrouponDao;
 import cn.edu.xmu.activity.model.bo.Groupon;
+import cn.edu.xmu.activity.model.bo.PreSale;
 import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.vo.NewGrouponVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
@@ -14,6 +15,7 @@ import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.aspectj.weaver.GeneratedReferenceTypeDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,8 +121,12 @@ public class GrouponService {
         }
 
         // 插入操作
-        Long grouponId = grouponDao.insertNewGroupon(vo, shopId, id).getData();
+        ReturnObject<Long> insertResult = grouponDao.insertNewGroupon(vo, shopId, id);
+        if(insertResult.getCode() != ResponseCode.OK){
+            return new ReturnObject(insertResult.getCode(),insertResult.getErrmsg());
+        }
 
+        Long grouponId = insertResult.getData();
         // 正常路径
         if (grouponId != null) {
             ReturnObject<GrouponPo> returnObject = grouponDao.getGrouponPoByGrouponId(grouponId);
@@ -168,17 +174,18 @@ public class GrouponService {
             return returnObject;
         }
         GrouponPo grouponPo = returnObject.getData();
+
         // 确认状态:id存在性和权限以及是否下线
-        ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId);
+        ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId, Groupon.State.OFF.getCode());
         if (confirmResult.getCode() != ResponseCode.OK) {
             return confirmResult;
         }
         // 更新后直接返回结果即可
-        return grouponDao.updateGroupon(newGrouponVo, shopId, id);
+        return grouponDao.updateGroupon(newGrouponVo, id);
     }
 
     /**
-     * @Description: 删除团购活动
+     * @Description: 更改团购状态
      * @Param: No such property: code for class: Script1
      * @return: cn.edu.xmu.ooad.util.ReturnObject<java.lang.Object>
      * @Author: LJP_3424
@@ -193,7 +200,13 @@ public class GrouponService {
         }
         GrouponPo grouponPo = returnObject.getData();
         // 确认状态:id存在性和权限以及是否下线
-        ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId);
+        Byte expectState;
+        if (state == Groupon.State.ON.getCode() || state == Groupon.State.DELETE.getCode()) {
+            expectState = Groupon.State.OFF.getCode();
+        } else {
+            expectState = Groupon.State.ON.getCode();
+        }
+        ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId,expectState);
         if (confirmResult.getCode() != ResponseCode.OK) {
             return confirmResult;
         }
@@ -225,7 +238,7 @@ public class GrouponService {
     /*************通用函数区域*************/
 
     // 可修改状体检测
-    public ReturnObject confirmGrouponId(GrouponPo grouponPo, Long shopId) {
+    public ReturnObject confirmGrouponId(GrouponPo grouponPo, Long shopId, Byte expectState) {
 
         // 错误路径1,该id不存在
         if (grouponPo == null) {
@@ -239,7 +252,7 @@ public class GrouponService {
         // 错误路径3,状态不允许,并且目前只需要下线就能修改,不需要管改的结果
         // 时段冲突也不需要考虑,因为在下线状态,考虑的事情,扔给上线吧
         // 参数校验方面 Vo检测未来 Controller检测开始大于结束
-        if (grouponPo.getState() != Groupon.State.OFF.getCode()) {
+        if (grouponPo.getState() != expectState) {
             return new ReturnObject(ResponseCode.GROUPON_STATENOTALLOW);
         }
 

@@ -1,7 +1,7 @@
 package cn.edu.xmu.activity.model.vo;
 
 
-import cn.edu.xmu.activity.model.bo.FlashSaleRetItem;
+import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class FlashSaleRetItemVo {
     private Long id;
 
-    private Long goodsSkuId;
+    private GoodsSkuSimpleRetVo goodsSku;
 
     private Long price;
 

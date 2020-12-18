@@ -241,9 +241,8 @@ public class GrouponDao implements InitializingBean {
      * @Author: LJP_3424
      * @Date: 2020/12/5 23:22
      */
-    public ReturnObject updateGroupon(NewGrouponVo grouponVo, Long shopId, Long id) {
+    public ReturnObject updateGroupon(NewGrouponVo grouponVo, Long id) {
         GrouponPo po = new GrouponPo();
-        po.setShopId(shopId);
         po.setId(id);
         po.setStrategy(grouponVo.getStrategy());
         po.setBeginTime(grouponVo.getBeginTime());
