@@ -1,4 +1,4 @@
-package cn.edu.xmu.activity.service.Impl;
+package cn.edu.xmu.activity.service.impl;
 
 
 import cn.edu.xmu.activity.dao.FlashSaleDao;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * @date Created at 2020/12/14 21:55
  */
 
-@DubboService(version = "2.7.8",group = "activity-service")
+@DubboService(version = "2.7.0",group = "activity-service")
 public class IActivityServiceImpl implements IActivityService {
     @Autowired
     FlashSaleDao flashSaleDao;
