@@ -35,7 +35,7 @@ public class GoodsCategoryController {
      * @Return:
      * @Description:创建商品子分类
      */
-    //@Audit
+    @Audit
     @ApiOperation(value = "新增商品类目")
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization",required = true,dataType = "String",paramType = "header"),
@@ -71,7 +71,6 @@ public class GoodsCategoryController {
             @ApiResponse(code=0,message = "成功"),
             @ApiResponse(code=504,message = "操作id不存在")
     })
-    @Audit
     @GetMapping("/categories/{id}/subcategories")
     public Object findSubCategories(@PathVariable Long id){
         if(logger.isDebugEnabled()){
@@ -88,7 +87,7 @@ public class GoodsCategoryController {
      * @Return:
      * @Description:修改商品类别
      */
-    @ApiOperation(value = "新增商品类目")
+    @ApiOperation(value = "修改商品类目信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization",required = true,dataType = "String",paramType = "header"),
             @ApiImplicitParam(name="id",required = true,dataType = "int",paramType = "path"),
