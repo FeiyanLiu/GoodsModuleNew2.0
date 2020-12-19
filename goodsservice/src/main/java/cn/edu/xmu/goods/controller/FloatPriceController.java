@@ -3,6 +3,7 @@ package cn.edu.xmu.goods.controller;
 import cn.edu.xmu.goods.model.vo.FloatPriceRetVo;
 import cn.edu.xmu.goods.model.vo.FloatPriceVo;
 import cn.edu.xmu.goods.service.FloatPriceService;
+import cn.edu.xmu.goods.service.GoodsSkuService;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.util.Common;
@@ -31,6 +32,9 @@ public class FloatPriceController {
 
     @Autowired
     FloatPriceService floatPriceService;
+    
+    @Autowired
+    GoodsSkuService goodsSkuService;
 
     /**
      * @Author：谢沛辰
@@ -80,7 +84,13 @@ public class FloatPriceController {
         if (null != errors) {
             return errors;
         }
-        ReturnObject<FloatPriceRetVo> result =floatPriceService.createFloatPrice(id,floatPriceVo,userId);
-        return Common.decorateReturnObject(result);
+        if(!goodsSkuService.checkSkuIdByShopId(shopId,id)){
+            return new ResponseEntity(
+                    ResponseUtil.fail(ResponseCode.RESOURCE_ID_OUTSCOPE, ResponseCode.RESOURCE_ID_OUTSCOPE.getMessage()),
+                    HttpStatus.FORBIDDEN);
+        }else{
+            ReturnObject<FloatPriceRetVo> result =floatPriceService.createFloatPrice(id,floatPriceVo,userId);
+            return Common.decorateReturnObject(result);
+        }
     }
 }
