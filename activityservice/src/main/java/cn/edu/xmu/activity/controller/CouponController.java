@@ -6,6 +6,8 @@ import cn.edu.xmu.activity.model.vo.CouponActivitySimpleVo;
 import cn.edu.xmu.activity.model.vo.CouponActivityVo;
 import cn.edu.xmu.activity.model.vo.AdminVo;
 import cn.edu.xmu.activity.service.CouponActivityService;
+import cn.edu.xmu.goodsservice.client.IGoodsService;
+import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.Depart;
 import cn.edu.xmu.ooad.annotation.LoginUser;
@@ -49,6 +51,8 @@ public class CouponController {
     private HttpServletResponse httpServletResponse;
     @DubboReference(check=false)
     IUserService userService;
+    @DubboReference(check=false,version = "2.7.8")
+    IGoodsService goodsService;
 
     public enum Timeline {
         WAITING(0, "待上线"),
@@ -161,7 +165,7 @@ public class CouponController {
         ReturnObject returnObject = couponActivityService.createCouponActivity(shopId,couponActivity);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.ok(returnObject),
+                    ResponseUtil.ok(returnObject.getData()),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
@@ -191,7 +195,7 @@ public class CouponController {
         ReturnObject returnObject = couponActivityService.uploadImg(id, multipartFile);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.ok(returnObject),
+                    ResponseUtil.ok(returnObject.getData()),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
@@ -309,6 +313,9 @@ public class CouponController {
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         couponActivity.setId(id);
         couponActivity.setGmtModified(LocalDateTime.now());
+//        ShopVo shopVo= goodsService.getShopById(id);
+//        couponActivity.setShop(shopVo);
+        couponActivity.setShopId(shopId);
         ReturnObject returnObject = couponActivityService.updateCouponActivity(couponActivity);
         return Common.decorateReturnObject(returnObject);
     }
@@ -348,7 +355,7 @@ public class CouponController {
             ReturnObject returnObject = couponActivityService.addCouponSku(shopId, skuArray, id);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.ok(returnObject),
+                    ResponseUtil.ok(returnObject.getData()),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
@@ -425,7 +432,7 @@ public class CouponController {
         ReturnObject returnObject = couponActivityService.getCoupon(userId,id);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.ok(returnObject),
+                    ResponseUtil.ok(returnObject.getData()),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
 

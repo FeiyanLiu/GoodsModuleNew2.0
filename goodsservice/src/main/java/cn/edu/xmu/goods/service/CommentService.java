@@ -30,7 +30,7 @@ public class CommentService{
     CommentDao commentDao;
     @Autowired
     GoodsSkuService goodsSkuService;
-    @DubboReference(check=false)
+    @DubboReference(check=false,version = "2.7.8")
     OrderService orderService;
 
     private Logger logger= LoggerFactory.getLogger(CommentService.class);

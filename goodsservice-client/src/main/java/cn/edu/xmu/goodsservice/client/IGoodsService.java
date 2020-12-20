@@ -22,5 +22,6 @@ public interface IGoodsService {
     List<ShopVo> getShopVoBySkuIdList(List<Long> ids);
 
     List<GoodsSkuSimpleRetVo> getGoodsSkuListBySkuIdList(List<Long> ids);
+    ShopVo getShopById(Long id);
 
 }

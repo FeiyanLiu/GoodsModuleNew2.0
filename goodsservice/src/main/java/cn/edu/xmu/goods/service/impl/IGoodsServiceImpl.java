@@ -84,6 +84,18 @@ public class IGoodsServiceImpl implements IGoodsService {
     }
 
     @Override
+    public ShopVo getShopById(Long id) {
+        ShopPo shopPo = shopDao.getShopById(id);
+        if(shopPo == null){
+            return null;
+        }
+        ShopVo shopSimple = new ShopVo();
+        shopSimple.setId(shopPo.getId());
+        shopSimple.setShopName(shopPo.getName());
+        return shopSimple;
+    }
+
+    @Override
     public GoodsSimpleSpu getSimpleSpuById(Long id) {
         GoodsSpuPo data = goodsSpuDao.getGoodsSpuPoById(id).getData();
         if(data == null){
