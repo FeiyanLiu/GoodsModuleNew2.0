@@ -92,7 +92,14 @@ public enum ResponseCode {
     COUPON_END(911,"优惠卷活动终止"),
 
     SKU_PARTICIPATE(912,"商品已经参与了活动"),
-     USER_HASCOUPON (913,"用户已有优惠券");
+     USER_HASCOUPON (913,"用户已有优惠券"),
+    ACTIVITYALTER_INVALID(923,"对活动的无效操作"),
+    DELETE_ONLINE_NOTALLOW(931, "不允许删除已上线状态的活动"),
+    DELETE_CHANGAE_NOTALLOW(932, "不允许修改已删除活动的状态"),
+    COMMENT_EXISTED(941,"该订单条目已评论"),
+    BRAND_NAME_SAME(990,"品牌名称已存在"),
+    CATEGORY_NAME_SAME(991, "类目名称已存在"),
+    SHOP_STATENOTALLOW(980, "当前店铺状态不允许进行此类操作");
     private int code;
     private String message;
     ResponseCode(int code, String message){

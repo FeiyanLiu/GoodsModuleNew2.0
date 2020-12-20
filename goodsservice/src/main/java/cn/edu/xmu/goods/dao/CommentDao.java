@@ -61,6 +61,18 @@ public class CommentDao implements InitializingBean{
     }
 
 
+    public ReturnObject checkCommentInsert(Comment comment)
+    {
+            CommentPoExample example=new CommentPoExample();
+            CommentPoExample.Criteria criteria=example.createCriteria();
+            criteria.andOrderitemIdEqualTo(comment.getOrderItemId());
+            List<CommentPo> commentPos=commentPoMapper.selectByExample(example);
+            if(commentPos==null||commentPos.size()==0)
+                return new ReturnObject(ResponseCode.COMMENT_EXISTED);
+            else return new ReturnObject(ResponseCode.OK);
+
+    }
+
     /**
      * @Description 新增sku评论
      * @author Ruzhen Chang
