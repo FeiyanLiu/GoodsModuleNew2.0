@@ -34,7 +34,7 @@ import java.util.List;
  */
 @Api(value = "预售活动", tags = "presale")
 @RestController
-@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/presale", produces = "application/json;charset=UTF-8")
 public class PreSaleController {
     private static final Logger logger = LoggerFactory.getLogger(PreSaleController.class);
 
@@ -68,7 +68,6 @@ public class PreSaleController {
     /**
      * @param shopId
      * @param timeline
-     * @param spuId
      * @param page
      * @param pageSize
      * @Description: 筛选查询所有预售活动
@@ -108,7 +107,6 @@ public class PreSaleController {
 
 
     /**
-     * @param id
      * @description:查看预售活动
      * @return: java.lang.Object
      * @author: LJP_3424
