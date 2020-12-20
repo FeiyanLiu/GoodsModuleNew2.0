@@ -11,7 +11,10 @@ import cn.edu.xmu.goods.model.vo.StateVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import cn.edu.xmu.orderservice.client.OrderService;
+import cn.edu.xmu.orderservice.model.vo.OrderItemRetVo;
 import com.github.pagehelper.PageInfo;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,8 @@ public class CommentService{
     CommentDao commentDao;
     @Autowired
     GoodsSkuService goodsSkuService;
+    @DubboReference(check=false)
+    OrderService orderService;
 
     private Logger logger= LoggerFactory.getLogger(CommentService.class);
 
@@ -35,6 +40,9 @@ public class CommentService{
      * @Description 新增sku评论
      */
     public ReturnObject newGoodsSkuComment(Comment comment) {
+        OrderItemRetVo orderItemRetVo=orderService.getOrderItemById(comment.getOrderItemId());
+        if(orderItemRetVo==null)
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         ReturnObject ret = new ReturnObject();
         try{
             CommentPo commentPo= commentDao.newGoodsSkuComment(comment);

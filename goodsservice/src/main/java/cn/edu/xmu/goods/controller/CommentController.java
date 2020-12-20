@@ -72,7 +72,7 @@ public class CommentController {
         comment.setOrderItemId(orderItemId);
         comment.setGmtCreate(LocalDateTime.now());
         ReturnObject returnObject = commentService.newGoodsSkuComment(comment);
-        if(returnObject.getCode()==ResponseCode.OK)
+        if(returnObject.equals(ResponseCode.OK))
             return new ResponseEntity(
                     ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                     HttpStatus.CREATED);
