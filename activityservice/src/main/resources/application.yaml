@@ -20,7 +20,7 @@ spring:
       username: nacos
       password: 1-6123
       discovery:
-        server-addr: 114.215.198.238:8848
+        server-addr: 193.112.59.84:8848
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
@@ -116,7 +116,7 @@ dubbo:
     # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
     port: -1
   registry:
-    address: nacos://114.215.198.238:8848
+    address: nacos://193.112.59.84:8848
 
 couponservice:
   #是否对数据库中的未初始化的数据初始化
