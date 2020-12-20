@@ -55,7 +55,7 @@ public class CommentService{
         PageInfo<VoObject> retObj=null;
         try {
             ReturnObject ret=goodsSkuService.getSkuById(goodsSkuId);
-            if(ret.equals(ResponseCode.RESOURCE_ID_NOTEXIST))
+            if(ret.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST))
                 return  new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
            return new ReturnObject<>(commentDao.getCommentListByGoodsSkuId(goodsSkuId,page,pageSize));
         } catch (Exception e) {
@@ -71,11 +71,10 @@ public class CommentService{
      */
     
     public ReturnObject auditComment(Comment comment) {
-        ReturnObject returnObject=new ReturnObject();
         try{
             CommentPo commentPo=commentDao.getCommentById(comment.getId());
             if(commentPo == null){
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST,String.format("评论不存在 id: "+commentPo.getId()));
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST,String.format("评论不存在 id: "+comment.getId()));
             }
             if(commentPo.getState() != (byte)Comment.State.NEW.getCode().intValue()){
                 return new ReturnObject("The comment has been audited:" +commentPo.getId());

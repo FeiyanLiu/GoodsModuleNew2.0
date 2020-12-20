@@ -2,6 +2,7 @@ package cn.edu.xmu.goods.controller;
 
 
 import cn.edu.xmu.goods.model.bo.Comment;
+import cn.edu.xmu.goods.model.vo.CommentConclusionVo;
 import cn.edu.xmu.goods.model.vo.CommentVo;
 import cn.edu.xmu.goods.model.vo.CommentVoBody;
 import cn.edu.xmu.goods.model.vo.StateVo;
@@ -95,7 +96,8 @@ public class CommentController {
             @ApiResponse(code = 504, message = "操作id不存在"),
             @ApiResponse(code = 503, message = "字段不合法")
     })
-    @GetMapping("/sku/{id}/comments")
+
+    @GetMapping("/skus/{id}/comments")
     public Object getGoodsSkuCommentList(
             @PathVariable Long id,
             @RequestParam(required = false) Integer page,
@@ -104,59 +106,42 @@ public class CommentController {
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
         ReturnObject<PageInfo<VoObject>> returnObject = commentService.getGoodsSkuCommentsList(id,page,pageSize);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        if(returnObject.getData()==null)
+        return Common.decorateReturnObject(returnObject);
+        else
+            return Common.getPageRetObject(returnObject);
     }
 
 
-
+    @Audit
     @ApiOperation(value = "管理员审核评论")
     @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "用户token", required = true),
             @ApiImplicitParam(paramType = "path", dataType = "Integer", name = "did", value = "店铺id", required = true),
             @ApiImplicitParam(paramType = "path", dataType = "Integer", name = "id", value = "评论id", required = true),
-            @ApiImplicitParam(paramType = "body", dataType = "Boolean", name = "conclusion", value = "可修改的评论信息", required = true)    })
+            @ApiImplicitParam(paramType = "body", dataType = "CommentConclusionVo", name = "conclusion", value = "可修改的评论信息", required = true)    })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 504, message = "操作id不存在")
     })
-    @Audit
     @PutMapping("/shops/{did}/comments/{id}/confirm")
     public Object auditComment(@PathVariable Long did,
                                @PathVariable Long id,
-                               @Depart Long departId,
-                               @RequestBody Boolean conclusion,
-                               @Validated @RequestBody CommentVo vo,
-                               BindingResult bindingResult,
-                               @LoginUser Long userId) {
-        Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (null != errors) {
-            return errors;
-        }
-        if(did.equals(departId)){
-            Comment comment = vo.createComment();
+                               @RequestBody CommentConclusionVo conclusion) {
+        if(did.equals(0l)){
+            Comment comment = new Comment();
             comment.setId(id);
-            if(conclusion){
+            if(conclusion.getConclusion()==true){
                 comment.setState(Comment.State.NORM);
             }
             else {
                 comment.setState(Comment.State.FORBID);
             }
             ReturnObject returnObject = commentService.auditComment(comment);
-            if (returnObject.getData() != null) {
-                return ResponseUtil.ok(returnObject.getData());
-            } else {
-                return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-            }
+           return Common.decorateReturnObject(returnObject);
         }
         else {
-            return ResponseCode.AUTH_NOT_ALLOW;
+                return Common.getNullRetObj(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE),httpServletResponse);
         }
-
-
     }
 
 
@@ -175,7 +160,7 @@ public class CommentController {
     })
     @Audit
     @GetMapping("/comments")
-    public Object getUserCommentList(@PathVariable Long userId,
+    public Object getUserCommentList(@LoginUser Long userId,
                                      @RequestParam(required = false) Integer page,
                                      @RequestParam(required = false) Integer pageSize
     ) {

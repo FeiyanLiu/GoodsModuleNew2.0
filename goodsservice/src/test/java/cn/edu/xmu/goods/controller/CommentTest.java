@@ -34,9 +34,9 @@ public class CommentTest {
 
 
     @Test
-    public void getCommentBySkuId() throws Exception {
+    public void getCommentByUserId() throws Exception {
 
-        String responseString = this.mvc.perform(get("/comment/skus/273/comments?page=1&pageSize=10"))
+        String responseString = this.mvc.perform(get("/comment/comments?page=1&pageSize=10"))
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
 
@@ -44,9 +44,8 @@ public class CommentTest {
 
     @Test
     public void auditComment() throws Exception {
-        String token=creatTestToken(1L, 0L, 100);
         String json="{\"conclusion\":true}";
-        String responseString = this.mvc.perform(put("/comment/shops/0/comments/1/confirm").header("authorization",token)
+        String responseString = this.mvc.perform(put("/comment/shops/0/comments/1111111/confirm")
                 .contentType("application/json;charset=UTF-8")
                 .content(json))
                 .andExpect(status().isForbidden())
