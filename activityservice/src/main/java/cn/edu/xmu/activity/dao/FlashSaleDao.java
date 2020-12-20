@@ -3,7 +3,6 @@ package cn.edu.xmu.activity.dao;
 
 import cn.edu.xmu.activity.mapper.FlashSaleItemPoMapper;
 import cn.edu.xmu.activity.mapper.FlashSalePoMapper;
-import cn.edu.xmu.activity.mapper.TimeSegmentPoMapper;
 import cn.edu.xmu.activity.model.bo.FlashSale;
 import cn.edu.xmu.activity.model.po.*;
 import cn.edu.xmu.activity.model.vo.FlashSaleDataVo;
@@ -11,7 +10,11 @@ import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import cn.edu.xmu.otherservice.client.OtherService;
+import cn.edu.xmu.otherservice.model.po.TimeSegmentPo;
+import cn.edu.xmu.otherservice.model.po.TimeSegmentPoExample;
 import com.github.pagehelper.PageHelper;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -38,8 +41,9 @@ public class FlashSaleDao implements InitializingBean {
     @Autowired
     private FlashSaleItemPoMapper flashSaleItemPoMapper;
 
-    @Autowired
-    private TimeSegmentPoMapper timeSegmentPoMapper;
+
+    @DubboReference(check = false)
+    OtherService otherService;
 
     private static final Logger logger = LoggerFactory.getLogger(FlashSaleDao.class);
 
@@ -98,12 +102,7 @@ public class FlashSaleDao implements InitializingBean {
     }
 
     public List<TimeSegmentPo> getAllTimeSegment() {
-        TimeSegmentPoExample timeSegmentPoExample = new TimeSegmentPoExample();
-        TimeSegmentPoExample.Criteria criteria = timeSegmentPoExample.createCriteria();
-        // 取出所有的秒杀时段
-        criteria.andTypeEqualTo((byte) 1);
-        List<TimeSegmentPo> timeSegmentPos = timeSegmentPoMapper.selectByExample(timeSegmentPoExample);
-        return timeSegmentPos;
+        return otherService.getAllTimeSegment();
     }
 /*
 *
@@ -200,6 +199,7 @@ public class FlashSaleDao implements InitializingBean {
         FlashSalePoExample.Criteria criteria = example.createCriteria();
         criteria.andTimeSegIdEqualTo(id);
         criteria.andFlashDateEqualTo(flashDate);
+        criteria.andStateNotEqualTo(FlashSale.State.DELETE.getCode());
         logger.debug("findFlashSaleById: Time" + "SegmentId = " + id);
         List<FlashSalePo> flashSalePos = null;
         try {
@@ -343,6 +343,31 @@ public class FlashSaleDao implements InitializingBean {
                 return new ReturnObject<Long>(flashSalePo.getId());
             } else {
                 return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "插入失败");
+            }
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+    }
+
+    public ReturnObject changeFlashSaleState(Long id, Byte state) {
+        FlashSalePo flashSalePo = new FlashSalePo();
+        flashSalePo.setId(id);
+        flashSalePo.setState(state);
+        try {
+            int ret = flashSalePoMapper.updateByPrimaryKeySelective(flashSalePo);
+            if(ret != 0){
+                return new ReturnObject(ResponseCode.OK);
+            }else{
+                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                        String.format("插入失败"));
             }
         } catch (DataAccessException e) {
             // 数据库错误

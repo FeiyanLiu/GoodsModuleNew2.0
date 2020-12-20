@@ -71,6 +71,7 @@ public class CommentController {
         Comment comment=new Comment(vo);
         comment.setOrderItemId(orderItemId);
         comment.setGmtCreate(LocalDateTime.now());
+        comment.setGmtModified(LocalDateTime.now());
         ReturnObject returnObject = commentService.newGoodsSkuComment(comment);
         if(returnObject.equals(ResponseCode.OK))
             return new ResponseEntity(

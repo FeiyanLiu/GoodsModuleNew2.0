@@ -34,7 +34,7 @@ import java.util.List;
  */
 @Api(value = "预售活动", tags = "presale")
 @RestController
-@RequestMapping(value = "/presale", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
 public class PreSaleController {
     private static final Logger logger = LoggerFactory.getLogger(PreSaleController.class);
 
@@ -107,6 +107,7 @@ public class PreSaleController {
 
 
     /**
+     * @param id
      * @description:查看预售活动
      * @return: java.lang.Object
      * @author: LJP_3424
@@ -162,7 +163,7 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Audit
+    //@Audit
     @PostMapping(value = "/shops/{shopId}/skus/{id}/presales",produces = "application/json;charset=UTF-8")
     public Object insertPreSale(
             @PathVariable Long shopId,
@@ -171,6 +172,7 @@ public class PreSaleController {
             BindingResult bindingResult) {
         logger.debug("insert insertPreSale by shopId:" + shopId + " and skuId: " + id + " and PreSaleVo: " + vo.toString());
         //校验前端数据
+        httpServletResponse.setContentType("application/json;charset=utf-8");
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             return returnObject;
@@ -209,6 +211,7 @@ public class PreSaleController {
                                 @Validated @RequestBody NewPreSaleVo vo,
                                 BindingResult bindingResult) {
         //校验前端数据
+        httpServletResponse.setContentType("application/json;charset=utf-8");
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             return returnObject;

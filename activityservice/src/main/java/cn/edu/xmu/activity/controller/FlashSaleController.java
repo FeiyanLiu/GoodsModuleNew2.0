@@ -1,5 +1,6 @@
 package cn.edu.xmu.activity.controller;
 
+import cn.edu.xmu.activity.model.bo.FlashSale;
 import cn.edu.xmu.activity.model.vo.FlashSaleRetItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
@@ -11,10 +12,13 @@ import cn.edu.xmu.ooad.util.ResponseUtil;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
+import org.apache.ibatis.annotations.Delete;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +35,7 @@ import java.util.List;
  */
 @Api(value = "秒杀活动", tags = "flashsale")
 @RestController
-@RequestMapping(value = "flashsale", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
 public class FlashSaleController {
     private static final Logger logger = LoggerFactory.getLogger(FlashSaleController.class);
 
@@ -68,16 +72,16 @@ public class FlashSaleController {
     }
 
 /**
- * @Description: 新增秒杀活动 
+ * @Description: 新增秒杀活动
  *
- * @param id 
- * @param vo 
- * @param bindingResult 
- * @return: java.lang.Object 
+ * @param id
+ * @param vo
+ * @param bindingResult
+ * @return: java.lang.Object
  * @Author: LJP_3424
  * @Date: 2020/12/6 0:59
  */
-    @ApiOperation(value = "新增秒杀活动", produces = "application/json")
+    @ApiOperation(value = "新增秒杀活动", produces = "application/json;charset=UTF-8")
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
@@ -90,6 +94,7 @@ public class FlashSaleController {
             BindingResult bindingResult) {
         logger.debug("insert insertFlashSale by timeSegmentId:" + id + " and FlashSaleVo: " + vo.toString());
         if (bindingResult.hasErrors()) {
+            httpServletResponse.setContentType("application/json;charset=utf-8");
             return Common.processFieldErrors(bindingResult, httpServletResponse);
         }
         LocalDateTime nowDateTime = LocalDateTime.now();
@@ -107,9 +112,9 @@ public class FlashSaleController {
     }
 
 /**
- * @Description: 获取当前时间段秒杀活动详情 
- * 
- * @return: java.lang.Object 
+ * @Description: 获取当前时间段秒杀活动详情
+ *
+ * @return: java.lang.Object
  * @Author: LJP_3424
  * @Date: 2020/12/6 1:00
  */
@@ -139,16 +144,16 @@ public class FlashSaleController {
      */
 
 /**
- * @Description: 修改秒杀活动信息 
+ * @Description: 修改秒杀活动信息
  *
- * @param id 
- * @param vo 
- * @param bindingResult 
- * @return: java.lang.Object 
+ * @param id
+ * @param vo
+ * @param bindingResult
+ * @return: java.lang.Object
  * @Author: LJP_3424
  * @Date: 2020/12/6 1:00
  */
-    @ApiOperation(value = "修改秒杀活动", produces = "application/json")
+    @ApiOperation(value = "修改秒杀活动", produces = "application/json;charset=UTF-8")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "id", value = "秒杀活动Id", required = true, dataType = "Integer", paramType = "path"),
@@ -183,12 +188,12 @@ public class FlashSaleController {
     }
 
 /**
- * @Description: 向秒杀活动添加SKU 
+ * @Description: 向秒杀活动添加SKU
  *
- * @param id 
- * @param vo 
- * @param bindingResult 
- * @return: java.lang.Object 
+ * @param id
+ * @param vo
+ * @param bindingResult
+ * @return: java.lang.Object
  * @Author: LJP_3424
  * @Date: 2020/12/6 1:00
  */
@@ -214,10 +219,12 @@ public class FlashSaleController {
             return returnObject;
         }
         ReturnObject retObject = flashSaleService.insertSkuIntoPreSale(vo, id);
-        if (retObject.getData() != null) {
-            return Common.getListRetObject(retObject);
+        if (retObject.getCode().equals(ResponseCode.OK)) {
+            return new ResponseEntity(
+                    ResponseUtil.ok(retObject.getData()),
+                    HttpStatus.CREATED);
         } else {
-            return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
+            return Common.decorateReturnObject(retObject);
         }
     }
 
@@ -240,13 +247,6 @@ public class FlashSaleController {
         }
     }
 
-    /**
-     * @Description:
-     * @param id
-     * @return: java.lang.Object
-     * @Author: LJP_3424
-     * @Date: 2020/12/11 22:22
-     */
     @ApiOperation(value = "删除秒杀活动")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "path", name = "id", value = "秒杀活动Id", required = true, dataType = "Integer"),
@@ -254,9 +254,57 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @DeleteMapping("/flashsales/{id}")
-    public Object deleteSkuFromFlashSale(@PathVariable(required = true) Long id){
-        ReturnObject retObject = flashSaleService.deleteFlashSale(id);
+    //@Audit
+    @DeleteMapping("/shops/{did}/flashsales/{id}")
+    public Object deleteFlashSale(
+            @PathVariable(required = true) Long did,
+            @PathVariable(required = true) Long id
+    ){
+        ReturnObject retObject = flashSaleService.changeFlashSaleStatus(id, FlashSale.State.DELETE.getCode());
+        if (retObject.getCode() == ResponseCode.OK) {
+            return ResponseUtil.ok();
+        } else {
+            return ResponseUtil.fail(retObject.getCode());
+        }
+    }
+
+
+
+    @ApiOperation(value = "上线秒杀活动")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "id", value = "秒杀活动Id", required = true, dataType = "Integer"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功")
+    })
+    //@Audit
+    @PutMapping("/shops/{did}/flashsales/{id}/onshelves")
+    public Object onShelves(
+            @PathVariable(required = true) Long did,
+            @PathVariable(required = true) Long id
+    ){
+        ReturnObject retObject = flashSaleService.changeFlashSaleStatus(id, FlashSale.State.ON.getCode());
+        if (retObject.getCode() == ResponseCode.OK) {
+            return ResponseUtil.ok();
+        } else {
+            return ResponseUtil.fail(retObject.getCode());
+        }
+    }
+
+    @ApiOperation(value = "下线秒杀活动")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "path", name = "id", value = "秒杀活动Id", required = true, dataType = "Integer"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功")
+    })
+    //@Audit
+    @PutMapping("/shops/{did}/flashsales/{id}/offshelves")
+    public Object offShelves(
+            @PathVariable(required = true) Long did,
+            @PathVariable(required = true) Long id
+    ){
+        ReturnObject retObject = flashSaleService.changeFlashSaleStatus(id, FlashSale.State.OFF.getCode());
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {

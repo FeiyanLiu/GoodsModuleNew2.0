@@ -33,7 +33,7 @@ public class PreSaleService {
     @Autowired
     PreSaleDao preSaleDao;
 
-    @DubboReference(check = false)
+    @DubboReference(check = false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
 
 
@@ -91,12 +91,10 @@ public class PreSaleService {
     @Transactional
     public ReturnObject createNewPreSale(NewPreSaleVo vo, Long shopId, Long id) {
         // 检查商品skuId是否为真
-        GoodsSku sku = goodsService.getSkuById(id);
-        if (sku == null) {
+        GoodsSku goodsSku = goodsService.getSkuById(id);
+        if (goodsSku == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        // 商品是否为自家商品
-        GoodsSku goodsSku = goodsService.getSkuById(id);
         if (shopId != goodsService.getShopIdBySpuId(goodsSku.getGoodsSpuId())) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }

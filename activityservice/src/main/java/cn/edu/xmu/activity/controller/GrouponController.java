@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Api(value = "团购活动", tags = "groupon")
 @RestController
-@RequestMapping(value = "/groupon", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
 public class GrouponController {
     private static final Logger logger = LoggerFactory.getLogger(GrouponController.class);
 
@@ -209,6 +209,7 @@ public class GrouponController {
             BindingResult bindingResult) {
         logger.debug("insert insertGroupon by shopId:" + shopId + " and spuId: " + id + " and GrouponVo: " + vo.toString());
         // 校前端数据
+        httpServletResponse.setContentType("application/json;charset=utf-8");
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             return returnObject;
@@ -257,6 +258,7 @@ public class GrouponController {
                                 BindingResult bindingResult,
                                 @Depart Long departId) {
         // 校前端数据
+        httpServletResponse.setContentType("application/json;charset=utf-8");
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             return returnObject;

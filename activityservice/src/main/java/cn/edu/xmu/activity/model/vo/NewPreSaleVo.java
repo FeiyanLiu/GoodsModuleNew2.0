@@ -5,9 +5,7 @@ import cn.edu.xmu.activity.model.po.PreSalePo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
-import javax.validation.constraints.Future;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 
 /**
@@ -16,7 +14,7 @@ import java.time.LocalDateTime;
  */
 @Data
 public class NewPreSaleVo {
-    @NotNull
+    @NotEmpty
     private String name;
     @Future(message = "时间段已过")
     private LocalDateTime beginTime;
@@ -24,13 +22,10 @@ public class NewPreSaleVo {
     private LocalDateTime payTime;
     @Future(message = "时间段已过")
     private LocalDateTime endTime;
-    @NotNull
     @Min(value = 0,message = "为自然数")
     private Integer quantity;
-    @NotNull
     @Min(value = 0,message = "不应小于0")
     private Long advancePayPrice;
-    @NotNull
     @Min(value = 0,message = "不应小于0")
     private Long restPayPrice;
 
