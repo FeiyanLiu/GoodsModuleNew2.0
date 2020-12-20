@@ -2,20 +2,15 @@ package cn.edu.xmu.goods.controller;
 
 import cn.edu.xmu.goods.model.bo.Shop;
 import cn.edu.xmu.goods.model.vo.CommentConclusionVo;
-import cn.edu.xmu.goods.model.vo.ShopSimpleVo;
-import cn.edu.xmu.goods.model.vo.ShopVo;
-import cn.edu.xmu.goods.service.GoodsSpuService;
 import cn.edu.xmu.goods.service.ShopService;
-import cn.edu.xmu.goodsservice.model.vo.ShopVoBody;
+import cn.edu.xmu.goods.model.vo.ShopVoBody;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.Depart;
-import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.util.Common;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ResponseUtil;
 import cn.edu.xmu.ooad.util.ReturnObject;
 
-import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
