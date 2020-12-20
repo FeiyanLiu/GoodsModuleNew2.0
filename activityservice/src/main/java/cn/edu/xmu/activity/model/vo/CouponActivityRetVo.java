@@ -25,7 +25,7 @@ public class CouponActivityRetVo implements VoObject {
     LocalDateTime endTime;
     LocalDateTime couponTime;
     String strategy;
-   AdminVo createdBy;
+    AdminVo createdBy;
     AdminVo modifiedBy;
     LocalDateTime gmtCreate;
     LocalDateTime gmtModified;

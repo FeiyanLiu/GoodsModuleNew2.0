@@ -15,6 +15,7 @@ import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import cn.edu.xmu.otherservice.client.OtherService;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class FlashSaleService {
     FlashSaleItemDao flashSaleItemDao;
     private int flashSaleMaxSize = 2;
 
-    @Autowired
+    @DubboReference(version = "2.7.8",group = "goods-service",check = false)
     IGoodsService goodsService;
 
     @Autowired
@@ -243,7 +244,7 @@ public class FlashSaleService {
 
     @Autowired
     TimeSegmentDao timeSegmentDao;
-    @Autowired
+    @DubboReference(check = false)
     OtherService otherService;
 
 
