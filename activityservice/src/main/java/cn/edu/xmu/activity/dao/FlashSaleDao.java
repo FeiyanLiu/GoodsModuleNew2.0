@@ -200,6 +200,7 @@ public class FlashSaleDao implements InitializingBean {
         FlashSalePoExample.Criteria criteria = example.createCriteria();
         criteria.andTimeSegIdEqualTo(id);
         criteria.andFlashDateEqualTo(flashDate);
+        criteria.andStateNotEqualTo(FlashSale.State.DELETE.getCode());
         logger.debug("findFlashSaleById: Time" + "SegmentId = " + id);
         List<FlashSalePo> flashSalePos = null;
         try {
@@ -343,6 +344,31 @@ public class FlashSaleDao implements InitializingBean {
                 return new ReturnObject<Long>(flashSalePo.getId());
             } else {
                 return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "插入失败");
+            }
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+    }
+
+    public ReturnObject changeFlashSaleState(Long id, Byte state) {
+        FlashSalePo flashSalePo = new FlashSalePo();
+        flashSalePo.setId(id);
+        flashSalePo.setState(state);
+        try {
+            int ret = flashSalePoMapper.updateByPrimaryKeySelective(flashSalePo);
+            if(ret != 0){
+                return new ReturnObject(ResponseCode.OK);
+            }else{
+                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                        String.format("插入失败"));
             }
         } catch (DataAccessException e) {
             // 数据库错误

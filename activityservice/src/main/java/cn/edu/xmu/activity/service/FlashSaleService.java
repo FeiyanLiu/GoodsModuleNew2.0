@@ -5,9 +5,9 @@ import cn.edu.xmu.activity.dao.FlashSaleItemDao;
 import cn.edu.xmu.activity.dao.TimeSegmentDao;
 import cn.edu.xmu.activity.model.bo.FlashSale;
 import cn.edu.xmu.activity.model.bo.FlashSaleItem;
-import cn.edu.xmu.activity.model.po.FlashSaleItemPo;
+import cn.edu.xmu.activity.model.bo.FlashSale;
+import cn.edu.xmu.activity.model.po.*;
 import cn.edu.xmu.activity.model.po.FlashSalePo;
-import cn.edu.xmu.activity.model.po.TimeSegmentPo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
@@ -46,7 +46,6 @@ public class FlashSaleService {
 
     @Autowired
     FlashSaleItemDao flashSaleItemDao;
-    private int flashSaleMaxSize = 2;
 
     @Autowired
     IGoodsService goodsService;
@@ -202,7 +201,7 @@ public class FlashSaleService {
     @Transactional
     public ReturnObject insertSkuIntoPreSale(NewFlashSaleItemVo newFlashSaleItemVo, Long flashSaleId) {
         // 检查商品skuId是否为真
-        GoodsSku goodsSku = goodsService.getSkuById(newFlashSaleItemVo.getSkuId());
+        GoodsSku goodsSku = goodsServicegetSkuById(newFlashSaleItemVo.getSkuId());
         if (goodsSku == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
@@ -225,10 +224,27 @@ public class FlashSaleService {
         return new ReturnObject(flashSaleItem);
     }
 
+    private GoodsSku goodsServicegetSkuById(Long skuId) {
+        GoodsSku goodsSku = new GoodsSku();
+        goodsSku.setId(skuId);
+        goodsSku.setName("测试,记得改");
+        goodsSku.setDetail("描述");
+        goodsSku.setSkuSn("123");
+        return goodsSku;
+    }
+
     @Transactional
     public ReturnObject deleteSkuFromFlashSale(Long fid, Long skuId) {
-        ReturnObject returnObject = flashSaleItemDao.deleteFlashSaleItem(fid, skuId);
-        return returnObject;
+        ReturnObject<Boolean> booleanReturnObject = flashSaleItemDao.checkSkuInFlashSale(fid, skuId);
+        if(booleanReturnObject.getCode() != ResponseCode.OK){
+            return new ReturnObject(booleanReturnObject.getCode(),booleanReturnObject.getErrmsg());
+        }
+        if(booleanReturnObject.getData()){
+            ReturnObject returnObject = flashSaleItemDao.deleteFlashSaleItem(fid, skuId);
+            return returnObject;
+        }else {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     @Transactional
@@ -243,7 +259,8 @@ public class FlashSaleService {
 
     @Autowired
     TimeSegmentDao timeSegmentDao;
-
+    @Autowired
+    OtherService otherService;
 
 
     private TimeSegmentPo getTimeSegmentPoById(Long timeSegmentId) {
@@ -256,6 +273,31 @@ public class FlashSaleService {
         return null;
     }
 
+    public ReturnObject changeFlashSaleStatus(Long id,Byte state) {
+
+        ReturnObject<FlashSalePo> returnObject = flashSaleDao.getFlashSaleByFlashSaleId(id);
+        // 存在错误,往上层传
+        if (returnObject.getCode() != ResponseCode.OK) {
+            return returnObject;
+        }
+        FlashSalePo flashSalePo = returnObject.getData();
+        // 确认状态:id存在性和权限以及是否下线
+        Byte expectState = null;
+        if (state == FlashSale.State.ON.getCode() ) {
+            expectState = FlashSale.State.OFF.getCode();
+        } else {
+            expectState = FlashSale.State.ON.getCode();
+        }
+        ReturnObject confirmResult = confirmFlashSaleId(flashSalePo,expectState);
+        if (confirmResult.getCode() != ResponseCode.OK) {
+            return confirmResult;
+        }
+        // 状态相同,改不了,下线的无法再下线,正如上线的无法再上线
+        if (returnObject.getData().getState() == state) {
+            return new ReturnObject(ResponseCode.GROUPON_STATENOTALLOW);
+        }
+        return flashSaleDao.changeFlashSaleState(id, state);
+    }
 
     /**
      * 传入日期和时间段,生成时间
@@ -269,6 +311,25 @@ public class FlashSaleService {
         TimeSegmentPo timeSegmentPo = getTimeSegmentPoById(id);
         return timeSegmentPo.getBeginTime();
 
+    }
+
+    // 可修改状体检测
+    public ReturnObject confirmFlashSaleId(FlashSalePo flashSalePo, Byte expectState) {
+
+        // 错误路径1,该id不存在
+        if (flashSalePo == null) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+
+        // 错误路径3,状态不允许,并且目前只需要下线就能修改,不需要管改的结果
+        // 时段冲突也不需要考虑,因为在下线状态,考虑的事情,扔给上线吧
+        // 参数校验方面 Vo检测未来 Controller检测开始大于结束
+        if (expectState != null && flashSalePo.getState() != expectState) {
+            return new ReturnObject(ResponseCode.GROUPON_STATENOTALLOW);
+        }
+
+        // 校验成功,通过
+        return new ReturnObject(ResponseCode.OK);
     }
     /****************通用方法结束********************/
 

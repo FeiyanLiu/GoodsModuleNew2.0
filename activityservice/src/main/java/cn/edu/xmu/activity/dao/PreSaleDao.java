@@ -170,7 +170,7 @@ public class PreSaleDao implements InitializingBean {
         preSalePo.setGmtCreate(LocalDateTime.now());
         try {
             int insertResult = preSalePoMapper.insert(preSalePo);
-            if (insertResult != 0) {
+            if (insertResult == 0) {
                 return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR, "插入失败");
             }
         } catch (DataAccessException e) {
