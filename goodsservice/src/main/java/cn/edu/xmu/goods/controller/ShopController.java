@@ -197,6 +197,19 @@ public class ShopController {
         }
     }
 
+    @ApiOperation(value = "获取店铺状态")
+    @ApiImplicitParams({
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")
+    })
+    @GetMapping("/shops/states")
+    public Object getShopState() {
+                return Common.decorateReturnObject(shopService.getShopStates());
+    }
+
+
 
 
     @ApiOperation(value = "管理员下线店铺")
