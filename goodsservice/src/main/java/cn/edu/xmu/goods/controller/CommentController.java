@@ -19,6 +19,8 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -69,11 +71,11 @@ public class CommentController {
         comment.setOrderItemId(orderItemId);
         comment.setGmtCreate(LocalDateTime.now());
         ReturnObject returnObject = commentService.newGoodsSkuComment(comment);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        if(returnObject.getCode()==ResponseCode.OK)
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.CREATED);
+        return Common.decorateReturnObject(returnObject);
 
     }
 
@@ -84,7 +86,7 @@ public class CommentController {
      */
     @ApiOperation(value = "查看sku的评论列表（已通过审核）")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", value = "sku id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "id", required = true, dataType = "Integer", paramType = "path"),
             @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query"),
             @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query")
     })
@@ -93,16 +95,15 @@ public class CommentController {
             @ApiResponse(code = 504, message = "操作id不存在"),
             @ApiResponse(code = 503, message = "字段不合法")
     })
-    @Audit
     @GetMapping("/sku/{id}/comments")
     public Object getGoodsSkuCommentList(
-            @PathVariable Long goodsSkuId,
+            @PathVariable Long id,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer pageSize)
     {
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
-        ReturnObject<PageInfo<VoObject>> returnObject = commentService.getGoodsSkuCommentsList(goodsSkuId,page,pageSize);
+        ReturnObject<PageInfo<VoObject>> returnObject = commentService.getGoodsSkuCommentsList(id,page,pageSize);
         if (returnObject.getData() != null) {
             return ResponseUtil.ok(returnObject.getData());
         } else {
@@ -197,7 +198,8 @@ public class CommentController {
             @ApiImplicitParam(name = "authorization", value = "用户token", required = true, dataType = "string", paramType = "header"),
             @ApiImplicitParam(name="id",value = "店铺id",required = true,dataType = "Integer",paramType = "path"),
             @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query"),
-            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query")
+            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query"),
+            @ApiImplicitParam(name="state", required = false, dataType="Integer", paramType="query")
 
     })
     @ApiResponses({
@@ -207,14 +209,14 @@ public class CommentController {
     @Audit
     @GetMapping("/shops/{id}/comments/all")
     public Object getCheckedAndUncheckComment(@Depart Long departId,
-                                              @LoginUser Long shopId,
                                               @RequestParam(required = false) Integer page,
-                                              @RequestParam(required = false) Integer pageSize
+                                              @RequestParam(required = false) Integer pageSize,
+                                              @RequestParam(required = false) Integer state
     ) {
         if(departId.equals(0)){
             page = (page == null) ? 1 : page;
             pageSize = (pageSize == null) ? 10 : pageSize;
-            ReturnObject<PageInfo<VoObject>> returnObject = commentService.getCommentListByShopId(shopId,page,pageSize);
+            ReturnObject<PageInfo<VoObject>> returnObject = commentService.getCommentListByState(state,page,pageSize);
             if (returnObject.getData() != null) {
                 return ResponseUtil.ok(returnObject.getData());
             } else {

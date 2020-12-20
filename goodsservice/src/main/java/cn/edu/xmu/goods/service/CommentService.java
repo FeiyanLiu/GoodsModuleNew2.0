@@ -103,10 +103,10 @@ public class CommentService{
      * @Description 查看已审核/未审核评论列表
      */
     
-    public ReturnObject<PageInfo<VoObject>> getCommentListByShopId(Long shopId, Integer page, Integer pageSize) {
+    public ReturnObject<PageInfo<VoObject>> getCommentListByState(Integer state, Integer page, Integer pageSize) {
         PageInfo<VoObject> retObj=null;
         try {
-            return new ReturnObject<>(commentDao.getCommentListByShopsId(shopId,page,pageSize));
+            return new ReturnObject<>(commentDao.getCommentListByState(state,page,pageSize));
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误ha：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);

@@ -186,17 +186,15 @@ public class CommentDao implements InitializingBean{
 
     /**
      * @Description 获取店铺内所有评论列表
-     * @param shopId
      * @param page
      * @param pageSize
      * @return
      */
-    public PageInfo<VoObject> getCommentListByShopsId(long shopId,Integer page,Integer pageSize){
+    public PageInfo<VoObject> getCommentListByState(Integer state,Integer page,Integer pageSize){
         PageHelper.startPage(page,pageSize);
         CommentPoExample example=new CommentPoExample();
         CommentPoExample.Criteria criteria=example.createCriteria();
-        List<Long> goodsSkuIdList= goodsSkuDao.getSkuIdListByShopId(shopId);
-        criteria.andGoodsSkuIdIn(goodsSkuIdList);
+        criteria.andStateEqualTo(state.byteValue());
         List<CommentPo> commentPos=commentPoMapper.selectByExample(example);
         List<VoObject> commmentVos=commentPos.stream().map(po->new Comment(po).createSimpleVo()).collect(Collectors.toList());
         return new PageInfo<>(commmentVos);
