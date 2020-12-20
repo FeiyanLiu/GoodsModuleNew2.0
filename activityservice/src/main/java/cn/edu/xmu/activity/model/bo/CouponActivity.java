@@ -5,8 +5,8 @@ import cn.edu.xmu.activity.model.po.CouponActivityPo;
 import cn.edu.xmu.activity.model.vo.CouponActivityRetVo;
 
 import cn.edu.xmu.activity.model.vo.CouponActivitySimpleRetVo;
+import cn.edu.xmu.activity.model.vo.AdminVo;
 import cn.edu.xmu.goodsservice.model.vo.ShopVo;
-import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -36,8 +36,8 @@ public class CouponActivity implements VoObject {
     LocalDateTime gmtCreated;
     LocalDateTime gmtModified;
     String img;
-    CustomerVo createdBy = new CustomerVo();
-    CustomerVo modifiedBy = new CustomerVo();
+   AdminVo createdBy = new AdminVo();
+    AdminVo modifiedBy = new AdminVo();
     Long shopId;
     private Logger logger = LoggerFactory.getLogger(CouponActivity.class);
     public CouponActivity(CouponActivityPo po) {
