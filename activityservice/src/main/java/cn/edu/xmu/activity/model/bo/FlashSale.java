@@ -19,9 +19,9 @@ public class FlashSale implements VoObject {
     }
 
     public enum State {
-        OFF(0, "未开始"),
-        ON(1, "进行中"),
-        DELETE(2, "已结束");
+        OFF(0, "已下线"),
+        ON(1, "已上线"),
+        DELETE(2, "已删除");
 
         private static final Map<Integer, State> stateMap;
 

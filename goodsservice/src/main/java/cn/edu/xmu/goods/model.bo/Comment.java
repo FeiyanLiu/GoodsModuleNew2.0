@@ -2,9 +2,10 @@ package cn.edu.xmu.goods.model.bo;
 
 
 import cn.edu.xmu.goods.model.po.CommentPo;
-import cn.edu.xmu.goods.model.vo.CommentRetVo;
-import cn.edu.xmu.goodsservice.model.vo.CustomerVo;
+import cn.edu.xmu.goods.model.vo.CommentVoBody;
 import cn.edu.xmu.ooad.model.VoObject;
+import io.lettuce.core.StrAlgoArgs;
+import io.netty.channel.SimpleUserEventChannelHandler;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -17,19 +18,22 @@ import java.util.Map;
 @Data
 public class Comment implements VoObject{
 
-    private Long id;
-    private CustomerVo customer;
-    private Long goodsSkuId;
-    private Byte type;
-    /*评价等级 0好评1中评2差评*/
-    private String content;
-    private Byte state=(byte) State.NEW.code;
-    private LocalDateTime gmtCreate;
-    private LocalDateTime gmtModified;
-    public Comment() {}
+    public Comment() {
 
-    public VoObject createRetVo() {
-        return new CommentRetVo(this);
+    }
+
+    public CommentPo getCommentPo() {
+        CommentPo commentPo=new CommentPo();
+        commentPo.setContent(getContent());
+        commentPo.setCustomerId(getCustomerId());
+        commentPo.setState((byte) Comment.State.NEW.getCode().intValue());
+        commentPo.setId(getId());
+        commentPo.setGmtCreate(getGmtCreate());
+        commentPo.setGmtModified(getGmtModified());
+        commentPo.setType(getType());
+        commentPo.setGoodsSkuId(getGoodsSkuId());
+        commentPo.setOrderitemId(getOrderItemId());
+        return commentPo;
     }
 
     /**
@@ -71,28 +75,40 @@ public class Comment implements VoObject{
         }
     }
 
+    private Long id;
+
+    private Long customerId;
+
+    private Long goodsSkuId;
+
+    private Long orderItemId;
+
+    private Byte type;
+    /*评价等级 0好评1中评2差评*/
+
+    private String content;
+
+    private State state=State.NEW;
+
+    private LocalDateTime gmtCreate;
+
+    private LocalDateTime gmtModified;
+
     public Comment(CommentPo po){
         this.id=po.getId();
-        this.customer.setId(po.getCustomerId());
+        this.customerId= po.getCustomerId();
         this.goodsSkuId= po.getGoodsSkuId();
+        this.orderItemId= po.getOrderitemId();
         this.type= po.getType();
         this.content= po.getContent();
-        this.state=po.getState();
-        this.gmtCreate=po.getGmtCreate();
-        this.gmtModified=po.getGmtModified();
+        if(null!=po.getState()){
+            this.state=State.getTypeByCode(po.getState().intValue());
+        }
     }
 
-    public CommentPo createPo(){
-        CommentPo commentPo=new CommentPo();
-        commentPo.setId(this.id);
-        commentPo.setContent(this.content);
-        commentPo.setCustomerId(customer.getId());
-        commentPo.setGoodsSkuId(this.goodsSkuId);
-        commentPo.setType(this.type);
-        commentPo.setState(this.state);
-        commentPo.setGmtCreate(this.gmtCreate);
-        commentPo.setGmtModified(this.gmtModified);
-        return commentPo;
+    public Comment(CommentVoBody vo){
+        setType(vo.getType());
+        setContent(vo.getContent());
     }
 
     @Override

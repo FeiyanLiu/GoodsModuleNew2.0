@@ -8,6 +8,8 @@ import cn.edu.xmu.goods.model.vo.FloatPriceVo;
 import cn.edu.xmu.goods.model.vo.TimePoint;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import cn.edu.xmu.privilegeservice.client.IUserService;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,8 @@ public class FloatPriceService{
 
     @Autowired
     FloatPriceDao floatPriceDao;
+    @DubboReference(check=false)
+    IUserService iUserService;
 
     /**
      * @Author：谢沛辰
@@ -67,7 +71,8 @@ public class FloatPriceService{
         boolean signal;
         if(floatPriceInDataBase.getCode()==ResponseCode.RESOURCE_ID_NOTEXIST){
             if(floatPriceDao.insertFloatPrice(floatPrice).getCode()==ResponseCode.OK){
-                retObj=new ReturnObject<>(new FloatPriceRetVo(floatPrice,userId,userId));
+                String userName=iUserService.getUserName(userId);
+                retObj=new ReturnObject<>(new FloatPriceRetVo(floatPrice,userId,userId,userName));
             }
         }
         else if(floatPriceInDataBase.getCode()==ResponseCode.OK){
@@ -85,9 +90,10 @@ public class FloatPriceService{
                 retObj=new ReturnObject<>(ResponseCode.SKUPRICE_CONFLICT);
             }else{
                 ReturnObject<FloatPrice> returnObject=floatPriceDao.insertFloatPrice(floatPrice);
-                if(returnObject.getCode()==ResponseCode.OK)
-                    retObj=new ReturnObject<>(new FloatPriceRetVo(floatPrice,userId,userId));
-                else
+                if(returnObject.getCode()==ResponseCode.OK){
+                    String userName=iUserService.getUserName(userId);
+                    retObj=new ReturnObject<>(new FloatPriceRetVo(floatPrice,userId,userId,userName));
+                } else
                     retObj=new ReturnObject<>(returnObject.getCode());
             }
         }
