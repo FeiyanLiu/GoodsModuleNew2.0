@@ -173,7 +173,7 @@ public class CommentController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit
-    @GetMapping("/sku/{id}/comments")
+    @GetMapping("/comments")
     public Object getUserCommentList(@PathVariable Long userId,
                                      @RequestParam(required = false) Integer page,
                                      @RequestParam(required = false) Integer pageSize
