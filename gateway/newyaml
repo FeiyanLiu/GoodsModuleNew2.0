@@ -1,0 +1,12 @@
+
+- id: goods
+  uri: ${goods-ip.goods}
+  predicates:
+    - Path=/skus/states,/skus,/skus/{id},/categories/{id}/subcategories,/spus/{id},/brands,/shops/{shopId}/spus/{id}/skus,/shops/{shopId}/skus/{id}/uploadImg,/shops/{shopId}/skus/{id},/shops/{shopId}/categories/{id}/subcategories,/shops/{shopId}/categories/{id},/share/{sid}/skus/{id},/shops/{id}/spus,/shops/{shopId}/spus/{id},/shops/{shopId}/skus/{id}/onshelves,/shops/{shopId}/skus/{id}/offshelves,/shops/{shopId}/skus/{id}/floatPrices,/shops/{shopId}/floatPrices/{id},/shops/{id}/brands,/shops/{shopId}/brands/{id}/uploadImg,/shops/{shopId}/brands/{id},/shops/{shopId}/spus/{spuId}/categories/{id},/shops/{shopId}/spus/{spuId}/brands/{id}
+
+- id: goods2
+  uri: ${goods-ip.goods}
+  predicates:
+    - Path=/skus/states,/skus,/skus/{id},/categories/{id}/subcategories,/spus/{id},/brands
+
+
