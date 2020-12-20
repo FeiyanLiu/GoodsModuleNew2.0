@@ -10,6 +10,7 @@ import cn.edu.xmu.goods.model.vo.GoodsSkuRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,18 +45,21 @@ public class BrandDao {
     * @Date: 2020/12/11 20:48
     */
     public PageInfo<VoObject> getAllBrands(Integer page, Integer pagesize) {
-
+        PageHelper.startPage(page, pagesize,true,true,null);
         BrandPoExample brandPoExample = new BrandPoExample();
         BrandPoExample.Criteria criteria = brandPoExample.createCriteria();
-
         List<BrandPo> brandPos = brandPoMapper.selectByExample(brandPoExample);
+        PageInfo<BrandPo> pageBrandPo = new PageInfo<>(brandPos);
         List<VoObject> brands = new ArrayList<>();
-
-        for(BrandPo brandPo: brandPos){
+        for(BrandPo brandPo:brandPos) {
             brands.add(new Brand(brandPo));
         }
-
-        return new PageInfo<>(brands);
+        PageInfo<VoObject> brandPageInfo = new PageInfo<VoObject>(brands);
+        brandPageInfo.setPageNum(pageBrandPo.getPageNum());
+        brandPageInfo.setTotal(pageBrandPo.getTotal());
+        brandPageInfo.setPageSize(pageBrandPo.getPageSize());
+        brandPageInfo.setPages(pageBrandPo.getPages());
+        return brandPageInfo;
     }
 
     /** 
@@ -66,6 +70,7 @@ public class BrandDao {
     * @Date: 2020/12/11 20:52
     */
     public ReturnObject<Brand> getBrandById(Long id) {
+
         BrandPo brandPo = brandPoMapper.selectByPrimaryKey(id);
         if(brandPo == null){
             logger.info("brand == null");

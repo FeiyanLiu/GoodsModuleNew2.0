@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Api(value = "商品服务", tags = "goods")
 @RestController
-@RequestMapping(value = "",produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/goods",produces = "application/json;charset=UTF-8")
 public class GoodsCategoryController {
     private  static  final Logger logger = LoggerFactory.getLogger(GoodsCategoryController.class);
 

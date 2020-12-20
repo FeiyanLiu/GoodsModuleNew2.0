@@ -255,8 +255,8 @@ public class GoodsServiceController {
             @ApiImplicitParam(name="skuSn", required = false, dataType="String", paramType="query"),
             @ApiImplicitParam(name="spuId", required = false, dataType="Integer", paramType="query"),
             @ApiImplicitParam(name="spuSn", required = false, dataType="String", paramType="query"),
-            @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query"),
-            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query"),
+            @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query", defaultValue = "1"),
+            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query",defaultValue = "10"),
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),

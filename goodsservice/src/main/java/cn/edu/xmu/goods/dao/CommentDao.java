@@ -3,6 +3,7 @@ package cn.edu.xmu.goods.dao;
 
 import cn.edu.xmu.goods.mapper.CommentPoMapper;
 import cn.edu.xmu.goods.model.bo.Comment;
+import cn.edu.xmu.goods.model.bo.GoodsSku;
 import cn.edu.xmu.goods.model.po.CommentPo;
 import cn.edu.xmu.goods.model.po.CommentPoExample;
 import cn.edu.xmu.goods.model.vo.StateVo;
@@ -176,9 +177,9 @@ public class CommentDao implements InitializingBean{
      * @author Ruzhen Chang
      */
     public List<StateVo> findCommentStates(){
-        List<StateVo> stateVos= null;
-        for (int i = 0; i < 3; i++) {
-            StateVo vo=new StateVo((byte) i,Comment.State.getTypeByCode(i).name());
+        List<StateVo> stateVos= new  ArrayList<>();
+        for (Comment.State s : Comment.State.values()) {
+            StateVo vo=new StateVo( s.getCode().byteValue(),s.getDescription());
             stateVos.add(vo);
         }
         return stateVos;
