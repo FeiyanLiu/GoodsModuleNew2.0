@@ -5,7 +5,6 @@ import cn.edu.xmu.activity.model.bo.PreSale;
 import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.po.PreSalePoExample;
 import cn.edu.xmu.activity.model.vo.NewPreSaleVo;
-import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;

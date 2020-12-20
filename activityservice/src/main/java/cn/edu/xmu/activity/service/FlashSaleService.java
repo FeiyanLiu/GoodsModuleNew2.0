@@ -151,7 +151,8 @@ public class FlashSaleService {
         if(returnObject.getCode() != ResponseCode.OK){
             return new ReturnObject(returnObject.getCode(),returnObject.getErrmsg());
         }
-
+        //!!!!!!!!警告!!
+        return null;
     }
 
     /**
@@ -178,7 +179,8 @@ public class FlashSaleService {
                         if (flashSaleDao.updateFlashSale(newFlashSaleVo, id) == false) {
                             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
                         } else {
-                            return new ReturnObject<>(new FlashSale(flashSaleDao.getFlashSaleByFlashSaleId(id)));
+
+                            return new ReturnObject<>(new FlashSale(flashSaleDao.getFlashSaleByFlashSaleId(id),null));
                         }
                     }
                 }

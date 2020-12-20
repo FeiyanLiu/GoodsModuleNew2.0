@@ -1,7 +1,6 @@
 package cn.edu.xmu.activity.model.vo;
 
 import cn.edu.xmu.activity.model.bo.Groupon;
-import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 
 /**

@@ -199,8 +199,9 @@ public class FlashSaleDao implements InitializingBean {
         FlashSalePoExample.Criteria criteria = example.createCriteria();
         criteria.andTimeSegIdEqualTo(id);
         logger.debug("findFlashSaleById: Time" + "SegmentId = " + id);
+        List<FlashSalePo>  flashSalePos = null;
         try {
-            List<FlashSalePo> flashSalePos = flashSalePoMapper.selectByExample(example);
+            flashSalePos = flashSalePoMapper.selectByExample(example);
         } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());

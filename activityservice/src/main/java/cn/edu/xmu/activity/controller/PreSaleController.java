@@ -2,8 +2,6 @@ package cn.edu.xmu.activity.controller;
 
 
 import cn.edu.xmu.activity.model.bo.PreSale;
-import cn.edu.xmu.activity.model.bo.PreSale;
-import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.vo.NewPreSaleVo;
 import cn.edu.xmu.activity.model.vo.PreSaleStateVo;
 import cn.edu.xmu.activity.service.PreSaleService;
@@ -20,8 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import javax.servlet.http.HttpServletResponse;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 

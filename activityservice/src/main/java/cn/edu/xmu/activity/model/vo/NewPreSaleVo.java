@@ -2,7 +2,6 @@ package cn.edu.xmu.activity.model.vo;
 
 
 import cn.edu.xmu.activity.model.po.PreSalePo;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.validation.constraints.Future;

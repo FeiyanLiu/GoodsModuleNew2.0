@@ -27,7 +27,7 @@ public class FlashSale implements VoObject {
 
         static { //由类加载机制，静态块初始加载对应的枚举属性到map中，而不用每次取属性时，遍历一次所有枚举值
             stateMap = new HashMap();
-            for (FlashSale.State enum1 : values()) {
+            for (State enum1 : values()) {
                 stateMap.put(enum1.code, enum1);
             }
         }
@@ -40,7 +40,7 @@ public class FlashSale implements VoObject {
             this.description = description;
         }
 
-        public static FlashSale.State getTypeByCode(Integer code) {
+        public static State getTypeByCode(Integer code) {
             return stateMap.get(code);
         }
 
@@ -60,7 +60,7 @@ public class FlashSale implements VoObject {
     //private Long timeSegId;
     //private TimeSegmentVo timeSegmentVo;
 
-    private String imageUrl;
+    private TimeSegment timeSeq;
 
     private LocalDateTime gmtCreated;
 
@@ -68,11 +68,12 @@ public class FlashSale implements VoObject {
 
     private Byte state;
 
-    public FlashSale(FlashSalePo po) {
+    public FlashSale(FlashSalePo po,TimeSegment timeSegment) {
         id = po.getId();
         flashDate = po.getFlashDate();
         gmtCreated = po.getGmtCreate();
         gmtModified = po.getGmtModified();
+        timeSeq = timeSegment;
         state = po.getState();
     }
 

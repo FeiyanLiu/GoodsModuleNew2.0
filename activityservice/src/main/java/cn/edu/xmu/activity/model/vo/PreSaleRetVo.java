@@ -4,7 +4,6 @@ package cn.edu.xmu.activity.model.vo;
 
 import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
-import cn.edu.xmu.goodsservice.model.bo.Shop;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import lombok.Data;
