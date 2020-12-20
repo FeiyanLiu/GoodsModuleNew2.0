@@ -4,6 +4,7 @@ package cn.edu.xmu.activity.controller;
 import cn.edu.xmu.activity.model.bo.CouponActivity;
 import cn.edu.xmu.activity.model.vo.CouponActivitySimpleVo;
 import cn.edu.xmu.activity.model.vo.CouponActivityVo;
+import cn.edu.xmu.activity.model.vo.AdminVo;
 import cn.edu.xmu.activity.service.CouponActivityService;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.Depart;
@@ -13,18 +14,15 @@ import cn.edu.xmu.ooad.util.Common;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ResponseUtil;
 import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.otherservice.client.OtherService;
-import cn.edu.xmu.otherservice.model.vo.CustomerVo;
+import cn.edu.xmu.privilegeservice.client.IUserService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.apache.dubbo.config.annotation.DubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +30,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +48,7 @@ public class CouponController {
     @Autowired
     private HttpServletResponse httpServletResponse;
     @DubboReference(check=false)
-    OtherService otherService;
+    IUserService userService;
 
     public enum Timeline {
         WAITING(0, "待上线"),
@@ -156,8 +153,11 @@ public class CouponController {
 //        CustomerVo customerVo=new CustomerVo();
 //        customerVo.setId(id);
 //        customerVo.setUserName(otherService.getUserById(id).getUserName());
+        AdminVo adminVo =new AdminVo();
+        adminVo.setId(id);
+        adminVo.setName(userService.getUserName(id));
         CouponActivity couponActivity = vo.createCouponActivity();
-//        couponActivity.setCreatedBy(customerVo);
+        couponActivity.setCreatedBy(adminVo);
         ReturnObject returnObject = couponActivityService.createCouponActivity(shopId,couponActivity);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
@@ -301,11 +301,14 @@ public class CouponController {
     public Object updateCouponActivity(@PathVariable Long shopId, @PathVariable Long id,
                                        @Validated @RequestBody@NotNull CouponActivitySimpleVo vo,@LoginUser Long userId) {
         CouponActivity couponActivity = vo.createCouponActivity();
+        AdminVo adminVo =new AdminVo();
+        adminVo.setId(userId);
+        adminVo.setName(userService.getUserName(userId));
+        couponActivity.setModifiedBy(adminVo);
         if(couponActivity.getBeginTime().isAfter(couponActivity.getEndTime()))
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         couponActivity.setId(id);
         couponActivity.setGmtModified(LocalDateTime.now());
-        //couponActivity.setModifiedBy(userId);
         ReturnObject returnObject = couponActivityService.updateCouponActivity(couponActivity);
         return Common.decorateReturnObject(returnObject);
     }

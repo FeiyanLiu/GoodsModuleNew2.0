@@ -77,6 +77,7 @@ public class CouponActivityDao implements InitializingBean {
      */
     public CouponActivityPo addCouponActivity(CouponActivity couponActivity) {
         CouponActivityPo couponActivityPo = couponActivity.createPo();
+        couponActivityPo.setCreatedBy(couponActivity.getCreatedBy().getId());
         try {
             couponActivityMapper.insert(couponActivityPo);
             //插入成功
@@ -208,6 +209,7 @@ public class CouponActivityDao implements InitializingBean {
         couponActivityPo.setBeginTime(couponActivity.getBeginTime());
         couponActivityPo.setEndTime(couponActivity.getEndTime());
         couponActivityPo.setStrategy(couponActivity.getStrategy());
+        couponActivityPo.setModiBy(couponActivity.getModifiedBy().getId());
         ReturnObject returnObject = null;
         try {
             int ret = couponActivityMapper.updateByPrimaryKeySelective(couponActivityPo);

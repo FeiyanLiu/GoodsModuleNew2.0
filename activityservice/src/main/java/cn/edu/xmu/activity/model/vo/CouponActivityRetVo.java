@@ -3,7 +3,6 @@ package cn.edu.xmu.activity.model.vo;
 import cn.edu.xmu.activity.model.bo.CouponActivity;
 import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -26,8 +25,8 @@ public class CouponActivityRetVo implements VoObject {
     LocalDateTime endTime;
     LocalDateTime couponTime;
     String strategy;
-    CustomerVo createdBy;
-    CustomerVo modifiedBy;
+   AdminVo createdBy;
+    AdminVo modifiedBy;
     LocalDateTime gmtCreate;
     LocalDateTime gmtModified;
 

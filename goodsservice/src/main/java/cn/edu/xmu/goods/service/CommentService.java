@@ -45,6 +45,9 @@ public class CommentService{
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         ReturnObject ret = new ReturnObject();
         try{
+            ReturnObject insert=commentDao.checkCommentInsert(comment);
+            if(insert.getCode().equals(ResponseCode.COMMENT_EXISTED.getCode()))
+                return  insert;
             CommentPo commentPo= commentDao.newGoodsSkuComment(comment);
             comment.setId(commentPo.getId());
             VoObject retVo= comment.createRetVo();
