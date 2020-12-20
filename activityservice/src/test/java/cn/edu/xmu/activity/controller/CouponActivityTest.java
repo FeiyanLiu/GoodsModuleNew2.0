@@ -379,12 +379,15 @@ public class CouponActivityTest {
 ////     */
     @Test
     public void getCoupon() throws Exception {
-        String token=creatTestToken(11111111110L, 0L, 100);
-        String responseString = this.mvc.perform(post("/coupon/couponactivities/12159/usercoupons").header("authorization",token)
+        String token=creatTestToken(14513111210L, 0L, 100);
+        String responseString = this.mvc.perform(post("/coupon/couponactivities/12158/usercoupons").header("authorization",token)
                 .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
 
+        String expectedResponse = "{\"errno\":0}";
+
+        JSONAssert.assertEquals(expectedResponse, responseString, true);
     }
     /**
      //     * 活动已被删除

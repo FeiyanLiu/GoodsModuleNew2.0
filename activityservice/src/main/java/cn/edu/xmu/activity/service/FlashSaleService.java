@@ -243,8 +243,7 @@ public class FlashSaleService {
 
     @Autowired
     TimeSegmentDao timeSegmentDao;
-    @Autowired
-    OtherService otherService;
+
 
 
     private TimeSegmentPo getTimeSegmentPoById(Long timeSegmentId) {

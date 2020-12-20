@@ -59,7 +59,7 @@ public class CouponActivityService {
     CouponDao couponDao;
     @DubboReference(check = false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
-    @Autowired
+    @Resource
     RocketMQTemplate rocketMQTemplate;
 
     private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
@@ -527,7 +527,7 @@ public class CouponActivityService {
                     couponActivityPo.setId(id);
                     String couponQuantity=redisTemplate.opsForValue().get(key).toString();
                     couponActivityPo.setQuantity(Integer.parseInt(couponQuantity));
-                    sendUpdateCouponQuantityMessage(couponActivityPo);
+                    sendUpdateCouponQuantityMessage(couponActivityPo1);
                     returnObject.add(couponPo.getCouponSn());
                     redisTemplate.opsForValue().set("coupon_" + id + "_" + userId, true);
                 }
@@ -685,8 +685,7 @@ public class CouponActivityService {
     }
 
     public void sendCouponMessage(CouponPo coupon) {
-        String json = JacksonUtil.toJson(coupon);
-        rocketMQTemplate.asyncSend("coupon-topic", MessageBuilder.withPayload(json).build(), new SendCallback() {
+        rocketMQTemplate.asyncSend("coupon-topic", MessageBuilder.withPayload(coupon).build(), new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
                 logger.info("sendCouponMessage: onSuccess result = " + sendResult + " time =" + LocalDateTime.now());
@@ -699,8 +698,7 @@ public class CouponActivityService {
         });
     }
     public void sendUpdateCouponQuantityMessage(CouponActivityPo couponActivity) {
-        String json = JacksonUtil.toJson(couponActivity);
-        rocketMQTemplate.asyncSend("activity-topic", MessageBuilder.withPayload(json).build(), new SendCallback() {
+        rocketMQTemplate.asyncSend("activity-topic", MessageBuilder.withPayload(couponActivity).build(), new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
                 logger.info("sendCouponMessage: onSuccess result = " + sendResult + " time =" + LocalDateTime.now());
