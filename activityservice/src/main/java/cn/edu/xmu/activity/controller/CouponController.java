@@ -161,7 +161,7 @@ public class CouponController {
         ReturnObject returnObject = couponActivityService.createCouponActivity(shopId,couponActivity);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    ResponseUtil.ok(returnObject),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
@@ -191,7 +191,7 @@ public class CouponController {
         ReturnObject returnObject = couponActivityService.uploadImg(id, multipartFile);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    ResponseUtil.ok(returnObject),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
@@ -348,7 +348,7 @@ public class CouponController {
             ReturnObject returnObject = couponActivityService.addCouponSku(shopId, skuArray, id);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    ResponseUtil.ok(returnObject),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
@@ -425,7 +425,7 @@ public class CouponController {
         ReturnObject returnObject = couponActivityService.getCoupon(userId,id);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
-                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    ResponseUtil.ok(returnObject),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
 
