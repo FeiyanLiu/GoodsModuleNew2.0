@@ -1,9 +1,8 @@
 package cn.edu.xmu.activity.model.bo;
 
 import cn.edu.xmu.activity.model.po.FlashSalePo;
-import cn.edu.xmu.activity.model.po.TimeSegmentPo;
+import cn.edu.xmu.otherservice.model.po.TimeSegmentPo;
 import cn.edu.xmu.activity.model.vo.FlashSaleVo;
-import cn.edu.xmu.activity.model.vo.TimeSegmentVo;
 import cn.edu.xmu.ooad.model.VoObject;
 
 import java.time.LocalDateTime;
