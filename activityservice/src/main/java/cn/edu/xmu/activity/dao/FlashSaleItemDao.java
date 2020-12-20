@@ -32,11 +32,11 @@ public class FlashSaleItemDao {
         FlashSaleItemPoExample example = new FlashSaleItemPoExample();
         FlashSaleItemPoExample.Criteria criteria = example.createCriteria();
         criteria.andSaleIdEqualTo(fid);
-        if(skuId != null) {
+        if (skuId != null) {
             criteria.andGoodsSkuIdEqualTo(skuId);
         }
         List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(example);
-        if(flashSaleItemPos.size() == 0){
+        if (flashSaleItemPos.size() == 0) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         try {
@@ -53,5 +53,29 @@ public class FlashSaleItemDao {
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
         return new ReturnObject(ResponseCode.OK);
+    }
+
+    public ReturnObject<Boolean> checkSkuInFlashSale(Long flashSaleId, Long skuId) {
+        FlashSaleItemPoExample example = new FlashSaleItemPoExample();
+        FlashSaleItemPoExample.Criteria criteria = example.createCriteria();
+        criteria.andGoodsSkuIdEqualTo(skuId);
+        criteria.andSaleIdEqualTo(flashSaleId);
+        List<FlashSaleItemPo> flashSaleItemPos;
+        try {
+            flashSaleItemPos = flashSaleItemPoMapper.selectByExample(example);
+        } catch (DataAccessException e) {
+            // 数据库错误
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+        if (flashSaleItemPos.size() != 0) {
+            return new ReturnObject<Boolean>(true);
+        } else {
+            return new ReturnObject<Boolean>(false);
+        }
     }
 }

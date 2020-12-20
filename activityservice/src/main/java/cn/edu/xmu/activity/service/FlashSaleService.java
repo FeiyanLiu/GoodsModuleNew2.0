@@ -10,13 +10,14 @@ import cn.edu.xmu.activity.model.po.FlashSalePo;
 import cn.edu.xmu.activity.model.po.TimeSegmentPo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
+import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import cn.edu.xmu.otherservice.client.OtherService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -39,8 +40,6 @@ public class FlashSaleService {
     @Autowired
     FlashSaleDao flashSaleDao;
 
-    @Autowired
-    TimeSegmentDao timeSegmentDao;
 
     @Autowired
     RedisTemplate redisTemplate;
@@ -48,6 +47,9 @@ public class FlashSaleService {
     @Autowired
     FlashSaleItemDao flashSaleItemDao;
     private int flashSaleMaxSize = 2;
+
+    @Autowired
+    IGoodsService goodsService;
 
     @Autowired
     private ReactiveRedisTemplate<String, Serializable> reactiveRedisTemplate;
@@ -134,26 +136,33 @@ public class FlashSaleService {
 
     @Transactional
     public ReturnObject createNewFlashSale(NewFlashSaleVo vo, Long id) {
-        ReturnObject<Boolean> checkResult = flashSaleDao.checkFlashSaleInActivity(id);
-        if(checkResult.getCode() != ResponseCode.OK){
-            return new ReturnObject(checkResult.getCode(),checkResult.getErrmsg());
+        TimeSegmentPo timeSegmentPo = getTimeSegmentPoById(id);
+        // 时间段不存在
+        if (timeSegmentPo == null) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
+        // 将flashdate的时分秒去掉,达到标准的格式
+        vo.setFlashDate(createRealTime(vo.getFlashDate(),LocalDateTime.of(2020,01,01,0,0,0)));
+        // 检查同一天是否存在相同时段的秒杀
+        ReturnObject<Boolean> checkResult = flashSaleDao.checkFlashSaleEnough(id,vo.getFlashDate());
+        if (checkResult.getCode() != ResponseCode.OK) {
+            return new ReturnObject(checkResult.getCode(), checkResult.getErrmsg());
+        }
+
         if (checkResult.getData()) {
             return new ReturnObject(ResponseCode.FLASHSALE_OUTLIMIT);
         }
 
-        FlashSalePo flashSalePo = new FlashSalePo();
-        flashSalePo.setFlashDate(vo.getFlashDate());
-        flashSalePo.setGmtCreate(LocalDateTime.now());
-        flashSalePo.setState(FlashSale.State.ON.getCode());
-        flashSalePo.setTimeSegId(id);
-        ReturnObject<Long> returnObject = flashSaleDao.insertFlashSale(flashSalePo);
-        if(returnObject.getCode() != ResponseCode.OK){
-            return new ReturnObject(returnObject.getCode(),returnObject.getErrmsg());
+        ReturnObject<Long> returnObject = flashSaleDao.insertFlashSale(vo, id);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            return new ReturnObject(returnObject.getCode(), returnObject.getErrmsg());
         }
-        //!!!!!!!!警告!!
-        return null;
+
+        FlashSalePo flashSalePo = flashSaleDao.getFlashSaleByFlashSaleId(returnObject.getData()).getData();
+        FlashSale flashSale = new FlashSale(flashSalePo, timeSegmentPo);
+        return new ReturnObject(flashSale);
     }
+
 
     /**
      * 修改活动
@@ -161,40 +170,27 @@ public class FlashSaleService {
      * @author LJP_3424
      */
     @Transactional
-    public ReturnObject updateFlashSale(NewFlashSaleVo newFlashSaleVo, Long id) {
-        FlashSalePo flashSalePo = flashSaleDao.getFlashSaleByFlashSaleId(id);
-        try {
-            if (flashSalePo == null) {
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else {
-                LocalDateTime beginTime = timeSegmentDao.getBeginTimeByTimeSegmentId(flashSalePo.getTimeSegId());
-                if (beginTime == null) {
-                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-                } else {
-                    LocalDateTime flashSaleBeginTime = LocalDateTime.of(flashSalePo.getFlashDate().getYear(), flashSalePo.getFlashDate().getMonth(),
-                            flashSalePo.getFlashDate().getDayOfMonth(), beginTime.getHour(), beginTime.getMinute(), beginTime.getSecond());
-                    if (flashSaleBeginTime.compareTo(LocalDateTime.now()) <= 0) {
-                        return new ReturnObject<>(ResponseCode.TIMESEG_CONFLICT);
-                    } else {
-                        if (flashSaleDao.updateFlashSale(newFlashSaleVo, id) == false) {
-                            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
-                        } else {
+    public ReturnObject updateFlashSale(NewFlashSaleVo vo,Long id) {
+        FlashSalePo flashSalePo = flashSaleDao.getFlashSaleByFlashSaleId(id).getData();
+        if (flashSalePo == null) {
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
 
-                            return new ReturnObject<>(new FlashSale(flashSaleDao.getFlashSaleByFlashSaleId(id),null));
-                        }
-                    }
-                }
-            }
-        } catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
-            // 属未知错误
-            logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        // 秒杀不需要判断当前是否下线,可以直接修改日期
+        // 修改日期需要注意,修改的结果是否可以
+        // 将flashDate的时分秒去掉,达到标准的格式
+        vo.setFlashDate(createRealTime(vo.getFlashDate(),LocalDateTime.of(2020,01,01,0,0,0)));
+        // 检查同一天是否存在相同时段的秒杀
+        ReturnObject<Boolean> checkResult = flashSaleDao.checkFlashSaleEnough(id,vo.getFlashDate());
+        if(checkResult.getData()){
+            return new ReturnObject(ResponseCode.FLASHSALE_OUTLIMIT);
+        }
+        ReturnObject returnObject = flashSaleDao.updateFlashSale(vo, id);
+
+        if(returnObject.getCode() == ResponseCode.OK){
+            return new ReturnObject();
+        }else{
+            return new ReturnObject(returnObject.getCode(),returnObject.getErrmsg());
         }
     }
 
@@ -204,9 +200,29 @@ public class FlashSaleService {
      * @author LJP_3424
      */
     @Transactional
-    public ReturnObject insertSkuIntoPreSale(NewFlashSaleItemVo newFlashSaleItemVo, Long id) {
-        ReturnObject<List> retObj = flashSaleDao.insertSkuIntoFlashSale(newFlashSaleItemVo, id);
-        return retObj;
+    public ReturnObject insertSkuIntoPreSale(NewFlashSaleItemVo newFlashSaleItemVo, Long flashSaleId) {
+        // 检查商品skuId是否为真
+        GoodsSku goodsSku = goodsService.getSkuById(newFlashSaleItemVo.getSkuId());
+        if (goodsSku == null) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+
+        ReturnObject<Boolean> booleanReturnObject = flashSaleItemDao.checkSkuInFlashSale(flashSaleId, newFlashSaleItemVo.getSkuId());
+        if(booleanReturnObject.getCode() != ResponseCode.OK){
+            return new ReturnObject(booleanReturnObject.getCode(),booleanReturnObject.getErrmsg());
+        }
+        // 已经加入该秒杀了,不能重复加入
+        if(booleanReturnObject.getData() == true){
+            return new ReturnObject(ResponseCode.SKUPRICE_CONFLICT);
+        }
+        //这边调用接口,减少相应数量,减少成功返回true
+        /*if(goodsService.cutGoodsSkuInventory(newFlashSaleItemVo.getQuantity())){
+            return new ReturnObject(ResponseCode.SKU_NOTENOUGH);
+        }*/
+        ReturnObject<FlashSaleItemPo> retObj = flashSaleDao.insertSkuIntoFlashSale(newFlashSaleItemVo, flashSaleId);
+        FlashSaleItemPo flashSaleItemPo = retObj.getData();
+        FlashSaleItem flashSaleItem = new FlashSaleItem(flashSaleItemPo, goodsSku);
+        return new ReturnObject(flashSaleItem);
     }
 
     @Transactional
@@ -221,4 +237,40 @@ public class FlashSaleService {
         ReturnObject returnObject = flashSaleDao.deleteFlashSale(id);
         return returnObject;
     }
+
+
+    /******************通用方法*********************/
+
+    @Autowired
+    TimeSegmentDao timeSegmentDao;
+    @Autowired
+    OtherService otherService;
+
+
+    private TimeSegmentPo getTimeSegmentPoById(Long timeSegmentId) {
+        List<TimeSegmentPo> allTimeSegment = flashSaleDao.getAllTimeSegment();
+        for (TimeSegmentPo timeSegmentPo : allTimeSegment) {
+            if (timeSegmentPo.getId().equals(timeSegmentId)) {
+                return timeSegmentPo;
+            }
+        }
+        return null;
+    }
+
+
+    /**
+     * 传入日期和时间段,生成时间
+     */
+    private LocalDateTime createRealTime(LocalDateTime flashDate, LocalDateTime flashTime) {
+        return LocalDateTime.of(flashDate.getYear(), flashDate.getMonth(), flashDate.getDayOfMonth(),
+                flashTime.getHour(), flashTime.getMinute(), flashTime.getSecond());
+    }
+
+    private LocalDateTime getBeginTimeByTimeSegmentId(Long id) {
+        TimeSegmentPo timeSegmentPo = getTimeSegmentPoById(id);
+        return timeSegmentPo.getBeginTime();
+
+    }
+    /****************通用方法结束********************/
+
 }

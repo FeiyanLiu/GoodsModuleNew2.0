@@ -1,7 +1,9 @@
 package cn.edu.xmu.activity.model.bo;
 
 import cn.edu.xmu.activity.model.po.FlashSalePo;
+import cn.edu.xmu.activity.model.po.TimeSegmentPo;
 import cn.edu.xmu.activity.model.vo.FlashSaleVo;
+import cn.edu.xmu.activity.model.vo.TimeSegmentVo;
 import cn.edu.xmu.ooad.model.VoObject;
 
 import java.time.LocalDateTime;
@@ -27,7 +29,7 @@ public class FlashSale implements VoObject {
 
         static { //由类加载机制，静态块初始加载对应的枚举属性到map中，而不用每次取属性时，遍历一次所有枚举值
             stateMap = new HashMap();
-            for (State enum1 : values()) {
+            for (FlashSale.State enum1 : values()) {
                 stateMap.put(enum1.code, enum1);
             }
         }
@@ -40,7 +42,7 @@ public class FlashSale implements VoObject {
             this.description = description;
         }
 
-        public static State getTypeByCode(Integer code) {
+        public static FlashSale.State getTypeByCode(Integer code) {
             return stateMap.get(code);
         }
 
@@ -57,10 +59,7 @@ public class FlashSale implements VoObject {
 
     private LocalDateTime flashDate;
 
-    //private Long timeSegId;
-    //private TimeSegmentVo timeSegmentVo;
-
-    private TimeSegment timeSeq;
+    private TimeSegmentPo timeSeq;
 
     private LocalDateTime gmtCreated;
 
@@ -68,12 +67,12 @@ public class FlashSale implements VoObject {
 
     private Byte state;
 
-    public FlashSale(FlashSalePo po,TimeSegment timeSegment) {
+    public FlashSale(FlashSalePo po, TimeSegmentPo timeSegmentPo) {
         id = po.getId();
         flashDate = po.getFlashDate();
         gmtCreated = po.getGmtCreate();
         gmtModified = po.getGmtModified();
-        timeSeq = timeSegment;
+        timeSeq = timeSegmentPo;
         state = po.getState();
     }
 
@@ -83,6 +82,7 @@ public class FlashSale implements VoObject {
         flashSaleVo.setFlashDate(this.flashDate);
         flashSaleVo.setGmtCreated(this.gmtCreated);
         flashSaleVo.setGmtModified(this.gmtModified);
+        flashSaleVo.setTimeSeq(this.timeSeq);
         flashSaleVo.setId(this.id);
         flashSaleVo.setState(this.state);
         return flashSaleVo;

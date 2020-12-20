@@ -1,11 +1,12 @@
 package cn.edu.xmu.activity.model.bo;
 
 
+import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
+import cn.edu.xmu.goodsservice.model.bo.Shop;
+import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.vo.GrouponSimpleVo;
 import cn.edu.xmu.activity.model.vo.GrouponVo;
-import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
-import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 
@@ -88,7 +89,7 @@ public class Groupon implements VoObject {
         this.strategy = po.getStrategy();
     }
 
-    public Groupon(GrouponPo po, ShopSimple shopSimple, GoodsSimpleSpu goodsSimpleSpu) {
+    public Groupon(GrouponPo po, GoodsSimpleSpu goodsSimpleSpu, ShopSimple shopSimple) {
         this.gmtModified = po.getGmtModified();
         this.gmtCreated = po.getGmtCreate();
         this.endTime = po.getEndTime();

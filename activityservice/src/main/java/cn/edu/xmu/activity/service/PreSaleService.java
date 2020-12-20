@@ -58,9 +58,9 @@ public class PreSaleService {
 
 
     @Transactional
-    public ReturnObject<PageInfo<VoObject>> selectAllPreSale(Long shopId, Byte timeline, Long spuId, Integer pageNum, Integer pageSize) {
-        ReturnObject<PageInfo<PreSalePo>> returnPreSalePoPage = preSaleDao.selectAllPreSale(shopId, timeline, spuId, pageNum, pageSize);
-        if (returnPreSalePoPage.getCode().equals(ResponseCode.OK) == false) {
+    public ReturnObject<PageInfo<VoObject>> selectAllPreSale(Long shopId, Byte timeline, Long skuId, Integer pageNum, Integer pageSize) {
+        ReturnObject<PageInfo<PreSalePo>> returnPreSalePoPage = preSaleDao.selectAllPreSale(shopId, timeline, skuId, pageNum, pageSize);
+        if (!returnPreSalePoPage.getCode().equals(ResponseCode.OK)) {
             return new ReturnObject<>(returnPreSalePoPage.getCode(), returnPreSalePoPage.getErrmsg());
         }
 
@@ -73,11 +73,13 @@ public class PreSaleService {
             // ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
             GoodsSku goodsSku = linShiNewGoodsSku(preSalePo.getGoodsSkuId());
             ShopSimple shopSimple = linShiNewShopSimple(preSalePo.getShopId());
-            VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple).createVo();
+            VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple);
             voObjects.add(voObject);
         }
 
         PageInfo<VoObject> of = PageInfo.of(voObjects);
+        of.setPages(preSalePosPageInfo.getPages());
+        of.setTotal(preSalePosPageInfo.getTotal());
         of.setPageSize(preSalePosPageInfo.getPageSize());
         of.setTotal(preSalePosPageInfo.getTotal());
         of.setPageNum(preSalePosPageInfo.getPageNum());
@@ -214,7 +216,7 @@ public class PreSaleService {
         // 时段冲突也不需要考虑,因为在下线状态,考虑的事情,扔给上线吧
         // 参数校验方面 Vo检测未来 Controller检测开始大于结束
         if (preSalePo.getState() != expectState) {
-            return new ReturnObject(ResponseCode.GROUPON_STATENOTALLOW);
+            return new ReturnObject(ResponseCode.PRESALE_STATENOTALLOW);
         }
 
         // 校验成功,通过
