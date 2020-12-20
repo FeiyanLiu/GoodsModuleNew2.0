@@ -22,6 +22,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 /**
@@ -31,6 +32,8 @@ import java.util.List;
 public class CommentDao implements InitializingBean{
     @Autowired
     private CommentPoMapper commentPoMapper;
+    @Autowired
+    private GoodsSkuDao goodsSkuDao;
 
     private static final Logger logger=LoggerFactory.getLogger(CommentDao.class);
 
@@ -62,25 +65,15 @@ public class CommentDao implements InitializingBean{
      * @Description 新增sku评论
      * @author Ruzhen Chang
      */
-    public ReturnObject newGoodsSkuComment(long goodsSkuId,long customerId,long orderItemId,byte type,String content){
-        ReturnObject retobj=null;
-        CommentPo commentPo=new CommentPo();
+    public CommentPo newGoodsSkuComment(Comment comment){
+        CommentPo commentPo=comment.createPo();
         try {
-            retobj = new ReturnObject(commentPoMapper.insert(commentPo));
-            logger.debug("success apply comment:" + commentPo.getId());
-            commentPo.setState((byte) Comment.State.NEW.getCode().intValue());
-            commentPo.setContent(content);
-            commentPo.setCustomerId(customerId);
-            commentPo.setGoodsSkuId(goodsSkuId);
-            commentPo.setGmtCreate(LocalDateTime.now());
-            commentPo.setGmtModified(LocalDateTime.now());
-            commentPo.setOrderitemId(orderItemId);
-            commentPo.setType(type);
+            commentPoMapper.insert(commentPo);
+            logger.debug("newGoodsSkuComment: insert comment = "+commentPo.toString());
         }catch (DataAccessException e){
             logger.debug("apply comment failed:"+e.getMessage());
-            retobj =new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST,String.format("发生数据库错误：%s",e.getMessage()));
         }
-        return retobj;
+        return commentPo;
     }
 
     /**
@@ -115,14 +108,20 @@ public class CommentDao implements InitializingBean{
      * @Description 根据商品skuId获得评论id列表
      * @author Ruzhen Chang
      */
-    public PageInfo<CommentPo> getCommentListByGoodsSkuId(Long goodsSkuId, Integer page, Integer pageSize){
+    public PageInfo<VoObject> getCommentListByGoodsSkuId(Long goodsSkuId, Integer page, Integer pageSize){
         PageHelper.startPage(page,pageSize);
         CommentPoExample example=new CommentPoExample();
         CommentPoExample.Criteria criteria=example.createCriteria();
         criteria.andGoodsSkuIdEqualTo(goodsSkuId);
+        criteria.andStateEqualTo((byte)Comment.State.NORM.getCode().intValue());
         List<CommentPo> commentPos=commentPoMapper.selectByExample(example);
-        logger.debug("getCommentIdListByGoodsSkuId:" +goodsSkuId);
-        return new PageInfo<>(commentPos);
+        logger.debug("getCommentIdListByGoodsSkuId: retComments" +commentPos);
+        List<VoObject> commmentVos=new ArrayList<>(commentPos.size());
+        for(CommentPo po:commentPos){
+            Comment comment= new Comment(po);
+            commmentVos.add(comment.createSimpleVo());
+        }
+        return new PageInfo<>(commmentVos);
     }
 
 
@@ -131,15 +130,19 @@ public class CommentDao implements InitializingBean{
      * @Description 根据用户id获得评论id列表
      * @author Ruzhen Chang
      */
-    public PageInfo<CommentPo> getCommentIdListByCustomerId(long customerId,Integer page,Integer pageSize){
-
+     public PageInfo<VoObject> getCommentListByCustomerId(long customerId,Integer page,Integer pageSize){
         PageHelper.startPage(page,pageSize);
         CommentPoExample example=new CommentPoExample();
         CommentPoExample.Criteria criteria=example.createCriteria();
         criteria.andCustomerIdEqualTo(customerId);
         List<CommentPo> commentPos=commentPoMapper.selectByExample(example);
         logger.debug("getCommentIdListByCustomerId:" +customerId);
-        return new PageInfo<>(commentPos);
+        List<VoObject> commmentVos=new ArrayList<>(commentPos.size());
+        for(CommentPo po:commentPos){
+            Comment comment= new Comment(po);
+            commmentVos.add(comment.createSimpleVo());
+        }
+        return new PageInfo<>(commmentVos);
     }
 
 
@@ -149,7 +152,8 @@ public class CommentDao implements InitializingBean{
      */
     public ReturnObject updateCommentState(Comment comment){
         CommentPo commentPo=new CommentPo();
-        commentPo.setState((byte)comment.getState().getCode().intValue());
+        commentPo.setId(comment.getId());
+        commentPo.setState(comment.getState());
         ReturnObject returnObject=null;
         try{
             int ret=commentPoMapper.updateByPrimaryKeySelective(commentPo);
@@ -157,7 +161,7 @@ public class CommentDao implements InitializingBean{
                 logger.debug("updateCommentState: update faild. comment id:"+commentPo.getId());
                 returnObject=new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             } else {
-                logger.debug("updateCommentState: update success:"+commentPo.getId());
+                logger.debug("updateCommentState: update success:"+comment.toString());
                 returnObject=new ReturnObject();
             }
         } catch (Exception e) {
@@ -180,4 +184,21 @@ public class CommentDao implements InitializingBean{
         return stateVos;
     }
 
+    /**
+     * @Description 获取店铺内所有评论列表
+     * @param shopId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public PageInfo<VoObject> getCommentListByShopsId(long shopId,Integer page,Integer pageSize){
+        PageHelper.startPage(page,pageSize);
+        CommentPoExample example=new CommentPoExample();
+        CommentPoExample.Criteria criteria=example.createCriteria();
+        List<Long> goodsSkuIdList= goodsSkuDao.getSkuIdListByShopId(shopId);
+        criteria.andGoodsSkuIdIn(goodsSkuIdList);
+        List<CommentPo> commentPos=commentPoMapper.selectByExample(example);
+        List<VoObject> commmentVos=commentPos.stream().map(po->new Comment(po).createSimpleVo()).collect(Collectors.toList());
+        return new PageInfo<>(commmentVos);
+    }
 }

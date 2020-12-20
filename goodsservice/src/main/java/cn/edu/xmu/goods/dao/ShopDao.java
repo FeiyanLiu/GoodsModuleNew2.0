@@ -78,14 +78,13 @@ public class ShopDao implements InitializingBean{
         if(shopName!=null) {
             criteria.andNameEqualTo(shopName);
         }
-        boolean empty=false;
         try{
             List<ShopPo> shopPos=shopPoMapper.selectByExample(example);
-            empty=shopPos.isEmpty();
+            return shopPos.isEmpty();
         } catch (Exception e){
             logger.error("发生严重服务器内部错误："+e.getMessage());
+            return null;
         }
-        return !empty;
     }
 
 
@@ -97,6 +96,8 @@ public class ShopDao implements InitializingBean{
     public ReturnObject<Shop> updateShop(Shop shop){
         ShopPo shopPo= new ShopPo();
         shopPo.setId(shop.getId());
+        if(!checkShopName(shop.getShopName()))
+            return new ReturnObject<>(ResponseCode.valueOf("该姓名已被占用"));
         shopPo.setName(shop.getShopName());
         shopPo.setGmtModified(shop.getGmtModified());
         ReturnObject<Shop> returnObject=null;
@@ -237,7 +238,6 @@ public class ShopDao implements InitializingBean{
             //插入成功
             logger.debug("insertShop: insert shop = " + shopPo.toString());
         } catch (Exception e) {
-            shopPo = null;
             logger.error("严重错误：" + e.getMessage());
         }
         return shopPo;

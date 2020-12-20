@@ -1,6 +1,7 @@
 package cn.edu.xmu.goods.model.vo;
 
 import cn.edu.xmu.goods.model.bo.*;
+import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.orderservice.model.bo.FreightModel;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -36,7 +37,7 @@ public class GoodsSpuRetVo {
 //    @ApiModelProperty(value = "运费模板id")
 //    private Long freightId;
     @ApiModelProperty(value = "店铺")
-    private ShopSimpleVo shop;
+    private ShopVo shop;
     @ApiModelProperty(value = "商品条码")
     private String goodsSn;
     @ApiModelProperty(value = "商品细节")

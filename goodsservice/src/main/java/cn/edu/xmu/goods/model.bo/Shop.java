@@ -1,6 +1,7 @@
 package cn.edu.xmu.goods.model.bo;
 
 import cn.edu.xmu.goods.model.po.ShopPo;
+import cn.edu.xmu.goods.model.vo.ShopRetVo;
 import cn.edu.xmu.goods.model.vo.ShopSimpleVo;
 import cn.edu.xmu.goods.model.vo.ShopVo;
 import cn.edu.xmu.ooad.model.VoObject;
@@ -25,6 +26,10 @@ public class Shop implements VoObject{
 
     public Shop() {
 
+    }
+
+    public ShopRetVo createRetVo() {
+        return new ShopRetVo(this);
     }
 
     public enum State {
@@ -76,13 +81,13 @@ public class Shop implements VoObject{
 
 
     @Override
-    public ShopVo createVo() {
-        return new ShopVo(this);
+    public VoObject createVo() {
+        return new ShopSimpleVo(this);
     }
 
     @Override
-    public ShopSimpleVo createSimpleVo() {
-        return new ShopSimpleVo(this);
+    public VoObject createSimpleVo() {
+        return null;
     }
 
     public ShopPo createPo(){

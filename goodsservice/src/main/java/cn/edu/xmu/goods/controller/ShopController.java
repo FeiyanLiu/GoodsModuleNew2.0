@@ -57,13 +57,17 @@ public class ShopController {
     })
     @Audit
     @PostMapping("/shops")
-    public Object insertShop(@Validated @RequestBody ShopVo shopVo, BindingResult bindingResult,
-                             @PathVariable Long id) {
+    public Object insertShop(@Validated @RequestBody ShopVo shopVo,
+                             BindingResult bindingResult,
+                             @PathVariable Long id,
+                             @Depart Long departId) {
         Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != errors) {
             return errors;
         }
         Shop shop =shopVo.createShop();
+        if(shop.getId()==-1)
+            return ResponseCode.USER_HASSHOP;
         ReturnObject returnObject = shopService.createShop(shop);
         if (returnObject.getData() != null) {
             return ResponseUtil.ok(returnObject.getData());
@@ -87,12 +91,16 @@ public class ShopController {
     })
     @Audit
     @PutMapping("/shops/{shopId}")
-    public Object updateShop(@PathVariable Long shopId, @Depart Long departId,
-                             @Validated @RequestBody ShopSimpleVo vo, BindingResult bindingResult, @LoginUser Long userId) {
+    public Object updateShop(@PathVariable Long shopId,
+                             @Depart Long departId,
+                             @Validated @RequestBody ShopSimpleVo vo,
+                             BindingResult bindingResult) {
         Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != errors) {
             return errors;
         }
+        if(!departId.equals(shopId))
+            return ResponseCode.AUTH_NOT_ALLOW;
         Shop shop = vo.createShop();
         shop.setId(shopId);
         ReturnObject returnObject = shopService.updateShop(shop);

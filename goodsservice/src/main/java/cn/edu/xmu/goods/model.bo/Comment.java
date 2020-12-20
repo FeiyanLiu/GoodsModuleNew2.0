@@ -2,9 +2,12 @@ package cn.edu.xmu.goods.model.bo;
 
 
 import cn.edu.xmu.goods.model.po.CommentPo;
+import cn.edu.xmu.goods.model.vo.CommentRetVo;
+import cn.edu.xmu.goodsservice.model.vo.CustomerVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,8 +17,19 @@ import java.util.Map;
 @Data
 public class Comment implements VoObject{
 
-    public Comment() {
+    private Long id;
+    private CustomerVo customer;
+    private Long goodsSkuId;
+    private Byte type;
+    /*评价等级 0好评1中评2差评*/
+    private String content;
+    private Byte state=(byte) State.NEW.code;
+    private LocalDateTime gmtCreate;
+    private LocalDateTime gmtModified;
+    public Comment() {}
 
+    public VoObject createRetVo() {
+        return new CommentRetVo(this);
     }
 
     /**
@@ -57,31 +71,28 @@ public class Comment implements VoObject{
         }
     }
 
-    private long id;
-
-    private long customerId;
-
-    private long goodsSkuId;
-
-    private long orderItemId;
-
-    private int type;
-    /*评价等级 0好评1中评2差评*/
-
-    private String content;
-
-    private State state=State.NEW;
-
     public Comment(CommentPo po){
         this.id=po.getId();
-        this.customerId= po.getCustomerId();
+        this.customer.setId(po.getCustomerId());
         this.goodsSkuId= po.getGoodsSkuId();
-        this.orderItemId= po.getOrderitemId();
         this.type= po.getType();
         this.content= po.getContent();
-        if(null!=po.getState()){
-            this.state=State.getTypeByCode(po.getState().intValue());
-        }
+        this.state=po.getState();
+        this.gmtCreate=po.getGmtCreate();
+        this.gmtModified=po.getGmtModified();
+    }
+
+    public CommentPo createPo(){
+        CommentPo commentPo=new CommentPo();
+        commentPo.setId(this.id);
+        commentPo.setContent(this.content);
+        commentPo.setCustomerId(customer.getId());
+        commentPo.setGoodsSkuId(this.goodsSkuId);
+        commentPo.setType(this.type);
+        commentPo.setState(this.state);
+        commentPo.setGmtCreate(this.gmtCreate);
+        commentPo.setGmtModified(this.gmtModified);
+        return commentPo;
     }
 
     @Override

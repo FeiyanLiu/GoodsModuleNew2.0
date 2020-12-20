@@ -1,11 +1,15 @@
 package cn.edu.xmu.goods.model.vo;
 
 import cn.edu.xmu.goods.model.bo.Comment;
+import io.lettuce.core.StrAlgoArgs;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Range;
 
+import javax.print.DocFlavor;
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 /**
@@ -15,30 +19,19 @@ import java.time.LocalDateTime;
 @Data
 @ApiModel("评论传值对象")
 public class CommentVo {
-    @ApiModelProperty(value = "活动id")
-    Long id;
-    //@ApiModelProperty(value = "顾客")
-    //simpleUser
-    @ApiModelProperty(value = "评论的SKU id")
-    Long goodsSkuId;
-    @ApiModelProperty(value = "评价类型 0好评，1中评，2差评")
-    Integer type;
-    @ApiModelProperty(value = "内容")
+    @NotBlank(message = "必须输入评论类型")
+    @ApiModelProperty(value = "评论类型")
+    Byte type;
+
+    @NotBlank(message = "必须输入评论内容")
+    @ApiModelProperty(value = "评论内容")
     String content;
-    @ApiModelProperty(value = "状态")
-    Comment.State state;
-    @ApiModelProperty(value="订单商品id")
-    Long orderItemId;
-    LocalDateTime gmtModified;
 
     public Comment createComment(){
         Comment comment=new Comment();
-        comment.setId(this.id);
-        comment.setGoodsSkuId(this.goodsSkuId);
         comment.setType(this.type);
         comment.setContent(this.content);
-        comment.setState(this.state);
-        comment.setOrderItemId(this.orderItemId);
+
         return comment;
 
     }

@@ -129,6 +129,7 @@ public class CouponDao implements InitializingBean {
             for(CouponPo po:couponPos)
             {
                 couponMapper.deleteByPrimaryKey(po.getId());
+
             }
         }
         catch (Exception e) {

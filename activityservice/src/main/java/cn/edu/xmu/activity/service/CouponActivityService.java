@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
@@ -60,9 +61,12 @@ public class CouponActivityService {
     IGoodsService goodsService;
     @Autowired
     RocketMQTemplate rocketMQTemplate;
+
     private Logger logger = LoggerFactory.getLogger(CouponActivityService.class);
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
     /**
      * @author 24320182203218
      **/
@@ -82,20 +86,23 @@ public class CouponActivityService {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
-    public Long getCouponByLuaScript(String couponCode) {
-        //lua脚本语法
-        StringBuilder script = new StringBuilder();
-        script.append("local couponKey=KEYS[1]");//KEY
-        script.append("local couponNum=redis.call('get',couponKey)  ");//调用方式 必须是redis.call 或者pcall结合redis中的方法
-        script.append("if couponNum>0   ");
-        script.append("then redis.call('decrby',couponKey,1)    ");
-        script.append("return 1 ");
-        script.append("else     ");
-        script.append("return '0'");
-        script.append("end");
-        DefaultRedisScript<String> longDefaultRedisScript = new DefaultRedisScript<>(script.toString(), String.class);
-        String result = redisTemplate.execute(longDefaultRedisScript, Collections.singletonList(couponCode)).toString();
-        return Long.valueOf(result);
+    public Long getCouponByLuaScript(String couponCode,int num) {
+
+            //lua脚本语法
+            StringBuilder script = new StringBuilder();
+            script.append(" local buyNum = ARGV[1]");//参数
+            script.append(" local goodsKey = KEYS[1] ");//key键
+            script.append(" local goodsNum = redis.call('get',goodsKey) "); // 调用方式，必须是redis.call 或者pcall结合redis里的方法
+            script.append(" if goodsNum >= buyNum  ");
+            script.append(" then redis.call('decrby',goodsKey,buyNum)   ");
+            script.append(" return buyNum   ");
+            script.append(" else    ");
+            script.append(" return '0'  ");
+            script.append(" end");
+
+            DefaultRedisScript<String> longDefaultRedisScript = new DefaultRedisScript<>(script.toString(), String.class);
+            String result = stringRedisTemplate.execute(longDefaultRedisScript, Collections.singletonList(couponCode), String.valueOf(num));
+            return Long.valueOf(result);
     }
 
     /**
@@ -127,7 +134,7 @@ public class CouponActivityService {
         try {
             CouponActivityPo newPo = couponActivityDao.addCouponActivity(couponActivity);
             couponActivity.setId(newPo.getId());
-            VoObject retVo = couponActivity.createVo();
+            VoObject retVo = couponActivity.createRetVo();
             return new ReturnObject(retVo);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
@@ -217,13 +224,13 @@ public class CouponActivityService {
     public ReturnObject<PageInfo<VoObject>> getInvalidCouponActivities(Integer page, Integer pageSize, Long shopId) {
         try {
             PageInfo<CouponActivityPo> couponActivitiesPos = couponActivityDao.getInvalidCouponActivity(shopId, page, pageSize);
-            List<VoObject> couponActivities = couponActivitiesPos.getList().stream().map(po -> new CouponActivity(po).createSimpleVo()).collect(Collectors.toList());
+            List<VoObject> couponActivities = couponActivitiesPos.getList().stream().map(po -> new CouponActivity(po)).collect(Collectors.toList());
             PageInfo<VoObject> returnObject = new PageInfo<>(couponActivities);
             returnObject.setPages(couponActivitiesPos.getPages());
             returnObject.setPageNum(couponActivitiesPos.getPageNum());
             returnObject.setPageSize(couponActivitiesPos.getPageSize());
             returnObject.setTotal(couponActivitiesPos.getTotal());
-            return new ReturnObject<>(returnObject);
+            return new ReturnObject(returnObject);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
@@ -247,8 +254,10 @@ public class CouponActivityService {
             if (couponActivityPo == null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             //如果活动状态不是上线 不允许查看
-            if (couponActivityPo.getState() != CouponActivity.State.ONLINE.getCode())
+            if (couponActivityPo.getState() == CouponActivity.State.OFFLINE.getCode())
                 return new ReturnObject<>(ResponseCode.COUPONACT_STATENOTALLOW);
+            if (couponActivityPo.getState() == CouponActivity.State.DELETED.getCode())
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             PageInfo<CouponSkuPo> couponSkuPos = couponSkuDao.getCouponSkuListByActivityId(id, page, pageSize);
             List<Long> skuIds = couponSkuPos.getList().stream().map(couponSkuPo -> couponSkuPo.getSkuId()).collect(Collectors.toList());
             List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos = goodsService.getGoodsSkuListBySkuIdList(skuIds);
@@ -281,7 +290,7 @@ public class CouponActivityService {
             if (po.getShopId() != shopId)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             CouponActivity couponActivity = new CouponActivity(po);
-            return new ReturnObject(couponActivity.createVo());
+            return new ReturnObject(couponActivity.createRetVo());
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
@@ -307,8 +316,10 @@ public class CouponActivityService {
             if (po.getShopId() != couponActivity.getShopId())
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             //若活动不是下线状态 不允许修改
-            if (po.getState() != CouponActivity.State.OFFLINE.getCode())
+            if (po.getState() == CouponActivity.State.ONLINE.getCode())
                 return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
+            if (po.getState() == CouponActivity.State.DELETED.getCode())
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             return couponActivityDao.updateCouponActivity(couponActivity);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
@@ -336,6 +347,7 @@ public class CouponActivityService {
             couponActivityDao.changeCouponActivityState(id, CouponActivity.State.DELETED.getCode());
             ;
             couponDao.deleteCouponByActivityId(id);
+            redisTemplate.delete("coupon_"+id);//清除redis中缓存
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
@@ -360,7 +372,7 @@ public class CouponActivityService {
             if(couponActivityPo==null)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             if (couponActivityPo.getState() == CouponActivity.State.DELETED.getCode())
-                return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             //判断商品是否都存在
             List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos = goodsService.getGoodsSkuListBySkuIdList(Arrays.asList(skuIds));
             if (goodsSkuSimpleRetVos.size() < skuIds.length)
@@ -408,7 +420,7 @@ public class CouponActivityService {
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(couponSkuPo.getActivityId());
             //判断活动状态是否为删除
             if (couponActivityPo.getState() == CouponActivity.State.DELETED.getCode())
-                return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             return couponSkuDao.deleteCouponSku(id);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
@@ -447,12 +459,12 @@ public class CouponActivityService {
      */
 
     @Transactional
-    public ReturnObject getCoupon(Long userId, Long id) {
+    public ReturnObject<List<String>> getCoupon(Long userId, Long id) {
         String activityKey = "couponactivity_" + id;
         if (!redisTemplate.hasKey(activityKey)) {
             CouponActivityPo couponActivityPo = couponActivityDao.getCouponActivityById(id);
             //检测活动是否存在
-            if (couponActivityPo == null)
+            if (couponActivityPo == null||couponActivityPo.getState()==CouponActivity.State.DELETED.getCode())
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             String json=JacksonUtil.toJson(couponActivityPo);
         redisTemplate.opsForValue().set(activityKey, json,600,TimeUnit.SECONDS);
@@ -477,19 +489,19 @@ public class CouponActivityService {
         if (LocalDateTime.now().isBefore(couponActivityPo.getCouponTime()))
             return new ReturnObject(ResponseCode.COUPON_NOTBEGIN);
         int quantityType = couponActivityPo.getQuantitiyType();
-        ReturnObject returnObject = new ReturnObject();
+        List<String> returnObject = new ArrayList<>(couponActivityPo.getQuantity());
         try {
             //判断优惠活动是否需要优惠券(即优惠券是否限量）
             //若不需要优惠券则不用领取
             if (couponActivityPo.getQuantity() == 0) {
-                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+                return new ReturnObject();
             }
             //限量优惠券
             else {
                 //如果redis中没有 是第一位领券的 将优惠券信息放入redis
                 String key = "coupon_" + couponActivityPo.getId();
                 if (!redisTemplate.hasKey(key))
-                    redisTemplate.opsForValue().set("coupon_" + couponActivityPo.getId(), couponActivityPo.getQuantity());
+                    redisTemplate.opsForValue().set(key, couponActivityPo.getQuantity());
                 //查询用户是否领过优惠券
                 if (redisTemplate.hasKey("coupon_" + id + "_" + userId))
                     return new ReturnObject<>(ResponseCode.USER_HASCOUPON);
@@ -497,18 +509,26 @@ public class CouponActivityService {
                 {
                     CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
                     for (int i = 0; i < couponActivityPo.getQuantity(); i++)
+                    {
                         sendCouponMessage(couponPo);
+                        returnObject.add(couponPo.getCouponSn());
+                    }
                     //设置结束时间
                     long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8))-LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
                     redisTemplate.opsForValue().set("coupon_" + id + "_" + userId, 1, second, TimeUnit.SECONDS);
                 } else if (quantityType == 1) {
-                    Long result = getCouponByLuaScript(key);
+                   // String couponQuantity=redisTemplate.opsForValue().get(key).toString();
+                    Long result = getCouponByLuaScript(key,1);
+                   // couponQuantity=redisTemplate.opsForValue().get(key).toString();
                     if (result == 0)
                         return new ReturnObject(ResponseCode.COUPON_FINISH);
+                    CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
+                    sendCouponMessage(couponPo);
+                    returnObject.add(couponPo.getCouponSn());
                     redisTemplate.opsForValue().set("coupon_" + id + "_" + userId, true);
                 }
             }
-            return returnObject;
+            return new ReturnObject<>(returnObject);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
@@ -532,7 +552,7 @@ public class CouponActivityService {
             if (couponActivityPo.getShopId() != shopId)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             if (couponActivityPo.getState() != CouponActivity.State.OFFLINE.getCode())
-                return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             couponActivityDao.changeCouponActivityState(id, CouponActivity.State.ONLINE.getCode());
             couponDao.deleteCouponByActivityId(id);
         } catch (Exception e) {
@@ -559,7 +579,7 @@ public class CouponActivityService {
             if (couponActivityPo.getShopId() != shopId)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
             if (couponActivityPo.getState() == CouponActivity.State.OFFLINE.getCode())
-                return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             couponActivityDao.changeCouponActivityState(id, CouponActivity.State.OFFLINE.getCode());
             couponDao.deleteCouponByActivityId(id);
         } catch (Exception e) {
@@ -583,6 +603,7 @@ public class CouponActivityService {
         couponPo.setCouponSn(randomUUID());
         couponPo.setCustomerId(userId);
         couponPo.setActivityId(id);
+        couponPo.setName(couponActivityPo.getName());
         if (couponActivityPo.getValidTerm() == 0) {
             couponPo.setBeginTime(couponActivityPo.getCouponTime());
             couponPo.setEndTime(couponActivityPo.getEndTime());
@@ -661,7 +682,7 @@ public class CouponActivityService {
 
     public void sendCouponMessage(CouponPo coupon) {
         String json = JacksonUtil.toJson(coupon);
-        rocketMQTemplate.asyncSend("coupon-topic:1", MessageBuilder.withPayload(json).build(), new SendCallback() {
+        rocketMQTemplate.asyncSend("coupon-topic", MessageBuilder.withPayload(json).build(), new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
                 logger.info("sendCouponMessage: onSuccess result = " + sendResult + " time =" + LocalDateTime.now());

@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @author Yancheng Lai
@@ -432,19 +433,16 @@ public class GoodsSkuDao {
         criteria.andShopIdEqualTo(shopId);
         criteria.andDisabledEqualTo((byte)0);
         List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(example);
-        List<Long> ret = new ArrayList<>();
-        List<GoodsSku> goodsSkus = new ArrayList<>();
-        for(GoodsSpuPo goodsSpuPo:goodsSpuPos){
+        List<Long> goodsSpuIds=goodsSpuPos.stream().map(po->po.getId()).collect(Collectors.toList());
             GoodsSkuPoExample goodsSkuPoExample = new GoodsSkuPoExample();
             GoodsSkuPoExample.Criteria criteria1 = goodsSkuPoExample.createCriteria();
-            criteria1.andGoodsSpuIdEqualTo(goodsSpuPo.getId());
+            criteria1.andGoodsSpuIdIn(goodsSpuIds);
             List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(goodsSkuPoExample);
+        List<Long> ret = new ArrayList<>(goodsSkuPos.size());
             for(GoodsSkuPo goodsSkuPo : goodsSkuPos ){
                 if(goodsSkuPo.getDisabled()==0 && goodsSkuPo.getState()==0)
                     ret.add(goodsSkuPo.getId());
             }
-
-        }
         return ret;
     }
     /**

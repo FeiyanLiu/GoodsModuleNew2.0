@@ -22,6 +22,8 @@ import org.apache.dubbo.config.annotation.DubboService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -149,7 +151,7 @@ public class CouponController {
     })
     @Audit
     @PostMapping("/shops/{shopId}/couponactivities")
-    public Object addCouponActivity(@Validated @RequestBody CouponActivityVo vo, BindingResult bindingResult,
+    public Object addCouponActivity(@RequestBody CouponActivityVo vo, BindingResult bindingResult,
                                     @PathVariable Long id, @PathVariable Long shopId) {
         Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != errors) {
@@ -161,6 +163,10 @@ public class CouponController {
         CouponActivity couponActivity = vo.createCouponActivity();
         couponActivity.setCreatedBy(customerVo);
         ReturnObject returnObject = couponActivityService.createCouponActivity(shopId,couponActivity);
+        if(returnObject.getCode()==ResponseCode.OK)
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
 
@@ -187,6 +193,10 @@ public class CouponController {
         if(couponActivityService.checkCouponActivityShop(shopId,id)==false)
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE));
         ReturnObject returnObject = couponActivityService.uploadImg(id, multipartFile);
+        if(returnObject.getCode()==ResponseCode.OK)
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
 
@@ -217,7 +227,7 @@ public class CouponController {
             endTime= Timeline.getEndTimeByCode(timeline);
         }
         ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getOnlineCouponActivities(shopId, beginTime,endTime, page, pageSize);
-        return ResponseUtil.ok(returnObject.getData());
+        return Common.getPageRetObject(returnObject);
     }
 
     @ApiOperation(value = "查看本店下线的优惠活动列表")
@@ -235,11 +245,13 @@ public class CouponController {
     @Audit
     @GetMapping("/shops/{id}/couponactivities/invalid")
     public Object getInvalidCouponActivity(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize,
-                                           @PathVariable Long id) {
+                                           @PathVariable Long id,@Depart Long shopId) {
+        if(shopId!=id)
+            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("部门id不匹配" )), httpServletResponse);
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
         ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getInvalidCouponActivities(page, pageSize,id);
-        return Common.decorateReturnObject(returnObject);
+        return Common.getPageRetObject(returnObject);
     }
 
     @ApiOperation(value = "查看优惠活动中的商品")
@@ -335,6 +347,10 @@ public class CouponController {
                                @Validated @RequestBody @NotBlank Long[] skuArray) {
 
             ReturnObject returnObject = couponActivityService.addCouponSku(shopId, skuArray, id);
+        if(returnObject.getCode()==ResponseCode.OK)
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
     }
 
@@ -349,7 +365,7 @@ public class CouponController {
             @ApiResponse(code = 504, message = "操作id不存在")
     })
     @Audit
-    @DeleteMapping("/shops/{shopId}/couponactivities/{id}/skus")
+    @DeleteMapping("/shops/{shopId}/couponskus/{id}")
     public Object deleteCouponSku(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
 
          ReturnObject returnObject = couponActivityService.deleteCouponSku(id,shopId);
@@ -404,9 +420,14 @@ public class CouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 504, message = "操作id不存在")
     })
+    @Audit
     @PostMapping("/couponactivities/{id}/usercoupons")
     public Object userGetCoupon(@PathVariable Long id, @LoginUser Long userId) {
         ReturnObject returnObject = couponActivityService.getCoupon(userId,id);
+        if(returnObject.getCode()==ResponseCode.OK)
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
 
     }
@@ -422,7 +443,7 @@ public class CouponController {
     })
     @ApiResponses({
     })
-    @Audit
+   @Audit
     @PutMapping("/shops/{shopId}/couponactivities/{id}/onshelves")
     public Object putCouponActivityOnShelves(@PathVariable("shopId") Long shopId,
                             @PathVariable("id") Long id){

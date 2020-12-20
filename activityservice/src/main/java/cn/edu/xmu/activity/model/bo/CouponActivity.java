@@ -64,6 +64,10 @@ public class CouponActivity implements VoObject {
 
     @Override
     public VoObject createVo() {
+        return new CouponActivitySimpleRetVo(this);
+    }
+
+    public VoObject createRetVo() {
         return new CouponActivityRetVo(this);
     }
 

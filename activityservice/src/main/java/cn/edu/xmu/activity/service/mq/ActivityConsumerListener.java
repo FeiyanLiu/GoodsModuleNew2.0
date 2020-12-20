@@ -4,9 +4,11 @@ import cn.edu.xmu.activity.mapper.CouponPoMapper;
 import cn.edu.xmu.activity.model.bo.Coupon;
 import cn.edu.xmu.activity.model.po.CouponPo;
 import cn.edu.xmu.activity.util.JacksonUtil;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +22,7 @@ import java.time.LocalDateTime;
  * @date Created in 2020/11/7 22:47
  **/
 @Service
-@RocketMQMessageListener(topic = "coupon-topic:1", consumeMode = ConsumeMode.CONCURRENTLY, consumeThreadMax = 10, consumerGroup = "pay-group")
+@RocketMQMessageListener(topic = "coupon-topic", consumeMode = ConsumeMode.CONCURRENTLY, consumeThreadMax = 10, consumerGroup = "coupon-group")
 public class ActivityConsumerListener implements RocketMQListener<String> {
     private static final Logger logger = LoggerFactory.getLogger(ActivityConsumerListener.class);
     @Autowired
@@ -29,6 +31,6 @@ public class ActivityConsumerListener implements RocketMQListener<String> {
     public void onMessage(String message) {
         CouponPo po = JacksonUtil.toObj(message, CouponPo.class);
         logger.info("onMessage: got message coupon =" + po +" time = "+ LocalDateTime.now());
-        couponPoMapper.insert(po);
+        couponPoMapper.insertSelective(po);
     }
 }

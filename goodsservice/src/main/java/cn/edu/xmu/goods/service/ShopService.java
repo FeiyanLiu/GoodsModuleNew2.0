@@ -8,6 +8,7 @@ import cn.edu.xmu.ooad.util.ReturnObject;
 import cn.edu.xmu.goods.dao.ShopDao;
 import cn.edu.xmu.goods.model.bo.Shop;
 import cn.edu.xmu.goods.model.po.ShopPo;
+import cn.edu.xmu.otherservice.model.po.ShoppingCartPo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,16 +41,15 @@ public class ShopService{
     public ReturnObject<VoObject> createShop(Shop shop) {
         ReturnObject returnObject = new ReturnObject();
         try {
-            boolean checkShopName = shopDao.checkShopName(shop.getShopName());
-            if (checkShopName) {
+            if (shopDao.checkShopName(shop.getShopName())) {
                 return new ReturnObject<>(ResponseCode.valueOf("该姓名已被占用"));
             }
             if (shop.getId() == -1) {
                 return new ReturnObject<>(ResponseCode.USER_HASSHOP);
             }
             ShopPo newShopPo=shopDao.insertShop(shop);
-
-            VoObject returnVo=(VoObject)shop.createVo();
+            shop.setId(newShopPo.getId());
+            VoObject returnVo=(VoObject) shop.createRetVo();
             return new ReturnObject<VoObject>(returnVo);
 
         } catch (Exception e) {

@@ -93,7 +93,7 @@ public class GoodsSpuService{
             ShopPo shopPo = shopDao.getShopById(goodsSpuPo.getShopId());
             if(shopPo != null){
                 Shop shop = new Shop(shopPo);
-                ShopSimpleVo shopSimpleVo = shop.createSimpleVo();
+                ShopVo shopSimpleVo = (ShopVo)shop.createVo();
                 goodsSpuRetVo.setShop(shopSimpleVo);
             }
 
