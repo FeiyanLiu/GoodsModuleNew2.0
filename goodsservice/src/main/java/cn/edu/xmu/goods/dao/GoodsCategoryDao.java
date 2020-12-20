@@ -42,15 +42,16 @@ public class GoodsCategoryDao {
         GoodsCategoryPoExample.Criteria criteria= example.createCriteria();
         criteria.andPidEqualTo(pid);
         List<GoodsCategoryPo> goodsCategorys=null;
+        GoodsCategoryPo catefather = goodsCategoryPoMapper.selectByPrimaryKey(pid);
+        if(catefather == null)
+        {
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
         try {
             goodsCategorys= goodsCategoryPoMapper.selectByExample(example);
         } catch (DataAccessException e) {
             StringBuilder message = new StringBuilder().append("getCategoryByPID: ").append(e.getMessage());
             logger.error(message.toString());
-        }
-        if(goodsCategorys==null || goodsCategorys.isEmpty())
-        {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         List<GoodsCategoryRetVo> list=new ArrayList<>();
         for (GoodsCategoryPo goodsCategory : goodsCategorys) {

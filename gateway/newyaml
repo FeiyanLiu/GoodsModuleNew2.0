@@ -1,0 +1,317 @@
+
+
+
+
+server:
+  port: 8084
+
+other-ip:
+  user: http://114.215.198.238:4510
+  share: http://127.0.0.1:8090
+  footprint: http://localhost:8091
+  favorite: http://localhost:8092
+  advertisement: http://localhost:8093
+  aftersales: http://localhost:8094
+  address: http://localhost:8095
+  cart: http://localhost:8096
+  time: http://localhost:8097
+order-ip:
+  order: http://172.16.2.68:8080
+  freight: http://172.16.4.195:8080
+  payment: http://172.16.1.187:8080
+goods-ip:
+  coupon: http://172.16.1.44:8090
+  flashsale: http://172.16.1.44:8091
+  presale: http://172.16.1.44:8092
+  groupon: http://172.16.1.44:8093
+  comment: http://172.16.1.45:8090
+  shop: http://172.16.1.45:8091
+  goods: http://172.16.1.45:8092
+  category: http://172.16.1.45:8092
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - HEAD
+              - OPTIONS
+      routes:
+        - id: user_regist
+          uri: ${other-ip.user}
+          predicates:
+            - Path=/users
+            - Method=POST
+
+        - id: user_login
+          uri: ${other-ip.user}
+          predicates:
+            - Path=/users/login
+
+        - id: user_other
+          uri: ${other-ip.user}
+          predicates:
+            - Path=/users,/users/password,/users/password/reset,/users/logout
+          filters:
+            - Auth=authorization
+
+        - id: cart
+          uri: ${other-ip.cart}
+          predicates:
+            - Path=/carts,/carts/{id}
+          filters:
+            - Auth=authorization
+
+        - id: favorite
+          uri: ${other-ip.favorite}
+          predicates:
+            - Path=/favorites,/favorites/goods/{skuId},/favorites/{id}
+          filters:
+            - Auth=authorization
+
+        - id: advertise_state
+          uri: ${other-ip.advertisement}
+          predicates:
+            - Path=/advertisement/states,/advertisement/current
+
+        - id: aftersale_states
+          uri: ${other-ip.aftersales}
+          predicates:
+            - Path=/aftersales/states
+
+        - id: aftersale_authorization
+          uri: ${other-ip.aftersales}
+          predicates:
+            - Path=/orderitems/{id}/aftersales,/aftersales,/aftersales/{id},/aftersales/{id}/sendback,/aftersales​/{id}​/confirm
+          filters:
+            - Auth=authorization
+
+        - id: address
+          uri: ${other-ip.address}
+          predicates:
+            - Path=/addresses,/addresses/{id}/default,/addresses/{id},/region/{id}/ancestor
+          filters:
+            - Auth=authorization
+
+        - id: goods
+          uri: ${goods-ip.goods}
+          predicates:
+            - Path=/skus/states,/skus,/skus/{id},/categories/{id}/subcategories,/spus/{id},/brands,/shops/{shopId}/spus/{id}/skus,/shops/{shopId}/skus/{id}/uploadImg,/shops/{shopId}/skus/{id},/shops/{shopId}/categories/{id}/subcategories,/shops/{shopId}/categories/{id},/share/{sid}/skus/{id},/shops/{id}/spus,/shops/{shopId}/spus/{id},/shops/{shopId}/skus/{id}/onshelves,/shops/{shopId}/skus/{id}/offshelves,/shops/{shopId}/skus/{id}/floatPrices,/shops/{shopId}/floatPrices/{id},/shops/{id}/brands,/shops/{shopId}/brands/{id}/uploadImg,/shops/{shopId}/brands/{id},/shops/{shopId}/spus/{spuId}/categories/{id},/shops/{shopId}/spus/{spuId}/brands/{id}
+          filters:
+            - PrefixPath=/goods
+            - Auth=authorization
+
+        - id: goods2
+          uri: ${goods-ip.goods}
+          predicates:
+            - Path=/skus/states,/skus,/skus/{id},/categories/{id}/subcategories,/spus/{id},/brands
+          filters:
+            - PrefixPath=/goods
+
+        - id: share_states
+          uri: ${other-ip.share}
+          predicates:
+            - Path=/shareactitivities/states
+          filters:
+            - PrefixPath=/share
+
+        - id: share_authorization
+          uri: ${other-ip.share}
+          predicates:
+            - Path=/skus/{id}/shares,/shares,/beshared,/shareactivities
+          filters:
+            - PrefixPath=/share
+            - Auth=authorization
+
+        - id: orders
+          uri: ${order-ip.order}
+          predicates:
+            - Path=/orders,/orders/{id},/orders/{id}/groupon-normal,/orders/{id}/confirm
+          filters:
+            - PrefixPath=/order
+            - Auth=authorization
+
+        - id: orders2
+          uri: ${order-ip.order}
+          predicates:
+            - Path=/orders/states
+          filters:
+            - PrefixPath=/order
+
+        - id: freights
+          uri: ${order-ip.freight}
+          predicates:
+            - Path=/region/{rid}/price
+          filters:
+            - PrefixPath=/freight
+            - Auth=authorization
+
+        - id: payments
+          uri: ${order-ip.payment}
+          predicates:
+            - Path=/orders/{id}/payments,/aftersales/{id}/payments,/orders/{id}/refunds,/aftersales/{id}/refunds
+          filters:
+            - PrefixPath=/payment
+            - Auth=authorization
+
+        - id: payments2
+          uri: ${order-ip.payment}
+          predicates:
+            - Path=/payments/states,/payments/patterns
+          filters:
+            - PrefixPath=/payment
+
+        - id: comment
+          uri: ${goods-ip.comment}
+          predicates:
+            -Path=/shops/{did}/comments/{id}/confirm,/shops/{id}/comments/all
+          filters:
+            - PrefixPath=/comment
+            - Auth=authorization
+
+        - id: comment2
+          uri: ${goods-ip.comment}
+          predicates:
+            -Path=/skus/{id}/comments,/comments/states
+          filters:
+            - PrefixPath=/comment
+
+        - id: coupon
+          uri: ${goods-ip.coupon}
+          predicates:
+            - Path=/shops/{shopId}/couponactivities,/shops/{shopId}/couponactivities/{id}/uploadImg,/shops/{id}/couponactivities/invalid,/shops/{shopId}/couponactivities/{id},/shops/{shopId}/couponactivities/{id}/skus,/shops/{shopId}/couponskus/{id},/shops/{shopId}/couponactivities/{id}/onshelves,/shops/{shopId}/couponactivities/{id}/offshelves,/shops/{shopId}/couponskus/{id}
+          filters:
+            - PrefixPath=/coupon
+            - Auth=authorization
+
+        - id: coupon2
+          uri: ${goods-ip.coupon}
+          predicates:
+            - Path=/coupon/states,/couponactivities,/couponactivities/{id}/skus
+          filters:
+            - PrefixPath=/coupon
+
+        - id: groupon
+          uri: ${goods-ip.groupon}
+          predicates:
+            - Path=/groupons/states,/groupons,/shops/{id}/groupons,/shops/{shopId}/spus/{id}/groupons,/shops/{shopId}/groupons/{id},/shops/{shopId}/groupons/{id}/onshelves,/shops/{shopId}/groupons/{id}/offshelves
+          filters:
+            - PrefixPath=/groupon
+            - Auth=authorization
+
+        - id: presale
+          uri: ${goods-ip.presale}
+          predicates:
+            - Path=/shops/{shopId}/presales,/shops/{shopId}/skus/{id}/presales,/shops/{shopId}/presales/{id},/shops/{shopId}/presales/{id}/onshelves,/shops/{shopId}/presales/{id}/offshelves,/groupons/states,/groupons,/shops/{id}/groupons,/shops/{shopId}/spus/{id}/groupons,/shops/{shopId}/groupons/{id},/shops/{shopId}/groupons/{id}/onshelves,/shops/{shopId}/groupons/{id}/offshelves
+          filters:
+            - PrefixPath=/presale
+            - Auth=authorization
+
+        - id: flashsale
+          uri: ${goods-ip.flashsale}
+          predicates:
+            - Path=/shops/{did}/timesegments/{id}/flashsales,/shops/{did}/flashsales/{id},/shops/{did}/flashsales/{id}/onshelves,/shops/{did}/flashsales/{id}/offshelves,/shops/{did}/flashsales/{id}/flashitems,/shops/{did}/flashsales/{fid}/flashitems/{id}
+          filters:
+            - PrefixPath=/flashsale
+
+        - id: presale2
+          uri: ${goods-ip.presale}
+          predicates:
+            - Path=/presales/states,/presales
+          filters:
+            - PrefixPath=/presale
+
+        - id: groupon2
+          uri: ${goods-ip.groupon}
+          predicates:
+            - Path=/groupons/states
+          filters:
+            - PrefixPath=/groupon
+
+        - id: flashsale2
+          uri: ${goods-ip.flashsale}
+          predicates:
+            - Path=/timesegments/{id}/flashsales,/flashsales/current
+          filters:
+            - PrefixPath=/flashsale
+
+        - id: shop
+          uri: ${goods-ip.shop}
+          predicates:
+            -Path=/shops/{id},/shops/{shopId}/newshops/{id}/audit,/shops/{id}/onshelves,/shops/{id}/offshelves
+          filters:
+            - PrefixPath=/shop
+            - Auth=authorization
+
+        - id: shop2
+          uri: ${goods-ip.shop}
+          predicates:
+            -Path=/shops/state
+          filters:
+            - PrefixPath=/shop
+
+        - id: orders
+          uri: http://127.0.0.1:8090
+          predicates:
+            - Path=/orders,/orders/{id},/orders/states,/orders/{id}/groupon-normal,/orders/{id}/confirm,/shops/{shopId}/orders,/shops/{shopId}/orders/{id},/shops/{shopId}/orders/{id}/deliver
+          filters:
+            - PrefixPath=/order
+
+        - id: freights
+          uri: http://127.0.0.1:8090
+          predicates:
+            - Path=/region/{rid}/price,/shops/{id}/freightmodels,/shops/{shopId}/freightmodels/{id}/clone,/shops/{shopId}/freightmodels/{id},/shops/{shopId}/freight_models/{id}/default,/shops/{shopId}/freightmodels/{id}/**,/shops/{shopId}/weightItems/{id},/shops/{shopId}/pieceItems/{id}
+          filters:
+            - PrefixPath=/freight
+
+        - id: payments
+          uri: http://127.0.0.1:8090
+          predicates:
+            - Path=/payments/**,/orders/{id}/payments,/shops/{shopId}/orders/{id}/payments,/aftersales/{id}/payments,/shops/{shopId}/aftersales/{id}/payments,/shops/{shopId}/payments/{id}/refunds,/shops/{shopId}/orders/{id}/refunds,/shops/{shopId}/aftersales/{id}/refunds,/orders/{id}/refunds,/aftersales/{id}/refunds
+          filters:
+            - PrefixPath=/payment
+
+
+  redis:
+    # Redis服务器地址
+    host: 114.215.198.238
+    # Redis服务器连接端口
+    port: 4506
+    # Redis服务器连接密码
+    password: 123456
+    # Redis服务器连接密码
+    # Redis数据库索引（默认为0）
+    database: 0
+    #连接池最大连接数（使用负值表示没有限制）
+    lettuce:
+      pool:
+        max-active: 100
+        # 连接池中的最大空闲连接
+        max-idle: 100
+        # 连接池中的最小空闲连接
+        min-idle: 0
+        #连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: -1
+    # 连接超时时间（毫秒）
+    timeout: 5000
+
+
+
+management:
+  endpoint:
+    gateway:
+      enabled: true
+
+# 网关token相关配置
+orthergateteway:
+  jwtExpire: 3600
+  refreshJwtTime: 60

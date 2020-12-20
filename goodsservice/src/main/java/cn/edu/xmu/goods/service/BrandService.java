@@ -5,6 +5,7 @@ import cn.edu.xmu.goods.dao.GoodsSkuDao;
 import cn.edu.xmu.goods.dao.GoodsSpuDao;
 import cn.edu.xmu.goods.model.bo.Brand;
 import cn.edu.xmu.goods.model.bo.GoodsSpu;
+import cn.edu.xmu.goods.model.po.BrandPo;
 import cn.edu.xmu.goods.model.vo.BrandRetVo;
 import cn.edu.xmu.goods.model.vo.GoodsSkuRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
@@ -25,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -53,12 +56,8 @@ public class BrandService{
     private String baseUrl;
 
     public ReturnObject<PageInfo<VoObject>> getAllBrands(Integer page, Integer pageSize){
-
-        PageHelper.startPage(page, pageSize,true,true,null);
-
-        PageInfo<VoObject> returnObject = brandDao.getAllBrands(page, pageSize);
-
-        return new ReturnObject<>(returnObject);
+        PageInfo<VoObject> lst = brandDao.getAllBrands(page, pageSize);
+        return new ReturnObject<>(lst);
     }
     @Transactional
     public ReturnObject<VoObject> updateBrand(Brand brand, Long shopId, Long id){

@@ -130,7 +130,7 @@ public class CouponController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit
+    //@Audit
     @GetMapping("/coupons/states")
     public Object getCouponAllState() {
         ReturnObject returnObject = couponActivityService.getCouponAllState();
