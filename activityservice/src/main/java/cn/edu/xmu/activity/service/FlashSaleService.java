@@ -244,8 +244,7 @@ public class FlashSaleService {
 
     @Autowired
     TimeSegmentDao timeSegmentDao;
-    @DubboReference(check = false)
-    OtherService otherService;
+
 
 
     private TimeSegmentPo getTimeSegmentPoById(Long timeSegmentId) {
