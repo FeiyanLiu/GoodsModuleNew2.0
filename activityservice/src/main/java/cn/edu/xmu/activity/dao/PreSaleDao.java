@@ -5,6 +5,7 @@ import cn.edu.xmu.activity.model.bo.PreSale;
 import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.po.PreSalePoExample;
 import cn.edu.xmu.activity.model.vo.NewPreSaleVo;
+import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -106,7 +108,7 @@ public class PreSaleDao implements InitializingBean {
      * @return ReturnObject<List> 活动列表
      * @author LJP_3424
      */
-    public ReturnObject<PageInfo<PreSalePo>> selectAllPreSale(Long shopId, Byte timeline, Long spuId, Integer pageNum, Integer pageSize) {
+    public ReturnObject<PageInfo<PreSalePo>> selectAllPreSale(Long shopId, Byte timeline, Long skuId, Integer pageNum, Integer pageSize) {
         PreSalePoExample example = new PreSalePoExample();
         PreSalePoExample.Criteria criteria = example.createCriteria();
         LocalDateTime tomorrow;
@@ -131,7 +133,7 @@ public class PreSaleDao implements InitializingBean {
             }
         }
         if (shopId != null) criteria.andShopIdEqualTo(shopId);
-        if (spuId != null) criteria.andGoodsSkuIdEqualTo(spuId);
+        if (skuId != null) criteria.andGoodsSkuIdEqualTo(skuId);
 
         criteria.andStateEqualTo(PreSale.State.ON.getCode());
         //分页查询

@@ -2,9 +2,12 @@ package cn.edu.xmu.activity.controller;
 
 
 import cn.edu.xmu.activity.model.bo.PreSale;
+import cn.edu.xmu.activity.model.bo.PreSale;
+import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.vo.NewPreSaleVo;
 import cn.edu.xmu.activity.model.vo.PreSaleStateVo;
 import cn.edu.xmu.activity.service.PreSaleService;
+import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.Common;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -15,11 +18,13 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +34,7 @@ import java.util.List;
  */
 @Api(value = "预售活动", tags = "presale")
 @RestController
-@RequestMapping(value = "presale", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
 public class PreSaleController {
     private static final Logger logger = LoggerFactory.getLogger(PreSaleController.class);
 
@@ -86,16 +91,15 @@ public class PreSaleController {
     public Object selectAllPreSale(
             @RequestParam(required = false) Long shopId,
             @RequestParam(required = false) Byte timeline,
-            @RequestParam(required = false) Long spuId,
+            @RequestParam(required = false) Long skuId,
             @RequestParam(required = false, defaultValue = "1") Integer page,
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
-        logger.debug("selectAllPreSale: shopId = " + shopId + " timeline = " + timeline + "spuId = " + spuId + " page = " + page + "  pageSize =" + pageSize);
         //校验timeline
         if(!(timeline==null||timeline==0||timeline==1||timeline==2||timeline==3))
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
-        ReturnObject<PageInfo<VoObject>> returnObject = preSaleService.selectAllPreSale(shopId, timeline, shopId, page, pageSize);
-        if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
+        ReturnObject<PageInfo<VoObject>> returnObject = preSaleService.selectAllPreSale(shopId, timeline, skuId, page, pageSize);
+        if (returnObject.getCode().equals(ResponseCode.OK)) {
             return Common.getPageRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -119,20 +123,20 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit //认证
+    @Audit //认证
     @GetMapping("/shops/{shopId}/presales")
     public Object getPreSale(
             @PathVariable Long shopId,
-            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) Long skuId,
             @RequestParam(required = false) Byte state) {
         //
         if (logger.isDebugEnabled()) {
-            logger.debug("PreSaleInfo: skuId = " + id + " shopId = " + shopId);
+            logger.debug("PreSaleInfo: skuId = " + skuId + " shopId = " + shopId);
         }
 
-        ReturnObject<List> returnObject = preSaleService.getPreSaleById(shopId ,id, state);
+        ReturnObject<List> returnObject = preSaleService.getPreSaleById(shopId , skuId, state);
 
-        if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
+        if (returnObject.getCode().equals(ResponseCode.OK)) {
             return Common.getListRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -150,7 +154,7 @@ public class PreSaleController {
      * @Author: LJP_3424
      * @Date: 2020/12/7 12:19
      */
-    @ApiOperation(value = "新增预售活动", produces = "application/json")
+    @ApiOperation(value = "新增预售活动", produces = "application/json;charset=UTF-8")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "shopId", value = "商铺id", required = true, dataType = "Integer", paramType = "path"),
@@ -160,8 +164,8 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
-    @PostMapping("/shops/{shopId}/skus/{id}/presales")
+    @Audit
+    @PostMapping(value = "/shops/{shopId}/skus/{id}/presales",produces = "application/json;charset=UTF-8")
     public Object insertPreSale(
             @PathVariable Long shopId,
             @PathVariable Long id,
@@ -175,7 +179,9 @@ public class PreSaleController {
         }
         ReturnObject retObject = preSaleService.createNewPreSale(vo, shopId, id);
         if (retObject.getCode() == ResponseCode.OK) {
-            return ResponseUtil.ok(retObject.getData());
+            return new ResponseEntity(
+                    ResponseUtil.ok(retObject.getData()),
+                    HttpStatus.CREATED);
         } else {
             return ResponseUtil.fail(retObject.getCode());
         }
@@ -188,7 +194,7 @@ public class PreSaleController {
      * @param bindingResult
      * @return
      */
-    @ApiOperation(value = "修改预售活动", produces = "application/json")
+    @ApiOperation(value = "修改预售活动", produces = "application/json;charset=UTF-8")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
             @ApiImplicitParam(name = "shopId", value = "商铺id", required = true, dataType = "Integer", paramType = "path"),
@@ -198,7 +204,7 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    //@Audit
+    @Audit
     @PutMapping("/shops/{shopId}/presales/{id}")
     public Object updatePreSale(@PathVariable Long shopId,
                                 @PathVariable Long id,
@@ -212,7 +218,12 @@ public class PreSaleController {
         if (vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime())>0) {
             return Common.getRetObject(new ReturnObject<>(ResponseCode.Log_Bigger));
         }
-        return Common.getRetObject(preSaleService.updatePreSale(vo, shopId, id));
+        ReturnObject retObject = preSaleService.updatePreSale(vo, shopId, id);
+        if (retObject.getCode() == ResponseCode.OK) {
+            return ResponseUtil.ok();
+        } else {
+            return Common.decorateReturnObject(retObject);
+        }
     }
 
     /**
@@ -228,7 +239,7 @@ public class PreSaleController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @DeleteMapping("/shops/{shopId}/presales/{id}")
     public Object deletePreSale(@PathVariable Long id, @PathVariable Long shopId) {
         if (logger.isDebugEnabled()) {
@@ -238,7 +249,7 @@ public class PreSaleController {
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {
-            return ResponseUtil.fail(retObject.getCode());
+            return Common.decorateReturnObject(retObject);
         }
     }
 
@@ -255,13 +266,18 @@ public class PreSaleController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @PutMapping("/shops/{shopId}/presales/{id}/onshelves")
     public Object preSaleOn(@PathVariable Long id, @PathVariable Long shopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("deleteUser: id = " + id);
         }
-        return Common.getRetObject(preSaleService.changePreSaleState(shopId,id, PreSale.State.ON.getCode()));
+        ReturnObject retObject = preSaleService.changePreSaleState(shopId, id, PreSale.State.ON.getCode());
+        if (retObject.getCode() == ResponseCode.OK) {
+            return ResponseUtil.ok();
+        } else {
+            return Common.decorateReturnObject(retObject);
+        }
     }
 
     /**
@@ -277,12 +293,17 @@ public class PreSaleController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @PutMapping("/shops/{shopId}/presales/{id}/offshelves")
     public Object preSaleOff(@PathVariable Long id, @PathVariable Long shopId) {
         if (logger.isDebugEnabled()) {
             logger.debug("deleteUser: id = " + id);
         }
-        return Common.getRetObject(preSaleService.changePreSaleState(shopId,id, PreSale.State.OFF.getCode()));
+        ReturnObject retObject = preSaleService.changePreSaleState(shopId, id, PreSale.State.OFF.getCode());
+        if (retObject.getCode() == ResponseCode.OK) {
+            return ResponseUtil.ok();
+        } else {
+            return Common.decorateReturnObject(retObject);
+        }
     }
 }

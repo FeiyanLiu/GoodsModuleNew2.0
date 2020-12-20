@@ -3,10 +3,13 @@ package cn.edu.xmu.activity.service;
 
 import cn.edu.xmu.activity.dao.GrouponDao;
 import cn.edu.xmu.activity.model.bo.Groupon;
+import cn.edu.xmu.activity.model.bo.Groupon;
+import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.vo.NewGrouponVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -14,6 +17,7 @@ import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.aspectj.weaver.GeneratedReferenceTypeDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +52,32 @@ public class GrouponService {
      * @author LJP_3424
      */
     public ReturnObject<PageInfo<VoObject>> selectAllGroupon(Long shopId, Byte timeline, Long spuId, Integer pageNum, Integer pageSize) {
-        List<GrouponPo> grouponPos = grouponDao.selectAllGroupon(shopId, timeline, spuId, pageNum, pageSize);
-        return changeListIntoPage(grouponPos, pageNum, pageSize);
+        ReturnObject<PageInfo<GrouponPo>> returnGrouponPoPage = grouponDao.selectAllGroupon(shopId, timeline, spuId, pageNum, pageSize);
+        if (returnGrouponPoPage.getCode().equals(ResponseCode.OK) == false) {
+            return new ReturnObject<>(returnGrouponPoPage.getCode(), returnGrouponPoPage.getErrmsg());
+        }
+
+        PageInfo<GrouponPo> preSalePosPageInfo = returnGrouponPoPage.getData();
+        PageHelper.startPage(pageNum, pageSize);
+        List<VoObject> voObjects = new ArrayList<>(preSalePosPageInfo.getSize());
+        for (GrouponPo preSalePo : preSalePosPageInfo.getList()) {
+            // 目前暂时关闭 dubbo,后续连接上后再取消
+            // GoodsSpu goodsSpu = goodsService.getSpuById(preSalePo.getGoodsSpuId());
+            // ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
+            GoodsSimpleSpu goodsSpu = linShiNewGoodsSpu(preSalePo.getGoodsSpuId());
+            ShopSimple shopSimple = linShiNewShopSimple(preSalePo.getShopId());
+            VoObject voObject = new Groupon(preSalePo, goodsSpu, shopSimple);
+            voObjects.add(voObject);
+        }
+
+        PageInfo<VoObject> of = PageInfo.of(voObjects);
+        of.setPages(preSalePosPageInfo.getPages());
+        of.setTotal(preSalePosPageInfo.getTotal());
+        of.setPageSize(preSalePosPageInfo.getPageSize());
+        of.setTotal(preSalePosPageInfo.getTotal());
+        of.setPageNum(preSalePosPageInfo.getPageNum());
+        of.setSize(preSalePosPageInfo.getSize());
+        return new ReturnObject<PageInfo<VoObject>>(of);
     }
 
     public boolean checkGrouponInActivities(Long goodsSpuId, LocalDateTime beginTime, LocalDateTime endTime) {
@@ -71,6 +99,7 @@ public class GrouponService {
     public ReturnObject<PageInfo<VoObject>> selectGroupon(Long shopId, Byte state, Long spuId, LocalDateTime beginTime, LocalDateTime endTime, Integer pageNum, Integer pageSize) {
         List<GrouponPo> grouponPos = grouponDao.selectGroupon(shopId, state, spuId, beginTime, endTime, pageNum, pageSize);
         return changeListIntoPage(grouponPos, pageNum, pageSize);
+        
     }
 
     @Transactional
@@ -133,7 +162,7 @@ public class GrouponService {
             }
             GrouponPo grouponPo = returnObject.getData();
             ShopSimple shopSimple = goodsService.getSimpleShopById(shopId);
-            Groupon groupon = new Groupon(grouponPo, shopSimple, goodsSimpleSpu);
+            Groupon groupon = new Groupon(grouponPo, goodsSimpleSpu, shopSimple);
             return new ReturnObject<VoObject>(groupon.createVo());
         }
 
@@ -145,7 +174,7 @@ public class GrouponService {
         GrouponPo grouponPo = grouponDao.getGrouponPoByGrouponId(grouponId).getData();
         ShopSimple shopSimple = goodsService.getSimpleShopById(grouponPo.getShopId());
         GoodsSimpleSpu goodsSimpleSpu = goodsService.getSimpleSpuById(grouponPo.getGoodsSpuId());
-        return new ReturnObject<>(new Groupon(grouponPo, shopSimple, goodsSimpleSpu));
+        return new ReturnObject<>(new Groupon(grouponPo, goodsSimpleSpu, shopSimple));
     }
 
     public boolean checkGroupon(Long id) {
@@ -257,6 +286,24 @@ public class GrouponService {
         // 校验成功,通过
         return new ReturnObject(ResponseCode.OK);
     }
+
+
+    private GoodsSimpleSpu linShiNewGoodsSpu(Long id) {
+        GoodsSimpleSpu goodsSpu = new GoodsSimpleSpu();
+        goodsSpu.setName("临时测试");
+        goodsSpu.setId(id);
+        goodsSpu.setGoodsSn("123456");
+        return goodsSpu;
+    }
+
+
+    private ShopSimple linShiNewShopSimple(Long id) {
+        ShopSimple shopSimple = new ShopSimple();
+        shopSimple.setShopName("临时店铺");
+        shopSimple.setId(id);
+        return shopSimple;
+    }
+
 
 /*************通用函数结束************/
 }

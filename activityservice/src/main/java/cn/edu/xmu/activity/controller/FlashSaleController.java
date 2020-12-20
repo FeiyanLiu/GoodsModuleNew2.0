@@ -4,10 +4,12 @@ import cn.edu.xmu.activity.model.vo.FlashSaleRetItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
 import cn.edu.xmu.activity.service.FlashSaleService;
+import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.Common;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ResponseUtil;
 import cn.edu.xmu.ooad.util.ReturnObject;
+import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +21,9 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import javax.servlet.http.HttpServletResponse;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author LJP_3424
@@ -88,8 +92,10 @@ public class FlashSaleController {
         if (bindingResult.hasErrors()) {
             return Common.processFieldErrors(bindingResult, httpServletResponse);
         }
-        LocalDateTime now = LocalDateTime.now();
-        if(vo.getFlashDate().compareTo(LocalDateTime.of(now.getYear(),now.getMonth(),now.getDayOfMonth(),23,59,59)) < 0){
+        LocalDateTime nowDateTime = LocalDateTime.now();
+
+        // 无法创建当天的秒杀
+        if(vo.getFlashDate().compareTo(LocalDateTime.of(nowDateTime.getYear(),nowDateTime.getMonth(),nowDateTime.getDayOfMonth(),23,59,59)) < 0){
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         }
         ReturnObject returnObject = flashSaleService.createNewFlashSale(vo, id);
@@ -152,8 +158,9 @@ public class FlashSaleController {
             @ApiResponse(code = 0, message = "成功"),
     })
     //@Audit
-    @PutMapping("/flashsales/{id}")
+    @PutMapping("/shops/{did}/flashsales/{id}")
     public Object updateFlashSale(
+            @PathVariable Long did,
             @PathVariable Long id,
             @Validated @RequestBody NewFlashSaleVo vo,
             BindingResult bindingResult) {
@@ -162,11 +169,16 @@ public class FlashSaleController {
         if (null != returnObject) {
             return returnObject;
         }
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        // 无法修改秒杀为当天
+        if(vo.getFlashDate().compareTo(LocalDateTime.of(nowDateTime.getYear(),nowDateTime.getMonth(),nowDateTime.getDayOfMonth(),23,59,59)) < 0){
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
+        }
         ReturnObject retObject = flashSaleService.updateFlashSale(vo, id);
-        if (retObject.getData() != null) {
-            return Common.getRetObject(retObject);
+        if (retObject.getCode() == ResponseCode.OK) {
+            return ResponseUtil.ok();
         } else {
-            return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
+            return ResponseUtil.fail(retObject.getCode());
         }
     }
 

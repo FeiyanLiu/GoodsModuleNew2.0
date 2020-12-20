@@ -2,9 +2,12 @@ package cn.edu.xmu.activity.model.vo;
 
 
 
+import cn.edu.xmu.activity.model.bo.PreSale;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
+import cn.edu.xmu.goodsservice.model.vo.ShopVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;

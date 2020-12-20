@@ -75,7 +75,8 @@ public class FlashSaleDao implements InitializingBean {
         FlashSaleItemPoExample.Criteria criteriaItem = flashSaleItemPoExample.createCriteria();
 
         // List 转Map
-        Map<Long, TimeSegmentPo> mappedTimeSegmentPo = getTimeSegmentMap();
+        List<TimeSegmentPo> timeSegmentPos = getAllTimeSegment();
+        Map<Long, TimeSegmentPo> mappedTimeSegmentPo = timeSegmentPos.stream().collect(Collectors.toMap(TimeSegmentPo::getId, (p) -> p));
 
         criteriaItem.andGoodsSkuIdEqualTo(goodsSkuId);
         List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(flashSaleItemPoExample);
@@ -96,13 +97,13 @@ public class FlashSaleDao implements InitializingBean {
         return null;
     }
 
-    private Map<Long, TimeSegmentPo> getTimeSegmentMap() {
+    public List<TimeSegmentPo> getAllTimeSegment() {
         TimeSegmentPoExample timeSegmentPoExample = new TimeSegmentPoExample();
         TimeSegmentPoExample.Criteria criteria = timeSegmentPoExample.createCriteria();
         // 取出所有的秒杀时段
         criteria.andTypeEqualTo((byte) 1);
         List<TimeSegmentPo> timeSegmentPos = timeSegmentPoMapper.selectByExample(timeSegmentPoExample);
-        return timeSegmentPos.stream().collect(Collectors.toMap(TimeSegmentPo::getId, (p) -> p));
+        return timeSegmentPos;
     }
 /*
 *
@@ -194,12 +195,13 @@ public class FlashSaleDao implements InitializingBean {
         return flashSalePo.getId();
     }
 
-    public ReturnObject<Boolean> checkFlashSaleInActivity(Long id) {
+    public ReturnObject<Boolean> checkFlashSaleEnough(Long id, LocalDateTime flashDate) {
         FlashSalePoExample example = new FlashSalePoExample();
         FlashSalePoExample.Criteria criteria = example.createCriteria();
         criteria.andTimeSegIdEqualTo(id);
+        criteria.andFlashDateEqualTo(flashDate);
         logger.debug("findFlashSaleById: Time" + "SegmentId = " + id);
-        List<FlashSalePo>  flashSalePos = null;
+        List<FlashSalePo> flashSalePos = null;
         try {
             flashSalePos = flashSalePoMapper.selectByExample(example);
         } catch (DataAccessException e) {
@@ -220,8 +222,20 @@ public class FlashSaleDao implements InitializingBean {
         }
     }
 
-    public FlashSalePo getFlashSaleByFlashSaleId(Long flashSaleId) {
-        return flashSalePoMapper.selectByPrimaryKey(flashSaleId);
+    public ReturnObject<FlashSalePo> getFlashSaleByFlashSaleId(Long flashSaleId) {
+        try {
+            return new ReturnObject<>(flashSalePoMapper.selectByPrimaryKey(flashSaleId));
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
     }
 
     /**
@@ -232,52 +246,52 @@ public class FlashSaleDao implements InitializingBean {
      * @Author: LJP_3424
      * @Date: 2020/12/6 1:04
      */
-    public boolean updateFlashSale(NewFlashSaleVo flashSaleVo, Long id) {
+    public ReturnObject updateFlashSale(NewFlashSaleVo flashSaleVo, Long id) {
         FlashSalePo flashSalePo = new FlashSalePo();
         flashSalePo.setFlashDate(flashSaleVo.getFlashDate());
         flashSalePo.setGmtModified(LocalDateTime.now());
         flashSalePo.setId(id);
-        int ret = flashSalePoMapper.updateByPrimaryKeySelective(flashSalePo);
-        if (ret == 0) {
-            return false;
-        } else {
-            return true;
+        try {
+            int ret = flashSalePoMapper.updateByPrimaryKeySelective(flashSalePo);
+            if (ret == 0) {
+                return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,
+                        "插入失败");
+            }
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
+        return new ReturnObject();
     }
 
-    public ReturnObject<List> insertSkuIntoFlashSale(NewFlashSaleItemVo newFlashSaleItemVo, Long id) {
-        Integer flashMaxSize = 5;
-        FlashSaleItemPoExample flashSaleItemPoExample = new FlashSaleItemPoExample();
-        FlashSaleItemPoExample.Criteria criteria = flashSaleItemPoExample.createCriteria();
-        criteria.andSaleIdEqualTo(id);
-        List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(flashSaleItemPoExample);
-        FlashSalePo flashSalePo = flashSalePoMapper.selectByPrimaryKey(id);
-        if (flashSalePo == null) {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-        TimeSegmentPo timeSegmentPo = timeSegmentPoMapper.selectByPrimaryKey(flashSalePo.getTimeSegId());
-        if (timeSegmentPo == null) {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-        // 判断秒杀活动是否开始
-        if (timeSegmentPo.getBeginTime().compareTo(LocalDateTime.now()) < 0) {
-            return new ReturnObject<>(ResponseCode.TIMESEG_CONFLICT);
-        }
-        if (flashSaleItemPos.size() > flashMaxSize - 1) {
-            return new ReturnObject<>(ResponseCode.FLASHSALE_OUTLIMIT);
-        }
+    public ReturnObject<FlashSaleItemPo> insertSkuIntoFlashSale(NewFlashSaleItemVo newFlashSaleItemVo, Long id) {
         FlashSaleItemPo flashSaleItemPo = new FlashSaleItemPo();
         flashSaleItemPo.setQuantity(newFlashSaleItemVo.getQuantity());
         flashSaleItemPo.setSaleId(id);
         flashSaleItemPo.setGoodsSkuId(newFlashSaleItemVo.getSkuId());
         flashSaleItemPo.setPrice(newFlashSaleItemVo.getPrice());
         flashSaleItemPo.setGmtCreate(LocalDateTime.now());
-
-        flashSaleItemPoMapper.insert(flashSaleItemPo);
-
-        flashSaleItemPos.add(flashSaleItemPo);
-
-        return new ReturnObject<>(flashSaleItemPos);
+        try {
+            flashSaleItemPoMapper.insert(flashSaleItemPo);
+            return new ReturnObject<>(flashSaleItemPo);
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
     }
 
 
@@ -315,14 +329,20 @@ public class FlashSaleDao implements InitializingBean {
         return new ReturnObject(ResponseCode.OK);
     }
 
-    public ReturnObject<Long> insertFlashSale(FlashSalePo flashSalePo) {
-        FlashSalePoExample flashSalePoExample = new FlashSalePoExample();
+    public ReturnObject<Long> insertFlashSale(NewFlashSaleVo vo, Long timeSegmentId) {
+
+        FlashSalePo flashSalePo = new FlashSalePo();
+        flashSalePo.setFlashDate(vo.getFlashDate());
+        flashSalePo.setGmtCreate(LocalDateTime.now());
+        flashSalePo.setState(FlashSale.State.ON.getCode());
+        flashSalePo.setTimeSegId(timeSegmentId);
+
         try {
             int ret = flashSalePoMapper.insertSelective(flashSalePo);
-            if(ret == 1){
+            if (ret == 1) {
                 return new ReturnObject<Long>(flashSalePo.getId());
-            }else{
-                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,"插入失败");
+            } else {
+                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, "插入失败");
             }
         } catch (DataAccessException e) {
             // 数据库错误

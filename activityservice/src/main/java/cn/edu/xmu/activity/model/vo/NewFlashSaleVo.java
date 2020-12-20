@@ -13,6 +13,5 @@ import java.time.LocalDateTime;
 @Data
 public class NewFlashSaleVo {
     @Future
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime flashDate;
 }

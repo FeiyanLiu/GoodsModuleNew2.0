@@ -16,6 +16,8 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +36,7 @@ import java.util.List;
  */
 @Api(value = "团购活动", tags = "groupon")
 @RestController
-@RequestMapping(value = "groupon", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
 public class GrouponController {
     private static final Logger logger = LoggerFactory.getLogger(GrouponController.class);
 
@@ -100,7 +102,11 @@ public class GrouponController {
         if(!(timeline==null||timeline==0||timeline==1||timeline==2||timeline==3))
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         ReturnObject<PageInfo<VoObject>> returnObject = grouponService.selectAllGroupon(shopId, timeline, shopId, page, pageSize);
-        return Common.getPageRetObject(returnObject);
+        if (returnObject.getCode().equals(ResponseCode.OK)) {
+            return Common.getPageRetObject(returnObject);
+        } else {
+            return Common.decorateReturnObject(returnObject);
+        }
     }
 
     /**
@@ -134,7 +140,7 @@ public class GrouponController {
                 LocalDateTime.parse(beginTime, df),
                 LocalDateTime.parse(endTime, df),
                 page, pageSize);
-        if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
+        if (returnObject.getCode().equals(ResponseCode.OK)) {
             return Common.getPageRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -157,7 +163,7 @@ public class GrouponController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit //认证
+    @Audit //认证
     @GetMapping("/shops/{shopId}/spus/{id}/groupons")
     public Object getGroupon(
             @PathVariable Long shopId,
@@ -169,7 +175,7 @@ public class GrouponController {
 
         ReturnObject<List> returnObject = grouponService.getGrouponBySpuId(id, state);
 
-        if (returnObject.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
+        if (returnObject.getCode().equals(ResponseCode.OK)) {
             return Common.getListRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -212,9 +218,11 @@ public class GrouponController {
         }
         ReturnObject retObject = grouponService.createNewGroupon(vo, shopId, id);
         if (retObject.getCode().equals(ResponseCode.OK)) {
-            return Common.decorateReturnObject(retObject);
+            return new ResponseEntity(
+                    ResponseUtil.ok(retObject.getData()),
+                    HttpStatus.CREATED);
         } else {
-            return Common.getRetObject(retObject);
+            return Common.decorateReturnObject(retObject);
         }
     }
 
@@ -241,7 +249,7 @@ public class GrouponController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @PutMapping("/shops/{shopId}/groupons/{id}")
     public Object updateGroupon(@PathVariable Long shopId,
                                 @PathVariable Long id,
@@ -256,8 +264,12 @@ public class GrouponController {
         if (vo.getBeginTime().compareTo(vo.getEndTime()) > 0) {
             return Common.getRetObject(new ReturnObject<>(ResponseCode.Log_Bigger));
         }
-
-        return Common.getRetObject(grouponService.updateGroupon(vo, shopId, id));
+        ReturnObject retObject = grouponService.updateGroupon(vo, shopId, id);
+        if (retObject.getCode() == ResponseCode.OK) {
+            return ResponseUtil.ok();
+        } else {
+            return ResponseUtil.fail(retObject.getCode());
+        }
     }
 
     /**
@@ -305,7 +317,7 @@ public class GrouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @PutMapping("/shops/{shopId}/groupons/{id}/onshelves")
     public Object grouponOn(@PathVariable Long id, @PathVariable Long shopId) {
         ReturnObject retObject = grouponService.changeGrouponState(shopId,id, Groupon.State.ON.getCode());
@@ -330,7 +342,7 @@ public class GrouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @PutMapping("/shops/{shopId}/groupons/{id}/offshelves")
     public Object grouponOFF(@PathVariable Long id, @PathVariable Long shopId) {
         ReturnObject retObject = grouponService.changeGrouponState(shopId,id, Groupon.State.OFF.getCode());

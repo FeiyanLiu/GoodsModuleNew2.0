@@ -3,6 +3,7 @@ package cn.edu.xmu.activity.model.bo;
 
 import cn.edu.xmu.activity.model.po.FlashSaleItemPo;
 import cn.edu.xmu.activity.model.vo.FlashSaleRetItemVo;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.vo.GoodsSkuSimpleRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
