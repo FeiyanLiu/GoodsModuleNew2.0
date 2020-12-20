@@ -151,17 +151,13 @@ public class CouponController {
     })
     @Audit
     @PostMapping("/shops/{shopId}/couponactivities")
-    public Object addCouponActivity(@RequestBody CouponActivityVo vo, BindingResult bindingResult,
-                                    @PathVariable Long id, @PathVariable Long shopId) {
-        Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (null != errors) {
-            return errors;
-        }
-        CustomerVo customerVo=new CustomerVo();
-        customerVo.setId(id);
-        customerVo.setUserName(otherService.getUserById(id).getUserName());
+    public Object addCouponActivity(@RequestBody CouponActivityVo vo,
+                                    @LoginUser Long id, @PathVariable Long shopId) {
+//        CustomerVo customerVo=new CustomerVo();
+//        customerVo.setId(id);
+//        customerVo.setUserName(otherService.getUserById(id).getUserName());
         CouponActivity couponActivity = vo.createCouponActivity();
-        couponActivity.setCreatedBy(customerVo);
+//        couponActivity.setCreatedBy(customerVo);
         ReturnObject returnObject = couponActivityService.createCouponActivity(shopId,couponActivity);
         if(returnObject.getCode()==ResponseCode.OK)
             return new ResponseEntity(
@@ -247,7 +243,7 @@ public class CouponController {
     public Object getInvalidCouponActivity(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize,
                                            @PathVariable Long id,@Depart Long shopId) {
         if(shopId!=id)
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("部门id不匹配" )), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE),httpServletResponse);
         page = (page == null) ? 1 : page;
         pageSize = (pageSize == null) ? 10 : pageSize;
         ReturnObject<PageInfo<VoObject>> returnObject = couponActivityService.getInvalidCouponActivities(page, pageSize,id);
@@ -326,7 +322,7 @@ public class CouponController {
     })
     @Audit
     @DeleteMapping("/shops/{shopId}/couponactivities/{id}")
-    public Object deleteCouponActivity(@PathVariable Long shopId, @PathVariable Long id, @Depart Long departId) {
+    public Object deleteCouponActivity( @PathVariable Long id, @Depart Long departId) {
          ReturnObject returnObject = couponActivityService.deleteCouponActivity(departId,id);
         return Common.decorateReturnObject(returnObject);
         }

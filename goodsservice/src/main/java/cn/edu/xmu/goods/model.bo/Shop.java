@@ -82,7 +82,7 @@ public class Shop implements VoObject{
 
     @Override
     public VoObject createVo() {
-        return new ShopSimpleVo(this);
+        return new ShopVo(this);
     }
 
     @Override

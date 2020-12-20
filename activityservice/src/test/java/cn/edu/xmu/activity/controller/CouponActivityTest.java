@@ -43,7 +43,7 @@ public class CouponActivityTest {
         }
 
         /**
-         * @description:新增优惠活动 成功
+         * @description:新增优惠活动商品 成功
          * @author: Feiyan Liu
          * @date: Created at 2020/12/3 11:58
          */
@@ -299,22 +299,22 @@ public class CouponActivityTest {
         @Test
         public void addCouponActivity2() throws Exception {
             String token=creatTestToken(1L, 1L, 100);
-            CouponActivityVo vo=new CouponActivityVo();
-            vo.setName("618大促");
-            vo.setQuantity(1);
-            vo.setQuantityType((byte) 0);
-            vo.setStrategy("1");
-            vo.setValidTerm((byte) 0);
+            String json="{\n" +
+                    "  \"beginTime\": \"2022-12-15T07:05:33.976Z\",\n" +
+                    "  \"couponTime\": \"2022-12-15T07:05:33.976Z\",\n" +
+                    "  \"endTime\": \"2023-12-15T07:05:33.976Z\",\n" +
+                    "  \"name\": \"string\",\n" +
+                    "  \"quantityType\": 0,\n" +
+                    "  \"quantity\": 0,\n" +
+                    "  \"strategy\": \"string\",\n" +
+                    "  \"validTerm\": 0\n" +
+                    "}";
 
-            String requireJson = JacksonUtil.toJson(vo);
-
-            String responseString = this.mvc.perform(post("/coupon/shops/2/skus/273/couponactivities").header("authorization",token)
+            String responseString = this.mvc.perform(post("/coupon/shops/1/couponactivities").header("authorization",token)
                     .contentType("application/json;charset=UTF-8")
-                    .content(requireJson))
+                    .content(json))
                     .andExpect(status().isForbidden())
                     .andReturn().getResponse().getContentAsString();
-            String expectedResponse = "{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
-            JSONAssert.assertEquals(expectedResponse, responseString, true);
         }
 //        /**
 //         * @description: 添加到优惠活动的商品非本店铺的

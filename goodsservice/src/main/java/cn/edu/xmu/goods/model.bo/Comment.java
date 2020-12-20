@@ -122,6 +122,6 @@ public class Comment implements VoObject{
 
     @Override
     public VoObject createSimpleVo() {
-        return null;
+        return createRetVo();
     }
 }

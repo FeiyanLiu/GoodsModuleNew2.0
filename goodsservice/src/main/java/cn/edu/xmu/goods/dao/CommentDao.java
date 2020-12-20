@@ -154,7 +154,7 @@ public class CommentDao implements InitializingBean{
         CommentPo commentPo=new CommentPo();
         commentPo.setId(comment.getId());
         commentPo.setState(comment.getState().getCode().byteValue());
-        ReturnObject returnObject=null;
+        ReturnObject returnObject=new ReturnObject();
         try{
             int ret=commentPoMapper.updateByPrimaryKeySelective(commentPo);
             if(ret==0){

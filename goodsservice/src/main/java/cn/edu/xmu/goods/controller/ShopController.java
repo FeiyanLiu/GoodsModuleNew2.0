@@ -40,7 +40,6 @@ public class ShopController {
     private ShopService shopService;
     @Autowired
     private HttpServletResponse httpServletResponse;
-    private Long goodsSkuId;
 
 
     /**
