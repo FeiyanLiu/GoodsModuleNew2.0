@@ -116,6 +116,7 @@ public class Comment implements VoObject{
     public Object createVo() {
         return null;
     }
+
     public VoObject createRetVo() {
         return new CommentRetVo(this);
     }
