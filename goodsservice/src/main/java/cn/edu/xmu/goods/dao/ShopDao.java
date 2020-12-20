@@ -175,56 +175,6 @@ public class ShopDao implements InitializingBean{
         return returnObject;
     }
 
-
-    /**
-     * 上线店铺
-     * @author Ruzhen Chang
-     */
-    public ReturnObject onShelvesShop(Long shopId){
-        ReturnObject returnObject = null;
-        ShopPo shopPo = new ShopPo();
-        shopPo.setId(shopId);
-        shopPo.setState((byte) Shop.State.ONLINE.getCode());
-        try {
-            int ret = shopPoMapper.updateByPrimaryKeySelective(shopPo);
-            if (ret == 0) {
-                logger.debug("closeShop fail. shopId: " + shopId);
-                returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else {
-                logger.debug("closeShop success. shopId: " + shopId);
-                returnObject = new ReturnObject();
-            }
-        } catch (Exception e) {
-            logger.error("发生了严重的服务器内部错误：" + e.getMessage());
-        }
-        return returnObject;
-    }
-
-
-    /**
-     * 下线店铺
-     * @author Ruzhen Chang
-     */
-    public ReturnObject offShelvesShop(Long shopId){
-        ReturnObject returnObject = null;
-        ShopPo shopPo = new ShopPo();
-        shopPo.setId(shopId);
-        shopPo.setState((byte) Shop.State.OFFLINE.getCode());
-        try {
-            int ret = shopPoMapper.updateByPrimaryKeySelective(shopPo);
-            if (ret == 0) {
-                logger.debug("closeShop fail. shopId: " + shopId);
-                returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else {
-                logger.debug("closeShop success. shopId: " + shopId);
-                returnObject = new ReturnObject();
-            }
-        } catch (Exception e) {
-            logger.error("发生了严重的服务器内部错误：" + e.getMessage());
-        }
-        return returnObject;
-    }
-
     /**
      * @Description 新增店铺
      * @author Ruzhen Chang
