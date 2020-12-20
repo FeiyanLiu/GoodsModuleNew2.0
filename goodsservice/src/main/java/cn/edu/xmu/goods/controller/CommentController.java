@@ -63,11 +63,9 @@ public class CommentController {
     @PostMapping("/orderitems/{id}/comments")
     public Object addComment(@PathVariable Long orderItemId,
                              BindingResult bindingResult,
-                             @Validated @RequestBody CommentVoBody vo){
-        Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (null != errors) {
-            return errors;
-        }
+                            @RequestBody CommentVoBody vo){
+        if(vo.getType()!=1&&vo.getType()!=0&&vo.getType()!=2)
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         Comment comment=new Comment(vo);
         comment.setOrderItemId(orderItemId);
         comment.setGmtCreate(LocalDateTime.now());

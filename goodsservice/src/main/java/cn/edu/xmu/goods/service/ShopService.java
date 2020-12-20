@@ -33,10 +33,10 @@ public class ShopService{
     ShopDao shopDao;
     @Autowired
     GoodsSkuDao goodsSkuDao;
-    @DubboReference(check = false)
+    @Autowired
     GoodsSpuService goodsSpuService;
     @DubboReference(check = false)
-    IUserService iUserService;
+    IUserService userService;
 
 
     /**
