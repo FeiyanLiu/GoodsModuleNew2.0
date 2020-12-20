@@ -7,11 +7,15 @@ import cn.edu.xmu.goods.service.GoodsSkuService;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.util.Common;
+import cn.edu.xmu.ooad.util.ResponseCode;
+import cn.edu.xmu.ooad.util.ResponseUtil;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,7 +83,7 @@ public class FloatPriceController {
     })
     @Audit
     @PostMapping("/shops/{shopId}/skus/{id}/floatPrices")
-    public Object createFloatPrice(@LoginUser Long userId, @PathVariable("id") Long id, @RequestBody FloatPriceVo floatPriceVo,BindingResult bindingResult){
+    public Object createFloatPrice(@LoginUser Long userId, @PathVariable("id") Long id, @PathVariable("shopId") Long shopId,@RequestBody FloatPriceVo floatPriceVo,BindingResult bindingResult){
         Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != errors) {
             return errors;

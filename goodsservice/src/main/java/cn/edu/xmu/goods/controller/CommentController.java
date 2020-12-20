@@ -66,8 +66,9 @@ public class CommentController {
             return errors;
         }
         Comment comment=new Comment(vo);
+        comment.setOrderItemId(orderItemId);
         comment.setGmtCreate(LocalDateTime.now());
-        ReturnObject returnObject = commentService.newGoodsSkuComment(orderItemId,comment);
+        ReturnObject returnObject = commentService.newGoodsSkuComment(comment);
         if (returnObject.getData() != null) {
             return ResponseUtil.ok(returnObject.getData());
         } else {

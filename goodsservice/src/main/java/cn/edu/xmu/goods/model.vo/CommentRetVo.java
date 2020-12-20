@@ -25,11 +25,11 @@ public class CommentRetVo implements VoObject {
 
     public CommentRetVo(Comment comment){
         this.id=comment.getId();
-        this.customerVo=comment.getCustomer();
+        this.customerVo.setId(comment.getCustomerId());
         this.goodsSkuId=comment.getGoodsSkuId();
         this.type=comment.getType();
         this.content=comment.getContent();
-        this.state=comment.getState();
+        this.state=comment.getState().getCode().byteValue();
         this.gmtCreate=comment.getGmtCreate();
         this.gmtModified=comment.getGmtModified();
     }

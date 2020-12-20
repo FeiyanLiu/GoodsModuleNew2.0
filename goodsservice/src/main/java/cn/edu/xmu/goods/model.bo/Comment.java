@@ -2,6 +2,7 @@ package cn.edu.xmu.goods.model.bo;
 
 
 import cn.edu.xmu.goods.model.po.CommentPo;
+import cn.edu.xmu.goods.model.vo.CommentRetVo;
 import cn.edu.xmu.goods.model.vo.CommentVoBody;
 import cn.edu.xmu.ooad.model.VoObject;
 import io.lettuce.core.StrAlgoArgs;
@@ -22,7 +23,7 @@ public class Comment implements VoObject{
 
     }
 
-    public CommentPo getCommentPo() {
+    public CommentPo createPo() {
         CommentPo commentPo=new CommentPo();
         commentPo.setContent(getContent());
         commentPo.setCustomerId(getCustomerId());
@@ -114,6 +115,9 @@ public class Comment implements VoObject{
     @Override
     public Object createVo() {
         return null;
+    }
+    public VoObject createRetVo() {
+        return new CommentRetVo(this);
     }
 
     @Override
