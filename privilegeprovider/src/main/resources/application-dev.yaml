@@ -14,8 +14,7 @@ spring:
     host: 172.16.1.187
     # Redis服务器连接端口
     port: 6379
-    # Redis服务器连接密码
-    password: 123456
+
   mail:
     host: smtp.qq.com
     port: 587
