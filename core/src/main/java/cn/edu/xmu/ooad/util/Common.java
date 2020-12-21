@@ -196,10 +196,11 @@ public class Common {
                     return ResponseUtil.ok();
                 }
             case GROUPON_STATENOTALLOW:
+            case PRESALE_STATENOTALLOW:
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),HttpStatus.OK
                 );
-            case PRESALE_STATENOTALLOW:
+            
             case RESOURCE_ID_OUTSCOPE:
                 //505:访问的资源不属于自己
                 return new ResponseEntity(
