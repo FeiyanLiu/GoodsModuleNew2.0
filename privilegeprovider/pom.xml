@@ -137,12 +137,6 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
-            <groupId>cn.edu.xmu</groupId>
-            <artifactId>interfaces</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>cn.edu.xmu.ooad</groupId>
             <artifactId>core</artifactId>
         </dependency>
