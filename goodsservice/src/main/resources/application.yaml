@@ -17,7 +17,7 @@ spring:
       username: nacos
       password: 1-6123
       discovery:
-        server-addr: 114.215.198.238:8848
+        server-addr: 172.16.4.171:8848
   application:
     name: goods-service
   profiles:
@@ -126,7 +126,7 @@ dubbo:
     # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
     port: -1
   registry:
-    address: nacos://114.215.198.238:8848
+    address: nacos://172.16.4.171:8848
 
 
 
