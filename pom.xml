@@ -14,8 +14,11 @@
         <module>activityservice</module>
         <module>goodsservice-client</module>
         <module>orderservice-client</module>
-        <module>privilegeservice-client</module>
         <module>otherservice-client</module>
+        <module>orderprovider</module>
+        <module>otherprovider</module>
+        <module>privilegeprovider</module>
+        <module>privilegeservice-client</module>
         <!--        <module>privilege</module>-->
 
     </modules>

@@ -9,6 +9,7 @@ server:
   tomcat:
     threads:
       max: 1000
+  address: 172.16.2.223
 
 dubbo:
   # 配置服务信息
