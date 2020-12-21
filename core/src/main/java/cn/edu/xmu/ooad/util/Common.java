@@ -169,24 +169,7 @@ public class Common {
         }
     }
 
-    /**
-     * 根据 errCode 修饰 API 返回对象的 HTTP Status
-     * @param returnObject 原返回 Object
-     * @return 修饰后的返回 Object
-     */
-    public static Object decorateReturnObject(ReturnObject returnObject) {
-        switch (returnObject.getCode()) {
-            case RESOURCE_ID_NOTEXIST:
-                // 404：资源不存在
-                return new ResponseEntity(
-                        ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
-                        HttpStatus.NOT_FOUND);
-            case INTERNAL_SERVER_ERR:
-                // 500：数据库或其他严重错误
-                return new ResponseEntity(
-                        ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            case OK:
+
 /**
      * 根据 errCode 修饰 API 返回对象的 HTTP Status
      * @param returnObject 原返回 Object
