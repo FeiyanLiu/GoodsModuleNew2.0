@@ -31,7 +31,7 @@ public class FloatPriceService{
 
     @Autowired
     FloatPriceDao floatPriceDao;
-    @DubboReference(check=false)
+    @DubboReference(check=false, version = "2.5.0")
     IUserService iUserService;
     @Autowired
     GoodsSkuDao goodsSkuDao;
@@ -118,8 +118,8 @@ public class FloatPriceService{
         floatPrice.setGoodsSkuId(skuId);
         if(floatPriceInDataBase.getCode()==ResponseCode.RESOURCE_ID_NOTEXIST){
             if(floatPriceDao.insertFloatPrice(floatPrice).getCode()==ResponseCode.OK){
-                //String userName=iUserService.getUserName(userId);
-                String userName = "default";
+                String userName=iUserService.getUserName(userId);
+                //String userName = "default";
                 retObj=new ReturnObject<>(new FloatPriceRetVo(floatPrice,userId,userId,userName));
             }
         }
