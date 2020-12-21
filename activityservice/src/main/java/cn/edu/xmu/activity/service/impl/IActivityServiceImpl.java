@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
  * @date Created at 2020/12/14 21:55
  */
 
-@DubboService(version = "2.7.8",group = "goods-service")
+@DubboService(version = "2.7.8",group = "activity-service")
 public class IActivityServiceImpl implements IActivityService {
     @Autowired
     FlashSaleService flashSaleService;

@@ -73,7 +73,7 @@ public class ShopDao implements InitializingBean{
      * @author Ruzhen Chang
      */
     public Boolean checkShopName(String shopName){
-        ShopPoExample example=new ShopPoExample();
+        ShopPoExample example = new ShopPoExample();
         ShopPoExample.Criteria criteria= example.createCriteria();
         criteria.andStateNotEqualTo((byte) Shop.State.FAILED.getCode());
         if(shopName!=null) {
@@ -97,12 +97,20 @@ public class ShopDao implements InitializingBean{
     public ReturnObject<Shop> updateShop(Shop shop){
         ShopPo shopPo= new ShopPo();
         shopPo.setId(shop.getId());
-        if(shopPo.getName()==null){
+        ShopPo shopPo1 = shopPoMapper.selectByPrimaryKey(shop.getId());
+        if(shop.getShopName()==null){
             return new ReturnObject<>(ResponseCode.FIELD_NOTVALID,String.format("名字为空 id:" + shop.getId()));
         }
-        if(!checkShopName(shop.getShopName())) {
-            return new ReturnObject<>(ResponseCode.valueOf("该姓名已被占用"));
+        if(shopPo1.getState()==Shop.State.FAILED.getCode()){
+            return new ReturnObject<>(ResponseCode.SHOP_STATENOTALLOW,String.format("状态不允许"));
         }
+        if(shop.getShopName().matches("\\s+")){
+            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
+        }
+        if(!checkShopName(shop.getShopName())) {
+            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
+        }
+
         shopPo.setName(shop.getShopName());
         shopPo.setGmtModified(shop.getGmtModified());
         ReturnObject<Shop> returnObject=null;

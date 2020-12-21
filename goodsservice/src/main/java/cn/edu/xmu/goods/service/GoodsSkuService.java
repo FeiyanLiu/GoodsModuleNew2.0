@@ -61,7 +61,7 @@ public class GoodsSkuService {
     @Autowired
     ShopService shopService;
 
-    @DubboReference(version = "2.7.8",group = "goods-service",check = false)
+    @DubboReference(version = "2.7.8",group = "activity-service",check = false)
     IActivityService iActivityService;
 
     @Value("${goodsservice.dav.username}")
