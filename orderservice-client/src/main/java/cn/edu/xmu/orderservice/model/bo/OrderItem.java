@@ -53,7 +53,6 @@ public class OrderItem implements Serializable {
         this.price=orderItemPo.getPrice();
         this.discount=orderItemPo.getDiscount();
         this.name=orderItemPo.getName();
-        this.couponId=orderItemPo.getCouponId();
         this.couponActivityId=orderItemPo.getCouponActivityId();
         this.beSharedId=orderItemPo.getBeShareId();
         this.gmtCreate=orderItemPo.getGmtCreate();

@@ -29,7 +29,7 @@ public class Coupon implements VoObject {
         NOT_CLAIMED(0,"未领取"),
         CLAIMED(1,"已领取"),
         USED(2,"已使用"),
-        INVALID(3,"失效");
+        INVALID(3,"已失效");
         private static final Map<Integer, State> stateMap;
 
         static { //由类加载机制，静态块初始加载对应的枚举属性到map中，而不用每次取属性时，遍历一次所有枚举值

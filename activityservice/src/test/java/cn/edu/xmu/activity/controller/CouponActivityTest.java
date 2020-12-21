@@ -379,7 +379,7 @@ public class CouponActivityTest {
 ////     */
     @Test
     public void getCoupon() throws Exception {
-        String token=creatTestToken(14513111210L, 0L, 100);
+        String token=creatTestToken(150L, 0L, 100);
         String responseString = this.mvc.perform(post("/coupon/couponactivities/12158/usercoupons").header("authorization",token)
                 .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isCreated())

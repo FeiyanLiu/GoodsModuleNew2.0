@@ -5,10 +5,11 @@ management:
         include: "*"
 
 server:
-  port: 8089
+  port: 8090
   tomcat:
     threads:
       max: 1000
+
 
 spring:
   cloud:
@@ -118,7 +119,7 @@ dubbo:
     # dubbo 服务扫描基准包
     base-packages: cn.edu.xmu.goods.service
   cloud:
-    subscribed-services: activty-service,other-service,order-service,privilege-service
+    subscribed-services: goods-service,privilege-service,other-service,order-service,activity-service
   protocol:
     # dubbo 协议
     name: dubbo

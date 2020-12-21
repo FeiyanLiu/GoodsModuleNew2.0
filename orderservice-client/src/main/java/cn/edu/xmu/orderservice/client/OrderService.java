@@ -32,4 +32,5 @@ public interface OrderService {
     public Long getGoodsSkuIdByOrderItemId(Long id);
 
     public FreightModel getFreightModelById(Long id);
+
 }

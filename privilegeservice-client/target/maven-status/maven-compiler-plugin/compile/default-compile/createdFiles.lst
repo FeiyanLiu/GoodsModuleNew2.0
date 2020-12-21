@@ -1,0 +1,12 @@
+cn\edu\xmu\privilegeservice\model\vo\UserVo.class
+cn\edu\xmu\privilegeservice\model\po\UserPoExample$Criteria.class
+cn\edu\xmu\privilegeservice\model\po\UserPoExample.class
+cn\edu\xmu\privilegeservice\model\po\UserPoExample$GeneratedCriteria.class
+cn\edu\xmu\privilegeservice\client\IGatewayService.class
+cn\edu\xmu\privilegeservice\model\bo\User$State.class
+cn\edu\xmu\privilegeservice\model\bo\User.class
+cn\edu\xmu\privilegeservice\model\vo\UserSimpleRetVo.class
+cn\edu\xmu\privilegeservice\model\po\UserPo.class
+cn\edu\xmu\privilegeservice\client\IUserService.class
+cn\edu\xmu\privilegeservice\model\vo\UserRetVo.class
+cn\edu\xmu\privilegeservice\model\po\UserPoExample$Criterion.class

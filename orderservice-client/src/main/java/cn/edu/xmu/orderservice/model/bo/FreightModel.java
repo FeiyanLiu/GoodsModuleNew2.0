@@ -71,7 +71,6 @@ public class FreightModel {
         this.id=po.getId();
         this.name=po.getName();
         this.type=po.getType();
-        this.default_Model=po.getDefaultModel();
         this.shop_id= po.getShopId();
         this.gmtCreate=po.getGmtCreate();
         this.gmtModify=po.getGmtModified();
