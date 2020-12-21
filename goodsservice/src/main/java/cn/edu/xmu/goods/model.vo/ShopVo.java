@@ -13,17 +13,17 @@ import java.time.LocalDateTime;
 public class ShopVo implements VoObject {
     @NotBlank
     @ApiModelProperty(value = "店铺名字")
-    String shopName;
+    String name;
     Long id;
 
     public Shop createShop(){
         Shop shop=new Shop();
-        shop.setShopName(this.shopName);
+        shop.setShopName(this.name);
         return shop;
     }
     public ShopVo(Shop shop)
     {
-        this.shopName=shop.getShopName();
+        this.name=shop.getShopName();
         this.id=shop.getId();
     }
 

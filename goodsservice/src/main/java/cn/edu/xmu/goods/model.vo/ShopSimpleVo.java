@@ -18,20 +18,22 @@ public class ShopSimpleVo implements VoObject {
     @ApiModelProperty(value = "id")
     private Long id;
     @ApiModelProperty(value = "店铺名字")
-    private String shopName;
+    private String name;
 
     public ShopSimpleVo(Shop shop){
         setId(shop.getId());
-        setShopName(shop.getShopName());
+        setName(shop.getShopName());
     }
 
     public Shop createShop(){
         Shop shop=new Shop();
         shop.setId(this.id);
-        shop.setShopName(this.shopName);
+        shop.setShopName(this.name);
         shop.setGmtModified(LocalDateTime.now());
         return shop;
     }
+
+    public ShopSimpleVo(){}
 
     @Override
     public Object createVo() {

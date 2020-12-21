@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
  * @Description:价格浮动控制器
  */
 @RestController
-@RequestMapping(value="",produces = "application/json;charset+UTF-8")
+@RequestMapping(value="/goods",produces = "application/json;charset+UTF-8")
 public class FloatPriceController {
     private  static  final Logger logger = LoggerFactory.getLogger(FloatPriceController.class);
 
@@ -59,8 +59,8 @@ public class FloatPriceController {
     })
     @Audit
     @DeleteMapping("/shops/{shopId}/floatPrices/{id}")
-    public Object deleteFloatPrice(@LoginUser Long userId, @PathVariable("id") Long id){
-        ReturnObject<Object> result = floatPriceService.logicallyDelete(userId,id);
+    public Object deleteFloatPrice(@LoginUser Long userId, @PathVariable("id") Long id,@PathVariable("shopId") Long shopId){
+        ReturnObject<Object> result = floatPriceService.logicallyDelete(userId,id,shopId);
         return Common.decorateReturnObject(result);
     }
 
@@ -88,13 +88,17 @@ public class FloatPriceController {
         if (null != errors) {
             return errors;
         }
-        if(!goodsSkuService.checkSkuIdByShopId(shopId,id)){
+        ReturnObject<FloatPriceRetVo> result =floatPriceService.createFloatPrice(shopId,userId,floatPriceVo,id);
+        if(result.getCode()==ResponseCode.RESOURCE_ID_OUTSCOPE){
             return new ResponseEntity(
-                    ResponseUtil.fail(ResponseCode.RESOURCE_ID_OUTSCOPE, ResponseCode.RESOURCE_ID_OUTSCOPE.getMessage()),
+                    ResponseUtil.fail(result.getCode(), result.getErrmsg()),
                     HttpStatus.FORBIDDEN);
-        }else{
-            ReturnObject<FloatPriceRetVo> result =floatPriceService.createFloatPrice(id,floatPriceVo,userId);
-            return Common.decorateReturnObject(result);
         }
+        if(result.getCode()== ResponseCode.OK){
+            return new ResponseEntity(
+                    ResponseUtil.ok(result),
+                    HttpStatus.CREATED);
+        }
+        return Common.decorateReturnObject(result);
     }
 }

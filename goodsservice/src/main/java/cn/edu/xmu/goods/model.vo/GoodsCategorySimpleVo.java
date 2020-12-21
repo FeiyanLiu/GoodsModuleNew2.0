@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author Yancheng Lai
  * createdBy Yancheng Lai 2020/12/7 18:20
@@ -12,11 +14,11 @@ import lombok.Data;
  **/
 @Data
 @ApiModel(description = "种类简略视图对象")
-public class GoodsCategorySimpleVo {
+public class GoodsCategorySimpleVo implements Serializable {
     @ApiModelProperty(value = "id")
     Long id;
     @ApiModelProperty(value = "名称")
     String name;
 
-
+    public GoodsCategorySimpleVo(){}
 }

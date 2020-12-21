@@ -124,7 +124,7 @@ public class GoodsServiceController {
         if (returnObject.getCode() == ResponseCode.OK) {
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.OK));
         } else {
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST));
+            return Common.decorateReturnObject(returnObject);
         }
     }
 
@@ -151,6 +151,7 @@ public class GoodsServiceController {
     @Audit
     @DeleteMapping("/shops/{shopId}/brands/{id}")
     public Object revokeSpuBrand(@PathVariable Long shopId, @PathVariable Long id){
+
         return Common.decorateReturnObject(brandService.revokeBrand(id));
     }
 
@@ -172,16 +173,17 @@ public class GoodsServiceController {
                             BindingResult bindingResult){
         Object o = Common.processFieldErrors(bindingResult, httpServletResponse);
         if(o != null){
-
             return o;
         }
         Brand brand = new Brand(vo);
         brand.setGmtCreate(LocalDateTime.now());
         ReturnObject<BrandRetVo> returnObject = brandService.addBrand(brand, id);
         if (returnObject.getCode() == ResponseCode.OK) {
-            return Common.decorateReturnObject(returnObject);
+            return new ResponseEntity(
+                    ResponseUtil.fail(ResponseCode.OK),
+                    HttpStatus.CREATED);
         } else {
-            return Common.decorateReturnObject(new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST));
+            return Common.decorateReturnObject(returnObject);
         }
     }
 
@@ -211,7 +213,7 @@ public class GoodsServiceController {
             return Common.decorateReturnObject(returnObject);
         }
         return new ResponseEntity(
-                ResponseUtil.fail(ResponseCode.OK, "该ID对应的SKU不存在"),
+                ResponseUtil.fail(ResponseCode.RESOURCE_ID_NOTEXIST, "该ID对应的SKU不存在"),
                 HttpStatus.NOT_FOUND);
     }
 
@@ -255,8 +257,8 @@ public class GoodsServiceController {
             @ApiImplicitParam(name="skuSn", required = false, dataType="String", paramType="query"),
             @ApiImplicitParam(name="spuId", required = false, dataType="Integer", paramType="query"),
             @ApiImplicitParam(name="spuSn", required = false, dataType="String", paramType="query"),
-            @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query", defaultValue = "1"),
-            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query",defaultValue = "10"),
+            @ApiImplicitParam(name="page", required = false, dataType="Integer", paramType="query"),
+            @ApiImplicitParam(name="pageSize", required = false, dataType="Integer", paramType="query"),
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
@@ -265,12 +267,12 @@ public class GoodsServiceController {
     })
     @GetMapping("/skus")
     public Object getSku(
-            @PathVariable("shopId") Long shopId,
-            @PathVariable("skuSn") String skuSn,
-            @PathVariable("spuId") Long spuId,
-            @PathVariable("spuSn") String spuSn,
-            @PathVariable("page") Integer page,
-            @PathVariable("pageSize") Integer pageSize
+            @RequestParam(value = "shopId", required = false,defaultValue = "-1") Long shopId,
+            @RequestParam(value = "skuSn",required = false,defaultValue = "default") String skuSn,
+            @RequestParam(value = "spuId",required = false,defaultValue = "-1") Long spuId,
+            @RequestParam(value = "spuSn",required = false,defaultValue = "default") String spuSn,
+            @RequestParam(value = "page",required = false,defaultValue = "1") Integer page,
+            @RequestParam(value = "pageSize",required = false,defaultValue = "10") Integer pageSize
     ){
             Object retObject = null;
             if(page <= 0 || pageSize <= 0) {
@@ -280,22 +282,21 @@ public class GoodsServiceController {
                         shopId, skuSn, spuId,spuSn, page, pageSize);
                 logger.debug("findSkus: getSkus = " + returnObject);
                 ResponseCode code = returnObject.getCode();
+                //return Common.getPageRetObject()
                 switch (code){
                     case OK:
                         PageInfo<GoodsSkuSimpleRetVo> objs = returnObject.getData();
                         if (objs != null){
                             List<Object> voObjs = new ArrayList<>(objs.getList().size());
                             for (Object data : objs.getList()) {
-                                if (data instanceof VoObject) {
-                                    voObjs.add(((VoObject)data).createVo());
-                                }
+                                    voObjs.add(data);
                             }
 
                             Map<String, Object> ret = new HashMap<>();
                             ret.put("list", voObjs);
                             ret.put("total", objs.getTotal());
-                            ret.put("page", objs.getPageNum());
-                            ret.put("pageSize", objs.getPageSize());
+                            ret.put("page", page);
+                            ret.put("pageSize", pageSize);
                             ret.put("pages", objs.getPages());
                             return ResponseUtil.ok(ret);
                         }else{
@@ -333,12 +334,13 @@ public class GoodsServiceController {
     @DeleteMapping("/shops/{shopId}/skus/{id}")
     public Object revokeSku(@PathVariable Long shopId, @PathVariable Long id){
         ReturnObject ret = goodsSkuService.revokeSku(shopId, id);
-        if(ret.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
+
+        if(ret.getCode()== ResponseCode.RESOURCE_ID_OUTSCOPE){
             return new ResponseEntity(
-                    ResponseUtil.fail(ret.getCode(), ret.getErrmsg()),
+                    ResponseUtil.fail(ResponseCode.RESOURCE_ID_OUTSCOPE, "该ID对应的SPU不存在"),
                     HttpStatus.FORBIDDEN);
         }
-        return Common.decorateReturnObject(goodsSkuService.revokeSku(shopId, id));
+        return Common.decorateReturnObject(ret);
     }
 
     /**
@@ -361,7 +363,7 @@ public class GoodsServiceController {
             @ApiResponse(code = 504, message = "操作id不存在"),
             @ApiResponse(code = 503, message = "字段不合法")
     })
-    //@Audit
+    @Audit
     @PostMapping("/shops/{shopId}/spus/{id}/skus")
     public Object createSKU(@Validated @RequestBody GoodsSkuVo vo, BindingResult bindingResult,
                              @PathVariable("shopId") Long shopId,
@@ -389,7 +391,7 @@ public class GoodsServiceController {
             }
 
         } else {
-            return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
+            return Common.decorateReturnObject(retObject);
         }
     }
 

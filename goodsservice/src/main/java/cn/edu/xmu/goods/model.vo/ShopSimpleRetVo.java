@@ -19,6 +19,8 @@ public class ShopSimpleRetVo {
     @ApiModelProperty(value = "名称")
     private String name;
 
+    ShopSimpleRetVo(){}
+
     public ShopSimpleRetVo(Shop shop){
         this.id = shop.getId();
         this.name = shop.getShopName();

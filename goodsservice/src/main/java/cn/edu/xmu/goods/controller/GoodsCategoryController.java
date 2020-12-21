@@ -1,14 +1,20 @@
 package cn.edu.xmu.goods.controller;
 
 import cn.edu.xmu.goods.model.vo.GoodsCategoryRetVo;
+import cn.edu.xmu.goods.model.vo.UpdateBrandVoBody;
 import cn.edu.xmu.goods.service.GoodsCategoryService;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.util.Common;
+import cn.edu.xmu.ooad.util.ResponseCode;
+import cn.edu.xmu.ooad.util.ResponseUtil;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,19 +46,39 @@ public class GoodsCategoryController {
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization",required = true,dataType = "String",paramType = "header"),
             @ApiImplicitParam(name="id",required = true,dataType = "int",paramType = "path"),
-            @ApiImplicitParam(name = "name",required = true,dataType = "String",paramType = "body")
+            @ApiImplicitParam(name="shopId",required = true,dataType = "int",paramType = "path"),
     })
     @ApiResponses({
             @ApiResponse(code=0,message = "成功"),
             @ApiResponse(code=504,message = "操作id不存在")
     })
-    @PostMapping("/categories/{id}/subcategories")
-    public Object createCategory(@PathVariable Long id,@Validated @RequestBody String name){
+    @PostMapping("/shops/{shopId}/categories/{id}/subcategories")
+    public Object createCategory(@Validated @RequestBody GoodsCategoryRetVo vo,
+                                 BindingResult bindingResult,
+                                 @PathVariable Long id,
+                                 @PathVariable Long shopId){
+        if(shopId != 0){
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE));
+        }
+        if(vo.getName().contentEquals("")){
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
+        }
         if(logger.isDebugEnabled()){
             logger.debug("create Category: id = "+id);
         }
-        ReturnObject<GoodsCategoryRetVo> result=goodsCategoryService.createCategory(id,name);
-        return Common.decorateReturnObject(result);
+        vo.setPId(id);
+
+        ReturnObject<GoodsCategoryRetVo> result=goodsCategoryService.createCategory(vo);
+        if(result.getCode()== ResponseCode.OK){
+            ResponseEntity res = new ResponseEntity(
+                    ResponseUtil.ok(result),
+                    HttpStatus.CREATED);
+            return res;
+        } else
+        {
+            return Common.decorateReturnObject(result);
+        }
+
     }
 
     /**
@@ -76,7 +102,7 @@ public class GoodsCategoryController {
         if(logger.isDebugEnabled()){
             logger.debug("select category : pid ="+id);
         }
-        ReturnObject<List> result=goodsCategoryService.findSubCategory(id);
+        ReturnObject<List<GoodsCategoryRetVo>> result=goodsCategoryService.findSubCategory(id);
         return Common.decorateReturnObject(result);
     }
 
@@ -90,20 +116,27 @@ public class GoodsCategoryController {
     @ApiOperation(value = "修改商品类目信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization",required = true,dataType = "String",paramType = "header"),
-            @ApiImplicitParam(name="id",required = true,dataType = "int",paramType = "path"),
-            @ApiImplicitParam(name = "name",required = true,dataType = "String",paramType = "body")
+            @ApiImplicitParam(name="id",required = true,dataType = "Long",paramType = "path"),
+            @ApiImplicitParam(name = "shopId",required = true,dataType = "Long",paramType = "body")
     })
     @ApiResponses({
             @ApiResponse(code=0,message = "成功"),
             @ApiResponse(code=504,message = "操作id不存在")
     })
     @Audit
-    @PutMapping("/categories/{id}")
-    public Object updateCategory(@PathVariable Long id,@Validated @RequestBody String name){
+    @PutMapping("/shops/{shopId}/categories/{id}")
+    public Object updateCategory(@Validated @RequestBody GoodsCategoryRetVo vo,
+                                 BindingResult bindingResult,
+                                 @PathVariable Long id,
+                                 @PathVariable Long shopId){
+        if(shopId != 0){
+            return (new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE));
+        }
         if(logger.isDebugEnabled()){
             logger.debug("update category : id ="+id);
         }
-        ReturnObject<Object> result=goodsCategoryService.updateCategory(id,name);
+        vo.setId(id);
+        ReturnObject result=goodsCategoryService.updateCategory(vo);
         return Common.decorateReturnObject(result);
     }
 
@@ -124,8 +157,12 @@ public class GoodsCategoryController {
             @ApiResponse(code=504,message = "操作id不存在")
     })
     @Audit
-    @DeleteMapping("/categories/{id}")
-    public Object deleteCategoey(@PathVariable long id){
+    @DeleteMapping("/shops/{shopId}/categories/{id}")
+    public Object deleteCategory(@PathVariable Long id,
+                                 @PathVariable Long shopId){
+        if(shopId != 0){
+            return (new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE));
+        }
         if(logger.isDebugEnabled()){
             logger.debug("delete category : id ="+id);
         }

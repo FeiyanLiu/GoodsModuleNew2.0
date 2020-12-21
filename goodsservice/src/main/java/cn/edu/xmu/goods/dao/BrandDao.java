@@ -90,6 +90,16 @@ public class BrandDao {
     public ReturnObject<VoObject> updateBrand(Brand brand){
         logger.info("Dao:update Brand id = "+brand.getId().toString());
         BrandPo po = brandPoMapper.selectByPrimaryKey(brand.getId());
+
+        //check the same name
+        BrandPoExample brandPoExample = new BrandPoExample();
+        BrandPoExample.Criteria criteria = brandPoExample.createCriteria();
+        criteria.andNameEqualTo(brand.getName());
+        List<BrandPo> brandPos = brandPoMapper.selectByExample(brandPoExample);
+        if(brandPos.size() != 0){
+            return new ReturnObject<>(ResponseCode.BRAND_NAME_SAME);
+        }
+
         if (po != null) {
             logger.info("Brand Po != null"+brand.getId().toString());
             po.setGmtModified(LocalDateTime.now());
@@ -118,7 +128,7 @@ public class BrandDao {
                 goodsSpuPo.setBrandId(0l);
                 goodsSpuPoMapper.updateByPrimaryKeySelective(goodsSpuPo);
             }
-            return new ReturnObject<VoObject>();
+            return new ReturnObject<VoObject>(ResponseCode.OK);
         }
         return new ReturnObject<VoObject>(ResponseCode.RESOURCE_ID_NOTEXIST);
     }
@@ -136,10 +146,11 @@ public class BrandDao {
         GoodsSpuPoExample.Criteria criteria = goodsSpuPoExample.createCriteria();
         criteria.andBrandIdEqualTo(brandId);
         List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(goodsSpuPoExample);
-
-        for(GoodsSpuPo goodsSpuPo : goodsSpuPos){
-            goodsSpuPo.setBrandId(0l);
-            goodsSpuPoMapper.updateByPrimaryKeySelective(goodsSpuPo);
+        if(goodsSpuPos != null && goodsSpuPos.size() > 0){
+            for(GoodsSpuPo goodsSpuPo : goodsSpuPos){
+                goodsSpuPo.setBrandId(0l);
+                goodsSpuPoMapper.updateByPrimaryKeySelective(goodsSpuPo);
+            }
         }
         return new ReturnObject<>(ResponseCode.OK);
     }
@@ -153,6 +164,16 @@ public class BrandDao {
     */
     public ReturnObject<Brand> addBrand(Brand brand){
         BrandPo brandPo = brand.getBrandPo();
+
+        //check the same name
+        BrandPoExample brandPoExample = new BrandPoExample();
+        BrandPoExample.Criteria criteria = brandPoExample.createCriteria();
+        criteria.andNameEqualTo(brand.getName());
+        List<BrandPo> brandPos = brandPoMapper.selectByExample(brandPoExample);
+        if(brandPos.size() != 0){
+            return new ReturnObject<>(ResponseCode.BRAND_NAME_SAME);
+        }
+
         brandPo.setGmtCreate(LocalDateTime.now());
         int res = brandPoMapper.insertSelective(brandPo);
         if(res == 0){

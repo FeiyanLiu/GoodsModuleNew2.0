@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class FloatPrice implements VoObject {
     private Long id;
     private Long goodsSkuId;
-    private Long activityPrive;
+    private Long activityPrice;
     private LocalDateTime beginTime;
     private LocalDateTime endTime;
     private LocalDateTime gmtCreated;
@@ -29,7 +29,7 @@ public class FloatPrice implements VoObject {
     public FloatPrice(FloatPricePo floatPricePo){
         this.id=floatPricePo.getId();
         this.goodsSkuId=floatPricePo.getGoodsSkuId();
-        this.activityPrive=floatPricePo.getActivityPrice();
+        this.activityPrice=floatPricePo.getActivityPrice();
         this.beginTime=floatPricePo.getBeginTime();
         this.endTime=floatPricePo.getEndTime();
 //        this.gmtCreated=floatPricePo.getGmtCreated();
@@ -41,16 +41,16 @@ public class FloatPrice implements VoObject {
     }
 
     public FloatPrice(FloatPriceVo floatPriceVo){
-        this.beginTime=LocalDateTime.parse(floatPriceVo.getBeginTime());
-        this.endTime=LocalDateTime.parse(floatPriceVo.getEndTime());
+        this.beginTime=floatPriceVo.getBeginTime();
+        this.endTime=floatPriceVo.getEndTime();
         this.quantity=floatPriceVo.getQuantity();
-        this.activityPrive=floatPriceVo.getActivityPrice();
+        this.activityPrice=floatPriceVo.getActivityPrice();
     }
 
     public FloatPricePo createPo(){
         FloatPricePo floatPricePo=new FloatPricePo();
         floatPricePo.setId(this.id);
-        floatPricePo.setActivityPrice(this.activityPrive);
+        floatPricePo.setActivityPrice(this.activityPrice);
         floatPricePo.setBeginTime(this.beginTime);
         floatPricePo.setEndTime(this.endTime);
         floatPricePo.setCreatedBy(this.createdBy);

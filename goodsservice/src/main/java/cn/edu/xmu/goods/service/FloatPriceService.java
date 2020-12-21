@@ -1,8 +1,10 @@
 package cn.edu.xmu.goods.service;
 
 import cn.edu.xmu.goods.dao.FloatPriceDao;
+import cn.edu.xmu.goods.dao.GoodsSkuDao;
 import cn.edu.xmu.goods.model.bo.FloatPrice;
 import cn.edu.xmu.goods.model.po.FloatPricePo;
+import cn.edu.xmu.goods.model.po.GoodsSkuPo;
 import cn.edu.xmu.goods.model.vo.FloatPriceRetVo;
 import cn.edu.xmu.goods.model.vo.FloatPriceVo;
 import cn.edu.xmu.goods.model.vo.TimePoint;
@@ -31,6 +33,14 @@ public class FloatPriceService{
     FloatPriceDao floatPriceDao;
     @DubboReference(check=false)
     IUserService iUserService;
+    @Autowired
+    GoodsSkuDao goodsSkuDao;
+
+    public boolean timeClash(LocalDateTime beginTime1, LocalDateTime endTime1, LocalDateTime beginTime2, LocalDateTime endTime2) {
+        if (beginTime1.isAfter(endTime2) || endTime1.isBefore(beginTime2))
+            return false;
+        return true;
+    }
 
     /**
      * @Author：谢沛辰
@@ -40,15 +50,17 @@ public class FloatPriceService{
      * @Description:逻辑删除价格浮动
      */
     
-    public ReturnObject<Object> logicallyDelete(Long userId, Long floatPriceId){
+    public ReturnObject<Object> logicallyDelete(Long userId, Long floatPriceId,Long shopId){
         ReturnObject<FloatPrice> target=floatPriceDao.getFloatPriceById(floatPriceId);
-        if(target.getData()!=null){
+        if(target.getData()==null || target.getData().getValid()==0 ){
+            return new ReturnObject<Object>(ResponseCode.RESOURCE_ID_NOTEXIST);
+        } else if (goodsSkuDao.checkSkuIdInShop(shopId,target.getData().getGoodsSkuId())==false){
+            return new ReturnObject<Object>(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        } else {
             FloatPrice selected = target.getData();
             selected.setInvaildBy(userId);
             selected.setValid((byte) 0);
             return floatPriceDao.logicallyDeleteFloatPrice(selected);
-        }else{
-            return new ReturnObject<Object>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
     }
 
@@ -61,42 +73,79 @@ public class FloatPriceService{
      */
     //此处需要集成权限模块种通过userID查找用户的接口！
     
-    public ReturnObject<FloatPriceRetVo> createFloatPrice(Long userId,FloatPriceVo floatPriceVo,Long skuId){
+    public ReturnObject<FloatPriceRetVo> createFloatPrice(Long shopId,Long userId,FloatPriceVo floatPriceVo,Long skuId){
         ReturnObject<FloatPriceRetVo> retObj=null;
-        if(LocalDateTime.parse(floatPriceVo.getBeginTime()).isAfter(LocalDateTime.parse(floatPriceVo.getEndTime()))){
-            return new ReturnObject<>(ResponseCode.SKUPRICE_CONFLICT);
+        GoodsSkuPo goodsSkuPo = goodsSkuDao.getSkuById(skuId).getData();
+        if(goodsSkuPo == null ){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        ReturnObject<List> floatPriceInDataBase=floatPriceDao.getFloatPriceBySkuId(skuId);
+
+        if(goodsSkuDao.checkSkuIdStrictInShop(shopId,skuId)==false){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
+        if(floatPriceVo.getQuantity() > goodsSkuPo.getInventory()){
+            return  new ReturnObject<>(ResponseCode.SKU_NOTENOUGH);
+        }
+
+
+        if(floatPriceVo.getBeginTime().isAfter(floatPriceVo.getEndTime())){
+            return new ReturnObject<>(ResponseCode.Log_Bigger);
+        }
+
+        if(floatPriceVo.getBeginTime().isBefore(LocalDateTime.now())){
+            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
+        }
+
+
+
+
+        ReturnObject<List<FloatPricePo>> floatPriceInDataBase=floatPriceDao.getFloatPriceBySkuId(skuId);
+        //check floatprice time conflict
+        if(floatPriceInDataBase.getCode()!= ResponseCode.RESOURCE_ID_NOTEXIST && floatPriceInDataBase.getData().size()!=0){
+            for(FloatPricePo floatPricePo:floatPriceInDataBase.getData()){
+                if(timeClash(floatPriceVo.getBeginTime(),floatPriceVo.getEndTime(),floatPricePo.getBeginTime(),floatPricePo.getEndTime())){
+                    return new ReturnObject<>(ResponseCode.SKUPRICE_CONFLICT);
+                }
+            }
+        }
+
+
+
+
         FloatPrice floatPrice = new FloatPrice(floatPriceVo);
         boolean signal;
+        floatPrice.setGoodsSkuId(skuId);
         if(floatPriceInDataBase.getCode()==ResponseCode.RESOURCE_ID_NOTEXIST){
             if(floatPriceDao.insertFloatPrice(floatPrice).getCode()==ResponseCode.OK){
-                String userName=iUserService.getUserName(userId);
+                //String userName=iUserService.getUserName(userId);
+                String userName = "default";
                 retObj=new ReturnObject<>(new FloatPriceRetVo(floatPrice,userId,userId,userName));
             }
         }
         else if(floatPriceInDataBase.getCode()==ResponseCode.OK){
-            List<FloatPricePo> media=floatPriceInDataBase.getData();
-            List<TimePoint> timeList=new ArrayList<>();
-            for (FloatPricePo floatPricePo : media) {
-                if(floatPricePo.getValid()==1){
-                    timeList.add(new TimePoint(floatPricePo.getBeginTime(), true));
-                    timeList.add(new TimePoint(floatPricePo.getEndTime(), false));
-                }
-            }
-            timeList.add(new TimePoint(LocalDateTime.parse(floatPriceVo.getBeginTime()),true));
-            timeList.add(new TimePoint(LocalDateTime.parse(floatPriceVo.getEndTime()),false));
-            if(isOverLap(timeList)){
-                retObj=new ReturnObject<>(ResponseCode.SKUPRICE_CONFLICT);
-            }else{
+//            List<FloatPricePo> media=floatPriceInDataBase.getData();
+//            List<TimePoint> timeList=new ArrayList<>();
+//            for (FloatPricePo floatPricePo : media) {
+//                if(floatPricePo.getValid()==1){
+//                    timeList.add(new TimePoint(floatPricePo.getBeginTime(), true));
+//                    timeList.add(new TimePoint(floatPricePo.getEndTime(), false));
+//                }
+//            }
+//            timeList.add(new TimePoint(floatPriceVo.getBeginTime(),true));
+//            timeList.add(new TimePoint(floatPriceVo.getEndTime(),false));
+//            if(isOverLap(timeList)){
+//                retObj=new ReturnObject<>(ResponseCode.SKUPRICE_CONFLICT);
+//            }else{
                 ReturnObject<FloatPrice> returnObject=floatPriceDao.insertFloatPrice(floatPrice);
                 if(returnObject.getCode()==ResponseCode.OK){
-                    String userName=iUserService.getUserName(userId);
+                    //String userName=iUserService.getUserName(userId);
+                    String userName="default";
                     retObj=new ReturnObject<>(new FloatPriceRetVo(floatPrice,userId,userId,userName));
                 } else
                     retObj=new ReturnObject<>(returnObject.getCode());
             }
-        }
+        //}
         return retObj;
     }
     /**

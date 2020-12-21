@@ -63,7 +63,8 @@ public class BrandService{
     public ReturnObject<VoObject> updateBrand(Brand brand, Long shopId, Long id){
         brand.setId(id);
         logger.info("Service:update Brand id = "+id.toString());
-        return brandDao.updateBrand(brand);
+        ReturnObject<VoObject> ret = brandDao.updateBrand(brand);
+            return new ReturnObject<>(ret.getCode(),ret.getErrmsg());
     }
 
     @Transactional
@@ -133,6 +134,13 @@ public class BrandService{
     @Transactional
     public ReturnObject<BrandRetVo> addBrand(Brand brand, Long id) {
         ReturnObject<Brand> ret = brandDao.addBrand(brand);
-        return new ReturnObject<BrandRetVo>(ret.getData().createVo());
+        ReturnObject r = null;
+        if(ret.getCode()== ResponseCode.OK){
+            r =  new ReturnObject<BrandRetVo>(ret.getData().createVo());
+        }
+        else {
+            return new ReturnObject<>(ret.getCode(),ret.getErrmsg());
+        }
+        return r;
     }
 }
