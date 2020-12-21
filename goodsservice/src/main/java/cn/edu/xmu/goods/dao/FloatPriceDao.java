@@ -40,7 +40,7 @@ public class FloatPriceDao {
         ReturnObject<Object> retObj=null;
         FloatPricePo floatPricePo=floatPrice.createPo();
         try{
-            int ret=floatPricePoMapper.updateByPrimaryKey(floatPricePo);
+            int ret=floatPricePoMapper.updateByPrimaryKeySelective(floatPricePo);
             if(ret==0){
                 //修改失败
                 logger.debug("deleteFloatprice: update FloatPrice fail : " + floatPricePo.toString());
@@ -72,7 +72,7 @@ public class FloatPriceDao {
         FloatPricePo floatPricePo=floatPrice.createPo();
         ReturnObject<FloatPrice> retObj=null;
         try{
-            int ret=floatPricePoMapper.insert(floatPricePo);
+            int ret=floatPricePoMapper.insertSelective(floatPricePo);
             if(ret==0){
                 logger.debug("insertFloatprice: insert floatprice fail "+floatPrice.toString());
                 retObj=new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
@@ -123,7 +123,7 @@ public class FloatPriceDao {
      * @Return: ReturnObject<List>
      * @Description:根据SKUID查找价格浮动
      */
-    public ReturnObject<List> getFloatPriceBySkuId(long skuId){
+    public ReturnObject<List<FloatPricePo>> getFloatPriceBySkuId(long skuId){
         List<FloatPricePo> floatPricePos=null;
         FloatPricePoExample example=new FloatPricePoExample();
         FloatPricePoExample.Criteria criteria=example.createCriteria();

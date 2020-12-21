@@ -31,7 +31,7 @@ public class GoodsSpuSimpleRetVo {
     @ApiModelProperty(value = "编辑时间")
     private LocalDateTime gmtModified;
     @ApiModelProperty(value = "是否被逻辑删除")
-    private Boolean disabled;
+    private Boolean disable;
 
     /**
     * @Description:  SPU返回简单视图
@@ -43,10 +43,10 @@ public class GoodsSpuSimpleRetVo {
 
     public GoodsSpuSimpleRetVo(GoodsSpu goodsSpu){
         if(goodsSpu.getDisabled() == 1){
-            this.disabled = true;
+            this.disable = true;
         }
         else{
-            this.disabled = false;
+            this.disable = false;
         }
 
 //        this.gmtCreated = goodsSpu.getGmtCreated();

@@ -16,11 +16,11 @@ import java.time.LocalDateTime;
 public class NewPreSaleVo {
     @NotEmpty
     private String name;
-    @Future(message = "时间段已过")
+    @NotNull
     private LocalDateTime beginTime;
-    @Future(message = "时间段已过")
+    @NotNull
     private LocalDateTime payTime;
-    @Future(message = "时间段已过")
+    @NotNull
     private LocalDateTime endTime;
     @Min(value = 0,message = "为自然数")
     private Integer quantity;

@@ -105,6 +105,10 @@ public class GoodsSpuService{
                 }
                 else logger.info("brand!=null");
                 goodsSpuRetVo.setBrand(brandSimpleRetVo);
+            } else {
+                BrandSimpleRetVo brandSimpleRetVo = new BrandSimpleRetVo();
+                brandSimpleRetVo.setId(0l);
+                goodsSpuRetVo.setBrand(brandSimpleRetVo);
             }
 
             GoodsCategory goodsCategory = goodsCategoryDao.getCategoryById(goodsSpuPo.getCategoryId()).getData();
@@ -114,6 +118,10 @@ public class GoodsSpuService{
                     logger.info("simplevo == null");
                 }
                 else logger.info("brand!=null");
+                goodsSpuRetVo.setCategory(goodsCategorySimpleVo);
+            } else {
+                GoodsCategorySimpleVo goodsCategorySimpleVo = new GoodsCategorySimpleVo();
+                goodsCategorySimpleVo.setId(0l);
                 goodsSpuRetVo.setCategory(goodsCategorySimpleVo);
             }
 

@@ -36,7 +36,7 @@ public class CouponActivity implements VoObject {
     LocalDateTime gmtCreated;
     LocalDateTime gmtModified;
     String img;
-   AdminVo createdBy = new AdminVo();
+    AdminVo createdBy = new AdminVo();
     AdminVo modifiedBy = new AdminVo();
     Long shopId;
     private Logger logger = LoggerFactory.getLogger(CouponActivity.class);

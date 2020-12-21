@@ -5,16 +5,10 @@ import cn.edu.xmu.activity.mapper.FlashSaleItemPoMapper;
 import cn.edu.xmu.activity.mapper.FlashSalePoMapper;
 import cn.edu.xmu.activity.model.bo.FlashSale;
 import cn.edu.xmu.activity.model.po.*;
-import cn.edu.xmu.activity.model.vo.FlashSaleDataVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.otherservice.client.OtherService;
-import cn.edu.xmu.otherservice.model.po.TimeSegmentPo;
-import cn.edu.xmu.otherservice.model.po.TimeSegmentPoExample;
-import com.github.pagehelper.PageHelper;
-import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -23,10 +17,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author LJP_3424
@@ -41,10 +32,6 @@ public class FlashSaleDao implements InitializingBean {
     @Autowired
     private FlashSaleItemPoMapper flashSaleItemPoMapper;
 
-
-    @DubboReference(check = false)
-    OtherService otherService;
-
     private static final Logger logger = LoggerFactory.getLogger(FlashSaleDao.class);
 
 
@@ -54,146 +41,12 @@ public class FlashSaleDao implements InitializingBean {
     }
 
     /**
-     * @param goodsSpuId
-     * @Description: 未提供SPU-->SKUS接口,因此先暂时写一个临时函数
-     * @return: java.util.List<java.lang.Long>
-     * @Author: LJP_3424
-     * @Date: 2020/12/6 1:01
-     */
-    private List<Long> goodsSpuIdsToSkuIds(Long goodsSpuId) {
-        List<Long> longs = new ArrayList<Long>();
-        longs.add(1003L);
-        longs.add(1004L);
-        longs.add(1005L);
-        return longs;
-    }
-
-    //! 临时更改,需要重新写
-    public FlashSaleItemPo getFlashSaleItemBetweenTimeByGoodsSkuId(Long goodsSkuId, LocalDateTime beginTime, LocalDateTime endTime) {
-
-        // SKUId-->SaleId-->timeSegmentId-->beginTime&&endTime 耗时较长
-        /* 取出所有的 timeSegmentID --> beginTime && endTime
-         * SkuId-->SaleId-->-->timeSegmentId--Map-->beginTime&&endTime 减少数据库访问次数
-         */
-        FlashSaleItemPoExample flashSaleItemPoExample = new FlashSaleItemPoExample();
-        FlashSaleItemPoExample.Criteria criteriaItem = flashSaleItemPoExample.createCriteria();
-
-        // List 转Map
-        List<TimeSegmentPo> timeSegmentPos = getAllTimeSegment();
-        Map<Long, TimeSegmentPo> mappedTimeSegmentPo = timeSegmentPos.stream().collect(Collectors.toMap(TimeSegmentPo::getId, (p) -> p));
-
-        criteriaItem.andGoodsSkuIdEqualTo(goodsSkuId);
-        List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(flashSaleItemPoExample);
-        for (FlashSaleItemPo flashSaleItemPo : flashSaleItemPos) {
-            FlashSalePo flashSalePo = flashSalePoMapper.selectByPrimaryKey(flashSaleItemPo.getSaleId());
-            LocalDateTime timeSegmentBeginTime = mappedTimeSegmentPo.get(flashSalePo.getTimeSegId()).getBeginTime();
-            LocalDateTime timeSegmentEndTime = mappedTimeSegmentPo.get(flashSalePo.getTimeSegId()).getEndTime();
-            LocalDateTime flashSalePoBeginTime = LocalDateTime.of(flashSalePo.getFlashDate().getYear(),
-                    flashSalePo.getFlashDate().getMonth(), flashSalePo.getFlashDate().getDayOfMonth(),
-                    timeSegmentBeginTime.getHour(), timeSegmentBeginTime.getMinute(), timeSegmentBeginTime.getSecond());
-            LocalDateTime flashSalePoEndTime = LocalDateTime.of(flashSalePo.getFlashDate().getYear(),
-                    flashSalePo.getFlashDate().getMonth(), flashSalePo.getFlashDate().getDayOfMonth(),
-                    timeSegmentEndTime.getHour(), timeSegmentEndTime.getMinute(), timeSegmentEndTime.getSecond());
-            if (flashSalePoBeginTime.compareTo(endTime) < 0 && flashSalePoEndTime.compareTo(beginTime) > 0) {
-                return flashSaleItemPo;
-            }
-        }
-        return null;
-    }
-
-    public List<TimeSegmentPo> getAllTimeSegment() {
-        return otherService.getAllTimeSegment();
-    }
-/*
-*
- * @Description:
- *
- * @return: void
- * @Author: LJP_3424
- * @Date: 2020/12/6 1:02
-    public void insertTimeSegment() {
-        TimeSegmentPo timeSegmentPo = new TimeSegmentPo();
-        LocalDateTime beginTime = LocalDateTime.of(2020, 1, 1, 0, 0, 0);
-        LocalDateTime endTime = LocalDateTime.of(2020, 1, 1, 0, 29, 59);
-        for (int i = 1; i <= 24; i++) {
-            for (int j = 1; j <= 2; j++) {
-                timeSegmentPo.setId((long) (i * 100 + j));
-                timeSegmentPo.setBeginTime(beginTime);
-                timeSegmentPo.setGmtCreated(LocalDateTime.now());
-                timeSegmentPo.setEndTime(endTime);
-                beginTime = beginTime.plusMinutes(30);
-                endTime = endTime.plusMinutes(30);
-                timeSegmentPoMapper.insert(timeSegmentPo);
-            }
-        }
-    }
-*/
-/**
- * @Description: 获取当前时段的秒杀活动
- * @param localDateTime
- * @return: cn.edu.xmu.ooad.util.ReturnObject<java.util.List>
- * @Author: LJP_3424
- * @Date: 2020/12/6 1:03
- */
-/*    public ReturnObject<List> getCurrentFlashSale(LocalDateTime localDateTime) {
-        TimeSegmentPoExample timeSegmentPoExample = new TimeSegmentPoExample();
-        TimeSegmentPoExample.Criteria criteria = timeSegmentPoExample.createCriteria();
-        criteria.andBeginTimeLessThanOrEqualTo(localDateTime);
-        criteria.andEndTimeGreaterThanOrEqualTo(localDateTime);
-        List<TimeSegmentPo> timeSegmentPos = timeSegmentPoMapper.selectByExample(timeSegmentPoExample);
-        return getFlashSaleById(timeSegmentPos.get(0).getId());
-    }*/
-
-    /**
-     * @param id
-     * @Description: 通过商品SKUID 获取商品历史秒杀信息
+     * @param localDateTime
+     * @Description: 获取当前时段的秒杀活动
      * @return: cn.edu.xmu.ooad.util.ReturnObject<java.util.List>
      * @Author: LJP_3424
      * @Date: 2020/12/6 1:03
      */
-    public ReturnObject<List> getFlashSaleById(Long id) {
-        FlashSalePoExample example = new FlashSalePoExample();
-        FlashSalePoExample.Criteria criteria = example.createCriteria();
-        criteria.andTimeSegIdEqualTo(id);
-        logger.debug("findFlashSaleById: TimeSegmentId = " + id);
-        List<FlashSalePo> flashSalePos = flashSalePoMapper.selectByExample(example);
-        List<FlashSaleDataVo> flashSaleDataVos = new ArrayList<FlashSaleDataVo>();
-        for (FlashSalePo po : flashSalePos) {
-            FlashSaleItemPoExample flashSaleItemPoExample = new FlashSaleItemPoExample();
-            FlashSaleItemPoExample.Criteria criteria_item = flashSaleItemPoExample.createCriteria();
-            criteria_item.andSaleIdEqualTo(po.getId());
-            List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(flashSaleItemPoExample);
-            for (FlashSaleItemPo itemPo : flashSaleItemPos) {
-                FlashSaleDataVo vo = new FlashSaleDataVo(itemPo);
-                flashSaleDataVos.add(vo);
-            }
-        }
-        if (flashSalePos.size() != 0) {
-            return new ReturnObject<>(flashSaleDataVos);
-        } else {
-            return null;
-        }
-    }
-
-
-    /**
-     * @param vo
-     * @param id
-     * @Description: 通过Vo验证时段冲突后创建新的秒杀
-     * @return: cn.edu.xmu.ooad.util.ReturnObject<java.util.List>
-     * @Author: LJP_3424
-     * @Date: 2020/12/6 1:04
-     */
-    public Long createNewFlashSaleByVo(NewFlashSaleVo vo, Long id) {
-        FlashSalePo flashSalePo = new FlashSalePo();
-        flashSalePo.setFlashDate(vo.getFlashDate());
-        flashSalePo.setTimeSegId(id);
-        flashSalePo.setGmtCreate(LocalDateTime.now());
-        flashSalePo.setState(FlashSale.State.OFF.getCode());
-        flashSalePoMapper.insert(flashSalePo);
-        return flashSalePo.getId();
-    }
-
     public ReturnObject<Boolean> checkFlashSaleEnough(Long id, LocalDateTime flashDate) {
         FlashSalePoExample example = new FlashSalePoExample();
         FlashSalePoExample.Criteria criteria = example.createCriteria();
@@ -224,7 +77,12 @@ public class FlashSaleDao implements InitializingBean {
 
     public ReturnObject<FlashSalePo> getFlashSaleByFlashSaleId(Long flashSaleId) {
         try {
-            return new ReturnObject<>(flashSalePoMapper.selectByPrimaryKey(flashSaleId));
+            FlashSalePo flashSalePo = flashSalePoMapper.selectByPrimaryKey(flashSaleId);
+            if (flashSalePo == null || flashSalePo.getState() == FlashSale.State.DELETE.getCode()) {
+                return new ReturnObject();
+            } else {
+                return new ReturnObject<>(flashSalePo);
+            }
         } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
@@ -295,25 +153,6 @@ public class FlashSaleDao implements InitializingBean {
     }
 
 
-    /**
-     * @param id
-     * @param pageNum
-     * @param pageSize
-     * @Description: 分页查询所有秒杀信息
-     * @return: cn.edu.xmu.ooad.util.ReturnObject<com.github.pagehelper.PageInfo < cn.edu.xmu.ooad.model.VoObject>>
-     * @Author: LJP_3424
-     * @Date: 2020/12/6 1:05
-     */
-
-    public List<FlashSaleItemPo> selectAllFlashSale(Long id, Integer pageNum, Integer pageSize) {
-        FlashSaleItemPoExample flashSaleItemPoExample = new FlashSaleItemPoExample();
-        FlashSaleItemPoExample.Criteria criteriaItem = flashSaleItemPoExample.createCriteria();
-        criteriaItem.andSaleIdEqualTo(id);
-        PageHelper.startPage(pageNum, pageSize);
-        List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(flashSaleItemPoExample);
-        return flashSaleItemPos;
-    }
-
     public List<FlashSalePo> getFlashSalesByTimeSegmentId(Long timeSegmentId) {
         FlashSalePoExample flashSalePoExample = new FlashSalePoExample();
         FlashSalePoExample.Criteria criteria = flashSalePoExample.createCriteria();
@@ -334,7 +173,7 @@ public class FlashSaleDao implements InitializingBean {
         FlashSalePo flashSalePo = new FlashSalePo();
         flashSalePo.setFlashDate(vo.getFlashDate());
         flashSalePo.setGmtCreate(LocalDateTime.now());
-        flashSalePo.setState(FlashSale.State.ON.getCode());
+        flashSalePo.setState(FlashSale.State.OFF.getCode());
         flashSalePo.setTimeSegId(timeSegmentId);
 
         try {
@@ -363,9 +202,9 @@ public class FlashSaleDao implements InitializingBean {
         flashSalePo.setState(state);
         try {
             int ret = flashSalePoMapper.updateByPrimaryKeySelective(flashSalePo);
-            if(ret != 0){
+            if (ret != 0) {
                 return new ReturnObject(ResponseCode.OK);
-            }else{
+            } else {
                 return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
                         String.format("插入失败"));
             }

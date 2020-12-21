@@ -2,6 +2,7 @@ package cn.edu.xmu.goods.service;
 
 import cn.edu.xmu.goods.dao.GoodsSkuDao;
 import cn.edu.xmu.goods.model.bo.GoodsSku;
+import cn.edu.xmu.goods.model.vo.StateVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,6 +40,23 @@ public class ShopService{
     @DubboReference(check = false)
     IUserService userService;
 
+    /** 
+    * @Description: 得到店铺状态 
+    * @Param: [] 
+    * @return: cn.edu.xmu.ooad.util.ReturnObject 
+    * @Author: Yancheng Lai
+    * @Date: 2020/12/20 22:50
+    */
+    public ReturnObject getShopStates(){
+        List<StateVo> lst = new ArrayList<StateVo>();
+
+        for (Shop.State e : Shop.State.values()) {
+            StateVo stateVo = new StateVo((byte)e.getCode(),e.getDescription());
+            lst.add(stateVo);
+        }
+
+        return new ReturnObject<>( lst);
+    }
 
     /**
      * @description 新建店铺

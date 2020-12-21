@@ -147,6 +147,9 @@ public class GoodsSpuDao {
     * @Date: 2020/12/3 19:55
     */
     public boolean checkSpuIdInShop(Long shopId, Long spuId) {
+        if(shopId == 0){
+            return true;
+        }
         GoodsSpuPo goodsSpuPo = goodsSpuPoMapper.selectByPrimaryKey(spuId);
         if (goodsSpuPo == null) {
             return false;
@@ -313,9 +316,10 @@ public class GoodsSpuDao {
 
         try{
             List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(example);
-            if (goodsSpuPos == null) {
+            if (goodsSpuPos == null || goodsSpuPos.size()==0) {
                 //not found
-                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+                //return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+                return new ReturnObject<>(ResponseCode.OK);
             } else {
                 try {
                     for (GoodsSpuPo goodsSpuPo : goodsSpuPos){
@@ -450,13 +454,13 @@ public class GoodsSpuDao {
     public List<Long> queryOnSpu(Long shopId,Long spuId,String spuSn){
         GoodsSpuPoExample goodsSpuPoExample =  new GoodsSpuPoExample();
         GoodsSpuPoExample.Criteria criteria = goodsSpuPoExample.createCriteria();
-        if(shopId != null){
+        if(shopId != -1){
           criteria.andShopIdEqualTo(shopId);
         }
-        if(spuId != null){
+        if(spuId != -1){
             criteria.andIdEqualTo(spuId);
         }
-        if(spuSn != null){
+        if(!spuSn.contentEquals("default")){
             criteria.andGoodsSnEqualTo(spuSn);
         }
         List<GoodsSpuPo> goodsSpuPos = goodsSpuPoMapper.selectByExample(goodsSpuPoExample);

@@ -56,7 +56,8 @@ public class GoodsSkuDao {
     public List<GoodsSkuPo> getAllSkus(){
         GoodsSkuPoExample example = new GoodsSkuPoExample();
         GoodsSkuPoExample.Criteria criteria = example.createCriteria();
-        return goodsSkuPoMapper.selectByExample(example);
+        List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(example);
+        return goodsSkuPos;
     }
 
     public List<GoodsSkuPo> getGoodsSkuPoListBySpuIdList(List<Long> goodsSpuPoIds){
@@ -75,6 +76,22 @@ public class GoodsSkuDao {
     */
 
     public boolean checkSkuIdInShop(Long shopId, Long skuId) {
+        if(shopId == 0){
+            return true;
+        }
+        GoodsSkuPo goodsSkuPo = goodsSkuPoMapper.selectByPrimaryKey(skuId);
+        if (goodsSkuPo == null ) {
+            return false;
+        }
+        Long spuId = goodsSkuPo.getGoodsSpuId();
+        GoodsSpuPo goodsSpuPo = goodsSpuPoMapper.selectByPrimaryKey(spuId);
+        if(goodsSpuPo.getShopId() != shopId){
+            return false;
+        }
+        return true;
+    }
+
+    public boolean checkSkuIdStrictInShop(Long shopId, Long skuId) {
         GoodsSkuPo goodsSkuPo = goodsSkuPoMapper.selectByPrimaryKey(skuId);
         if (goodsSkuPo == null ) {
             return false;
@@ -152,17 +169,29 @@ public class GoodsSkuDao {
 
         GoodsSkuPo goodsSkuPo = goodsSku.getPo();
         ReturnObject<GoodsSkuSimpleRetVo> retObj = null;
+
+        GoodsSkuPoExample goodsSkuPoExample = new GoodsSkuPoExample();
+        GoodsSkuPoExample.Criteria criteria = goodsSkuPoExample.createCriteria();
+        criteria.andSkuSnEqualTo(goodsSku.getSkuSn());
+        //check goods sn
+        List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(goodsSkuPoExample);
+        if(goodsSkuPos != null && goodsSkuPos.size() > 0){
+            return new ReturnObject<>(ResponseCode.SKUSN_SAME);
+        }
+
         try{
             goodsSkuPo.setGmtModified(LocalDateTime.now());
             goodsSkuPo.setGmtCreate(LocalDateTime.now());
-            goodsSkuPo.setSkuSn("sku-"+randomUUID());
+            //goodsSkuPo.setSkuSn("sku-"+randomUUID());
+            goodsSkuPo.setSkuSn(goodsSku.getSkuSn());
             goodsSkuPo.setState((byte)GoodsSku.State.WAITING.getCode());
+            goodsSkuPo.setDisabled((byte)0);
             int ret = goodsSkuPoMapper.insert(goodsSkuPo);
             if (ret == 0) {
                 retObj = new ReturnObject<GoodsSkuSimpleRetVo>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("Insert false：" + goodsSkuPo.getName()));
             } else {
                 goodsSku.setId(goodsSkuPo.getId());
-                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(goodsSku.createSimpleVo());
+                retObj = new ReturnObject<GoodsSkuSimpleRetVo>(new GoodsSku(goodsSkuPo).createSimpleVo());
             }
         }
         catch (DataAccessException e) {
@@ -182,17 +211,30 @@ public class GoodsSkuDao {
     public ReturnObject updateSku(GoodsSku goodsSku, Long shopId,Long id){
         GoodsSkuPo newPo = goodsSku.getPo();
         GoodsSkuPo oldPo = goodsSkuPoMapper.selectByPrimaryKey(id);
-        if(oldPo == null || oldPo.getDisabled()!=0){
+        if(oldPo == null || oldPo.getDisabled()!= null && oldPo.getDisabled()!= 0){
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         if(checkSkuIdInShop(shopId,id)==false){
             return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
+
+        if(goodsSku.getSkuSn()!=null){
+            GoodsSkuPoExample goodsSkuPoExample = new GoodsSkuPoExample();
+            GoodsSkuPoExample.Criteria criteria = goodsSkuPoExample.createCriteria();
+            criteria.andSkuSnEqualTo(goodsSku.getSkuSn());
+            //check goods sn
+            List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(goodsSkuPoExample);
+            if(goodsSkuPos != null && goodsSkuPos.size() > 0){
+                return new ReturnObject<>(ResponseCode.SKUSN_SAME);
+            }
+        }
+
+
         newPo.setId(id);
         newPo.setId(id);
         newPo.setGmtModified(LocalDateTime.now());
 
-        int upd = goodsSkuPoMapper.updateByPrimaryKeySelective(goodsSku.getPo());
+        int upd = goodsSkuPoMapper.updateByPrimaryKeySelective(newPo);
         if(upd == 0){
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
@@ -260,6 +302,9 @@ public class GoodsSkuDao {
         if(checkSkuIdInShop(shopId,id)==false){
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
+        if(po.getState() == (byte)GoodsSku.State.INVALID.getCode()){
+            return new ReturnObject<>(ResponseCode.STATE_NOCHANGE);
+        }
         po.setGmtModified(LocalDateTime.now());
         po.setState((byte)GoodsSku.State.INVALID.getCode());
         //po.setDisabled((byte)0);
@@ -281,6 +326,9 @@ public class GoodsSkuDao {
         }
         if(checkSkuIdInShop(shopId,id)==false){
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+        if(po.getState() == (byte)GoodsSku.State.WAITING.getCode()){
+            return new ReturnObject<>(ResponseCode.STATE_NOCHANGE);
         }
         po.setState((byte)GoodsSku.State.WAITING.getCode());
         //po.setDisabled((byte)1);

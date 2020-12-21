@@ -16,9 +16,9 @@ import java.time.LocalDateTime;
  */
 @Data
 public class NewGrouponVo {
-    @Future
+    @NotNull
     private LocalDateTime beginTime;
-    @Future
+    @NotNull
     private LocalDateTime endTime;
     @NotEmpty
     private String strategy;

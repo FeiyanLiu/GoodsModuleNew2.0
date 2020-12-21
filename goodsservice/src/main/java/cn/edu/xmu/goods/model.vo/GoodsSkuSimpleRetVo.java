@@ -30,7 +30,7 @@ public class GoodsSkuSimpleRetVo {
     @ApiModelProperty(value = "库存量")
     private Integer inventory;
     @ApiModelProperty(value = "是否被逻辑删除")
-    private Boolean disabled;
+    private Boolean disable;
 
     /**
     * @Description: SKU返回简单视图
@@ -42,10 +42,10 @@ public class GoodsSkuSimpleRetVo {
 
     public GoodsSkuSimpleRetVo(GoodsSku goodSku){
         if(goodSku.getDisabled()==1){
-            this.setDisabled(true);
+            this.setDisable(true);
         }
         else {
-            this.setDisabled(false);
+            this.setDisable(false);
         }
         this.setId (goodSku.getId());
         this.setImageUrl(goodSku.getImageUrl());

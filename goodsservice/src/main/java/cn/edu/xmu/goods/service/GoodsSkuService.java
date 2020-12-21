@@ -8,10 +8,7 @@ import cn.edu.xmu.goods.model.bo.FloatPrice;
 import cn.edu.xmu.goods.model.bo.GoodsSku;
 import cn.edu.xmu.goods.model.bo.GoodsSpu;
 import cn.edu.xmu.goods.model.bo.Shop;
-import cn.edu.xmu.goods.model.po.GoodsSkuPo;
-import cn.edu.xmu.goods.model.po.GoodsSpuPo;
-import cn.edu.xmu.goods.model.po.GoodsSpuPoExample;
-import cn.edu.xmu.goods.model.po.ShopPo;
+import cn.edu.xmu.goods.model.po.*;
 import cn.edu.xmu.goods.model.vo.*;
 import cn.edu.xmu.goodsservice.client.IActivityService;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
@@ -64,7 +61,7 @@ public class GoodsSkuService {
     @Autowired
     ShopService shopService;
 
-    @DubboReference(check = false,version = "2.0.0")
+    @DubboReference(version = "2.7.8",group = "activity-service",check = false)
     IActivityService iActivityService;
 
     @Value("${goodsservice.dav.username}")
@@ -96,26 +93,27 @@ public class GoodsSkuService {
         List<GoodsSkuSimpleRetVo> goodsSkuSimpleRetVos = new ArrayList<>();
 
         //sku not null others null
-        if(skuSn != null && shopId == null && spuId == null && spuSn == null){
+        if( !skuSn.contentEquals("default") && shopId == -1 && spuId == -1 && spuSn.contentEquals("default")){
             List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getSkuPoBySkuSn(skuSn);
             for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
                 GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSku(goodsSkuPo).createSimpleVo();
                 goodsSkuSimpleRetVo.setPrice(getPriceById(goodsSkuPo.getId()));
                 goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
             }
-        } else if (skuSn != null && !( shopId == null && spuId == null && spuSn == null)){
+        } else if (!skuSn.contentEquals("default") && !( shopId == -1 && spuId == -1 && spuSn.contentEquals("default"))){
             // sku not null othsrs not null
             List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getSkuPoBySkuSn(skuSn);
+
             for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
                 GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoById(goodsSkuPo.getId()).getData();
                 boolean flag = true;
-                if(shopId != null && shopId != goodsSpuPo.getShopId()){
+                if(shopId != -1 && shopId != goodsSpuPo.getShopId()){
                     flag = false;
                 }
-                if(spuId != null &&spuId != goodsSpuPo.getId()){
+                if(spuId != -1 && spuId != goodsSpuPo.getId()){
                     flag = false;
                 }
-                if(spuSn!= null && spuId != goodsSpuPo.getId()){
+                if( !spuSn.contentEquals("default") && spuId != goodsSpuPo.getId()){
                     flag = false;
                 }
                 if(flag){
@@ -124,7 +122,7 @@ public class GoodsSkuService {
                     goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
                 }
             }
-        } else if (skuSn == null && shopId == null && spuId == null && spuSn == null){
+        } else if (skuSn.contentEquals("default")&& shopId == -1 && spuId == -1 && spuSn.contentEquals("default")){
             //all null
             List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getAllSkus();
             for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
@@ -134,6 +132,12 @@ public class GoodsSkuService {
             }
         } else {
             List<Long> goodsSpuPoIds = goodsSpuDao.queryOnSpu(shopId,spuId,spuSn);
+            if(goodsSpuPoIds == null || goodsSpuPoIds.size()==0){
+                PageInfo<GoodsSkuSimpleRetVo> pageInfo = new PageInfo<>(goodsSkuSimpleRetVos);
+                pageInfo.setPages(page);
+                pageInfo.setPageSize(pagesize);
+                return new ReturnObject<>(pageInfo);
+            }
             List<GoodsSkuPo> goodsSkuPos = goodsSkuDao.getGoodsSkuPoListBySpuIdList(goodsSpuPoIds);
             for(GoodsSkuPo goodsSkuPo : goodsSkuPos){
                 GoodsSkuSimpleRetVo goodsSkuSimpleRetVo = new GoodsSku(goodsSkuPo).createSimpleVo();
@@ -141,9 +145,10 @@ public class GoodsSkuService {
                 goodsSkuSimpleRetVos.add(goodsSkuSimpleRetVo);
             }
         }
-
-
-        return new ReturnObject<>(new PageInfo<>(goodsSkuSimpleRetVos));
+        PageInfo<GoodsSkuSimpleRetVo> pageInfo = new PageInfo<>(goodsSkuSimpleRetVos);
+        pageInfo.setPages(page);
+        pageInfo.setPageSize(pagesize);
+        return new ReturnObject<>(pageInfo);
     }
     /** 
     * @Description: 逻辑删除Sku，先检查，后删除
@@ -173,10 +178,18 @@ public class GoodsSkuService {
         logger.info("Service");
 
         ReturnObject<GoodsSkuSimpleRetVo> retObj = null;
-
+        GoodsSpuPo goodsSpuPo = goodsSpuDao.getGoodsSpuPoById(id).getData();
+        if(goodsSpuPo==null||goodsSpuPo.getDisabled()!=0){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
         //查询spu是否属于该商铺
+        if(goodsSpuDao.checkSpuIdInShop(shopId,id)==false){
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
         GoodsSpuPoExample goodsSpuPoExample = new GoodsSpuPoExample();
         GoodsSpuPoExample.Criteria criteria = goodsSpuPoExample.createCriteria();
+
         goodsSku.setGoodsSpuId(id);
         retObj = goodsSkuDao.insertGoodsSku(goodsSku);
         logger.info("Service node 4");
@@ -194,7 +207,8 @@ public class GoodsSkuService {
     @Transactional
     
     public ReturnObject<VoObject> updateSku(GoodsSku vo,Long shopId,Long id){
-            return goodsSkuDao.updateSku(vo,shopId, id);
+        ReturnObject<VoObject> ret =  goodsSkuDao.updateSku(vo,shopId, id);
+        return ret;
     }
 
     /**
@@ -442,12 +456,12 @@ public class GoodsSkuService {
         if(result != null){
             return  result;
         }
-        ReturnObject<List> listReturnObject = floatPriceDao.getFloatPriceBySkuId(goodsSkuId);
-        List<FloatPrice> target=listReturnObject.getData();
+        ReturnObject<List<FloatPricePo>> listReturnObject = floatPriceDao.getFloatPriceBySkuId(goodsSkuId);
+        List<FloatPricePo> target=listReturnObject.getData();
         if(target != null){
-            for(FloatPrice aFloatPrice : target){
+            for(FloatPricePo aFloatPrice : target){
                 if(LocalDateTime.now().isAfter(aFloatPrice.getBeginTime())&&LocalDateTime.now().isBefore(aFloatPrice.getEndTime())){
-                    Long item= aFloatPrice.getActivityPrive();
+                    Long item= aFloatPrice.getActivityPrice();
                     result = item;
                 }
             }

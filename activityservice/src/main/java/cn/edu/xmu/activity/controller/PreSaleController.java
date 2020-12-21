@@ -2,8 +2,6 @@ package cn.edu.xmu.activity.controller;
 
 
 import cn.edu.xmu.activity.model.bo.PreSale;
-import cn.edu.xmu.activity.model.bo.PreSale;
-import cn.edu.xmu.activity.model.po.PreSalePo;
 import cn.edu.xmu.activity.model.vo.NewPreSaleVo;
 import cn.edu.xmu.activity.model.vo.PreSaleStateVo;
 import cn.edu.xmu.activity.service.PreSaleService;
@@ -23,8 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpServletResponse;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,7 +95,7 @@ public class PreSaleController {
             @RequestParam(required = false, defaultValue = "10") Integer pageSize
     ) {
         //校验timeline
-        if(!(timeline==null||timeline==0||timeline==1||timeline==2||timeline==3))
+        if (!(timeline == null || timeline == 0 || timeline == 1 || timeline == 2 || timeline == 3))
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         ReturnObject<PageInfo<VoObject>> returnObject = preSaleService.selectAllPreSale(shopId, timeline, skuId, page, pageSize);
         if (returnObject.getCode().equals(ResponseCode.OK)) {
@@ -133,7 +133,7 @@ public class PreSaleController {
             logger.debug("PreSaleInfo: skuId = " + skuId + " shopId = " + shopId);
         }
 
-        ReturnObject<List> returnObject = preSaleService.getPreSaleById(shopId , skuId, state);
+        ReturnObject<List> returnObject = preSaleService.getPreSaleById(shopId, skuId, state);
 
         if (returnObject.getCode().equals(ResponseCode.OK)) {
             return Common.getListRetObject(returnObject);
@@ -163,8 +163,8 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
-    @PostMapping(value = "/shops/{shopId}/skus/{id}/presales",produces = "application/json;charset=UTF-8")
+    @Audit
+    @PostMapping(value = "/shops/{shopId}/skus/{id}/presales", produces = "application/json;charset=UTF-8")
     public Object insertPreSale(
             @PathVariable Long shopId,
             @PathVariable Long id,
@@ -175,7 +175,13 @@ public class PreSaleController {
         httpServletResponse.setContentType("application/json;charset=utf-8");
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
-            return returnObject;
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
+        }
+        if(vo.getBeginTime().compareTo(LocalDateTime.now()) < 0){
+            return Common.decorateReturnObject  (new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
+        }
+        if (vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime()) > 0) {
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
         }
         ReturnObject retObject = preSaleService.createNewPreSale(vo, shopId, id);
         if (retObject.getCode() == ResponseCode.OK) {
@@ -183,7 +189,7 @@ public class PreSaleController {
                     ResponseUtil.ok(retObject.getData()),
                     HttpStatus.CREATED);
         } else {
-            return ResponseUtil.fail(retObject.getCode());
+            return Common.decorateReturnObject(retObject);
         }
     }
 
@@ -216,8 +222,11 @@ public class PreSaleController {
         if (null != returnObject) {
             return returnObject;
         }
-        if (vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime())>0) {
-            return Common.getRetObject(new ReturnObject<>(ResponseCode.Log_Bigger));
+        if(vo.getBeginTime().compareTo(LocalDateTime.now()) < 0){
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
+        }
+        if (vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime()) > 0) {
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
         }
         ReturnObject retObject = preSaleService.updatePreSale(vo, shopId, id);
         if (retObject.getCode() == ResponseCode.OK) {
@@ -246,7 +255,7 @@ public class PreSaleController {
         if (logger.isDebugEnabled()) {
             logger.debug("deleteUser: id = " + id);
         }
-        ReturnObject retObject = preSaleService.changePreSaleState(shopId,id, PreSale.State.DELETE.getCode());
+        ReturnObject retObject = preSaleService.changePreSaleState(shopId, id, PreSale.State.DELETE.getCode());
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {

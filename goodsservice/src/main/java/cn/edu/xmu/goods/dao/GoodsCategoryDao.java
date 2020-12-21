@@ -2,6 +2,8 @@ package cn.edu.xmu.goods.dao;
 
 import cn.edu.xmu.goods.mapper.GoodsCategoryPoMapper;
 import cn.edu.xmu.goods.model.bo.GoodsCategory;
+import cn.edu.xmu.goods.model.po.BrandPo;
+import cn.edu.xmu.goods.model.po.BrandPoExample;
 import cn.edu.xmu.goods.model.po.GoodsCategoryPo;
 import cn.edu.xmu.goods.model.po.GoodsCategoryPoExample;
 import cn.edu.xmu.goods.model.vo.GoodsCategoryRetVo;
@@ -37,25 +39,29 @@ public class GoodsCategoryDao {
      * @Return: ReturnObject<List>
      * @Description:根据父类id查找子类
      */
-    public ReturnObject<List> getCategoryByPID(Long pid){
+    public ReturnObject<List<GoodsCategoryPo>> getCategoryByPID(Long pid){
         GoodsCategoryPoExample example=new GoodsCategoryPoExample();
         GoodsCategoryPoExample.Criteria criteria= example.createCriteria();
         criteria.andPidEqualTo(pid);
-        List<GoodsCategoryPo> goodsCategorys=null;
-        GoodsCategoryPo catefather = goodsCategoryPoMapper.selectByPrimaryKey(pid);
-        if(catefather == null)
-        {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
+        List<GoodsCategoryPo> goodsCategorys= new ArrayList<>();
+//        if(pid != 0){
+//            GoodsCategoryPo catefather = goodsCategoryPoMapper.selectByPrimaryKey(pid);
+//            if(catefather == null)
+//            {
+//                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+//            }
+//        }
+
         try {
             goodsCategorys= goodsCategoryPoMapper.selectByExample(example);
         } catch (DataAccessException e) {
             StringBuilder message = new StringBuilder().append("getCategoryByPID: ").append(e.getMessage());
             logger.error(message.toString());
         }
-        List<GoodsCategoryRetVo> list=new ArrayList<>();
+        List<GoodsCategoryPo> list=new ArrayList<>();
         for (GoodsCategoryPo goodsCategory : goodsCategorys) {
-            list.add(new GoodsCategory(goodsCategory).createVo());
+            //list.add(new GoodsCategory(goodsCategory).createVo());
+            list.add(goodsCategory);
         }
         return new ReturnObject<>(list);
     }
@@ -71,6 +77,22 @@ public class GoodsCategoryDao {
         GoodsCategoryPo goodsCategoryPo=goodsCategory.createPo();
         ReturnObject<GoodsCategoryPo> retObj=null;
 
+        //check father
+        GoodsCategoryPo goodsCategoryPo1 = goodsCategoryPoMapper.selectByPrimaryKey(goodsCategory.getPid());
+        if(goodsCategory.getPid()!=0 && goodsCategoryPo1 == null) {
+            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+
+        //check the same name
+        GoodsCategoryPoExample goodsCategoryPoExample = new GoodsCategoryPoExample();
+        GoodsCategoryPoExample.Criteria criteria = goodsCategoryPoExample.createCriteria();
+        criteria.andNameEqualTo(goodsCategory.getName());
+        List<GoodsCategoryPo> goodsCategoryPos = goodsCategoryPoMapper.selectByExample(goodsCategoryPoExample);
+        if(goodsCategoryPos.size() != 0){
+            return new ReturnObject<>(ResponseCode.CATEGORY_NAME_SAME);
+        }
+
+
         try{
             int ret=goodsCategoryPoMapper.insertSelective(goodsCategoryPo);
             if(ret!=0) {
@@ -78,7 +100,7 @@ public class GoodsCategoryDao {
             } else{
                 retObj=new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             }
-            //retObj=new ReturnObject<>(goodsCategoryPoMapper.selectByPrimaryKey((long)goodsCategoryPoMapper.insertSelective(goodsCategoryPo)));
+            //retObj=new ReturnObject<>(goodsCategoryPoMapper.selectByPrimaryKey(goodsCategoryPoMapper.insertSelective(goodsCategoryPo)));
         }
         catch (DataAccessException e) {
             // 其他数据库错误
@@ -109,17 +131,20 @@ public class GoodsCategoryDao {
                 logger.debug("deleteCategory: id not exist = " + id);
                 retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("id不存在：" + id));
             }else {
-                ReturnObject<List> media=getCategoryByPID(id);
-                GoodsCategoryPo tool=new GoodsCategoryPo();
-                List<GoodsCategoryPo> needToModified=media.getData();
-                for(int i=0;i<needToModified.size();i++){
-                    tool=needToModified.get(i);
+                ReturnObject<List<GoodsCategoryPo>> media=getCategoryByPID(id);
+                GoodsCategoryPo tool = new GoodsCategoryPo();
+                if(media.getCode()!= ResponseCode.RESOURCE_ID_NOTEXIST){
+                    List<GoodsCategoryPo> needToModified=media.getData();
+                    for(int i=0;i<needToModified.size();i++){
+                        tool=needToModified.get(i);
 //                    tool.setPid((long) 0);
-                    ReturnObject r = goodsSpuDao.setCategoryIdDefault(id,0l);
-                    goodsCategoryPoMapper.deleteByPrimaryKey(tool.getId());
+                        ReturnObject r = goodsSpuDao.setCategoryIdDefault(tool.getId(),0l);
+                        goodsCategoryPoMapper.deleteByPrimaryKey(tool.getId());
+                    }
+
                 }
 
-                retObj=new ReturnObject<>();
+                retObj=new ReturnObject<>(ResponseCode.OK);
             }
         }
         catch(DataAccessException e)
@@ -146,6 +171,16 @@ public class GoodsCategoryDao {
     public ReturnObject<Object> updateCategory(GoodsCategory goodsCategory){
         ReturnObject<Object> retObj =null;
         GoodsCategoryPo categoryPo=goodsCategory.createPo();
+
+        //check the same name
+        GoodsCategoryPoExample goodsCategoryPoExample = new GoodsCategoryPoExample();
+        GoodsCategoryPoExample.Criteria criteria = goodsCategoryPoExample.createCriteria();
+        criteria.andNameEqualTo(goodsCategory.getName());
+        List<GoodsCategoryPo> goodsCategoryPos = goodsCategoryPoMapper.selectByExample(goodsCategoryPoExample);
+        if(goodsCategoryPos.size() != 0){
+            return new ReturnObject<>(ResponseCode.CATEGORY_NAME_SAME);
+        }
+
         try{
             int ret=goodsCategoryPoMapper.updateByPrimaryKey(categoryPo);
             if(ret==0){

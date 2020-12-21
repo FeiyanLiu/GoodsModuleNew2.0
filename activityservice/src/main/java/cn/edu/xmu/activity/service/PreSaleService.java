@@ -45,11 +45,10 @@ public class PreSaleService {
             return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
         List<PreSalePo> preSalePos = returnObject.getData();
-
         List<VoObject> voObjects = new ArrayList<>(preSalePos.size());
         for (PreSalePo preSalePo : preSalePos) {
-            GoodsSku goodsSku = linShiNewGoodsSku(preSalePo.getGoodsSkuId());
-            ShopSimple shopSimple = linShiNewShopSimple(preSalePo.getShopId());
+            GoodsSku goodsSku = goodsService.getSkuById(preSalePo.getGoodsSkuId());
+            ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
             VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple).createVo();
             voObjects.add(voObject);
         }
@@ -68,11 +67,8 @@ public class PreSaleService {
         PageHelper.startPage(pageNum, pageSize);
         List<VoObject> voObjects = new ArrayList<>(preSalePosPageInfo.getSize());
         for (PreSalePo preSalePo : preSalePosPageInfo.getList()) {
-            // 目前暂时关闭 dubbo,后续连接上后再取消
-            // GoodsSku goodsSku = goodsService.getSkuById(preSalePo.getGoodsSkuId());
-            // ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
-            GoodsSku goodsSku = linShiNewGoodsSku(preSalePo.getGoodsSkuId());
-            ShopSimple shopSimple = linShiNewShopSimple(preSalePo.getShopId());
+            GoodsSku goodsSku =goodsService.getSkuById(preSalePo.getGoodsSkuId());
+            ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
             VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple);
             voObjects.add(voObject);
         }
@@ -95,14 +91,18 @@ public class PreSaleService {
         if (goodsSku == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        if (shopId != goodsService.getShopIdBySpuId(goodsSku.getGoodsSpuId())) {
+        if (shopId.longValue() != goodsService.getShopIdBySpuId(goodsSku.getGoodsSpuId()).longValue()) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 检查商品在beginTime 和 endTime是否参与了活动
         if (preSaleDao.checkPreSaleInActivities(id, vo.getBeginTime(), vo.getEndTime()).getData() != false) {
-            return new ReturnObject(ResponseCode.TIMESEG_CONFLICT);
+            return new ReturnObject(ResponseCode.PRESALE_STATENOTALLOW);
         }
-        ReturnObject<PreSalePo> returnObject = preSaleDao.createNewPreSaleByVo(vo, shopId, id);
+        if(goodsSku.getInventory() < vo.getQuantity()){
+            return new ReturnObject(ResponseCode.SKU_NOTENOUGH);
+        }
+
+        ReturnObject<PreSalePo> returnObject = preSaleDao.createNewPreSale(vo, shopId, id);
         if (returnObject.getCode() != ResponseCode.OK) {
             // 存在错误则直接返回
             return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
@@ -123,6 +123,12 @@ public class PreSaleService {
             return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
         PreSalePo preSalePo = returnObject.getData();
+        if(preSalePo == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        if(preSalePo.getShopId().longValue() != shopId.longValue()){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         // 确认状态:id存在性和权限以及是否下线
         ReturnObject confirmResult = confirmPreSaleId(preSalePo, shopId, PreSale.State.OFF.getCode());
         if (confirmResult.getCode() != ResponseCode.OK) {
@@ -160,41 +166,19 @@ public class PreSaleService {
         // 如果将要上线的时间段该商品存在其他活动,无法上线,时段冲突
         // 当发生错误时,为了保证不冲突,应该拒绝上线
 
-
         if (state == PreSale.State.ON.getCode()) {
             ReturnObject<Boolean> returnResult = preSaleDao.checkPreSaleInActivities(preSalePo.getGoodsSkuId(),
                     preSalePo.getBeginTime(), preSalePo.getEndTime());
-            if (returnObject.getCode() != ResponseCode.OK) {
+            if (returnResult.getCode() != ResponseCode.OK) {
                 return new ReturnObject(returnObject.getCode(), returnObject.getErrmsg());
             }
-            if (returnObject.getData().equals(false)) {
-                return new ReturnObject(ResponseCode.TIMESEG_CONFLICT);
+            if (returnResult.getData().equals(false)) {
+                return new ReturnObject(ResponseCode.PRESALE_STATENOTALLOW);
             }
         }
         return preSaleDao.changePreSaleState(id, state);
     }
 
-
-    /*******************临时岗*********************/
-
-    private GoodsSku linShiNewGoodsSku(Long id) {
-        GoodsSku goodsSku = new GoodsSku();
-        goodsSku.setDetail("临时创建的,后面记得改成调用商品接口");
-        goodsSku.setName("临时测试");
-        goodsSku.setId(id);
-        return goodsSku;
-    }
-
-
-    private ShopSimple linShiNewShopSimple(Long id) {
-        ShopSimple shopSimple = new ShopSimple();
-        shopSimple.setShopName("临时店铺");
-        shopSimple.setId(id);
-        return shopSimple;
-    }
-
-
-    /*************通用函数区域*************/
 
 
     // 可修改状态检测

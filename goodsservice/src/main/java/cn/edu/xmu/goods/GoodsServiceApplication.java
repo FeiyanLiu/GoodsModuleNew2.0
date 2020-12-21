@@ -13,10 +13,11 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  * @date Created at 2020/11/28 23:30
  */
 
-@MapperScan("cn.edu.xmu.goods.mapper")
+
+@DubboComponentScan("cn.edu.xmu.goods")
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 @SpringBootApplication(scanBasePackages = {"cn.edu.xmu.ooad","cn.edu.xmu.goods"})
-@DubboComponentScan("cn.edu.xmu.goods")
+@MapperScan("cn.edu.xmu.goods.mapper")
 @EnableDiscoveryClient//通过springCloud实现服务发现
 public class GoodsServiceApplication {
     public static void main(String[] args) {

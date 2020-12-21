@@ -27,4 +27,6 @@ public class BrandSimpleRetVo {
         this.setName ( brand.getName());
         this.setImageUrl( brand.getImageUrl());;
     }
+
+    public BrandSimpleRetVo(){}
 }
