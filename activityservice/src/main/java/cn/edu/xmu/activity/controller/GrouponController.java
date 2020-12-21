@@ -270,7 +270,7 @@ public class GrouponController {
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {
-            return ResponseUtil.fail(retObject.getCode());
+            return Common.decorateReturnObject(retObject);
         }
     }
 
@@ -293,7 +293,7 @@ public class GrouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @DeleteMapping("/shops/{shopId}/groupons/{id}")
     public Object deleteGroupon(@PathVariable Long id, @PathVariable Long shopId) {
 
@@ -301,7 +301,7 @@ public class GrouponController {
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {
-            return ResponseUtil.fail(retObject.getCode());
+            return Common.decorateReturnObject(retObject);
         }
     }
 
@@ -326,7 +326,7 @@ public class GrouponController {
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {
-            return ResponseUtil.fail(retObject.getCode());
+            return Common.decorateReturnObject(retObject);
         }
     }
 
@@ -351,7 +351,7 @@ public class GrouponController {
         if (retObject.getCode() == ResponseCode.OK) {
             return ResponseUtil.ok();
         } else {
-            return ResponseUtil.fail(retObject.getCode());
+            return Common.decorateReturnObject(retObject);
         }
     }
 

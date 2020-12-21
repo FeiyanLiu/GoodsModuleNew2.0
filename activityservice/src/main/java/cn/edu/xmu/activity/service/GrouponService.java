@@ -3,13 +3,10 @@ package cn.edu.xmu.activity.service;
 
 import cn.edu.xmu.activity.dao.GrouponDao;
 import cn.edu.xmu.activity.model.bo.Groupon;
-import cn.edu.xmu.activity.model.bo.Groupon;
-import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.vo.NewGrouponVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
-import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -17,7 +14,6 @@ import cn.edu.xmu.ooad.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.aspectj.weaver.GeneratedReferenceTypeDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +36,7 @@ public class GrouponService {
     @Autowired
     GrouponDao grouponDao;
 
-    @DubboReference(check = false,version = "2.7.8",group = "goods-service")
+    @DubboReference(check = false, version = "2.7.8", group = "goods-service")
     IGoodsService goodsService;
 
     /**
@@ -64,8 +60,9 @@ public class GrouponService {
             // 目前暂时关闭 dubbo,后续连接上后再取消
             // GoodsSpu goodsSpu = goodsService.getSpuById(preSalePo.getGoodsSpuId());
             // ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
-            GoodsSimpleSpu goodsSpu = linShiNewGoodsSpu(preSalePo.getGoodsSpuId());
-            ShopSimple shopSimple = linShiNewShopSimple(preSalePo.getShopId());
+            GoodsSimpleSpu goodsSpu = goodsService.getSimpleSpuById(preSalePo.getGoodsSpuId());
+            Long shopIdReturn = goodsService.getShopIdBySpuId(goodsSpu.getId());
+            ShopSimple shopSimple = goodsService.getSimpleShopById(shopIdReturn);
             VoObject voObject = new Groupon(preSalePo, goodsSpu, shopSimple);
             voObjects.add(voObject);
         }
@@ -99,7 +96,7 @@ public class GrouponService {
     public ReturnObject<PageInfo<VoObject>> selectGroupon(Long shopId, Byte state, Long spuId, LocalDateTime beginTime, LocalDateTime endTime, Integer pageNum, Integer pageSize) {
         List<GrouponPo> grouponPos = grouponDao.selectGroupon(shopId, state, spuId, beginTime, endTime, pageNum, pageSize);
         return changeListIntoPage(grouponPos, pageNum, pageSize);
-        
+
     }
 
     @Transactional
@@ -147,44 +144,22 @@ public class GrouponService {
             return new ReturnObject(ResponseCode.TIMESEG_CONFLICT);
         }
 
+
         // 插入操作
-        ReturnObject<Long> insertResult = grouponDao.insertNewGroupon(vo, shopId, id);
-        if(insertResult.getCode() != ResponseCode.OK){
-            return new ReturnObject(insertResult.getCode(),insertResult.getErrmsg());
+        ReturnObject<GrouponPo> returnObject = grouponDao.creatNewGroupon(vo, shopId, id);
+        if (returnObject.getCode() != ResponseCode.OK) {
+            // 存在错误则直接返回
+            return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
 
-        Long grouponId = insertResult.getData();
+        GrouponPo grouponPo = returnObject.getData();
         // 正常路径
-        if (grouponId != null) {
-            ReturnObject<GrouponPo> returnObject = grouponDao.getGrouponPoByGrouponId(grouponId);
-            if (returnObject.getCode() == ResponseCode.INTERNAL_SERVER_ERR) {
-                return returnObject;
-            }
-            GrouponPo grouponPo = returnObject.getData();
-            ShopSimple shopSimple = goodsService.getSimpleShopById(shopId);
-            Groupon groupon = new Groupon(grouponPo, goodsSimpleSpu, shopSimple);
-            return new ReturnObject<VoObject>(groupon.createVo());
-        }
-
-        // 错误路径: 系统内部错误(插入失败)
-        return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR);
+        ShopSimple shopSimple = goodsService.getSimpleShopById(shopId);
+        VoObject voObject = new Groupon(grouponPo, goodsSimpleSpu, shopSimple).createVo();
+        return new ReturnObject(voObject);
     }
 
-    public ReturnObject<Groupon> getGrouponByGrouponId(Long grouponId) {
-        GrouponPo grouponPo = grouponDao.getGrouponPoByGrouponId(grouponId).getData();
-        ShopSimple shopSimple = goodsService.getSimpleShopById(grouponPo.getShopId());
-        GoodsSimpleSpu goodsSimpleSpu = goodsService.getSimpleSpuById(grouponPo.getGoodsSpuId());
-        return new ReturnObject<>(new Groupon(grouponPo, goodsSimpleSpu, shopSimple));
-    }
 
-    public boolean checkGroupon(Long id) {
-        GrouponPo grouponPo = grouponDao.getGrouponPoByGrouponId(id).getData();
-        if (grouponPo != null) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     /**
      * @Description: 传入VO更新团购活动信息
@@ -233,7 +208,7 @@ public class GrouponService {
         } else {
             expectState = Groupon.State.ON.getCode();
         }
-        ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId,expectState);
+        ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId, expectState);
         if (confirmResult.getCode() != ResponseCode.OK) {
             return confirmResult;
         }
@@ -271,10 +246,6 @@ public class GrouponService {
         if (grouponPo == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        // 错误路径2,不是自家活动
-        if (grouponPo.getShopId().longValue() != shopId.longValue()) {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
-        }
 
         // 错误路径3,状态不允许,并且目前只需要下线就能修改,不需要管改的结果
         // 时段冲突也不需要考虑,因为在下线状态,考虑的事情,扔给上线吧
@@ -283,25 +254,14 @@ public class GrouponService {
             return new ReturnObject(ResponseCode.GROUPON_STATENOTALLOW);
         }
 
+        // 错误路径2,不是自家活动
+        if (grouponPo.getShopId().longValue() != shopId.longValue()) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
+
+
         // 校验成功,通过
         return new ReturnObject(ResponseCode.OK);
-    }
-
-
-    private GoodsSimpleSpu linShiNewGoodsSpu(Long id) {
-        GoodsSimpleSpu goodsSpu = new GoodsSimpleSpu();
-        goodsSpu.setName("临时测试");
-        goodsSpu.setId(id);
-        goodsSpu.setGoodsSn("123456");
-        return goodsSpu;
-    }
-
-
-    private ShopSimple linShiNewShopSimple(Long id) {
-        ShopSimple shopSimple = new ShopSimple();
-        shopSimple.setShopName("临时店铺");
-        shopSimple.setId(id);
-        return shopSimple;
     }
 
 

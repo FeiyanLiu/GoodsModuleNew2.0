@@ -4,7 +4,6 @@ import cn.edu.xmu.activity.dao.FlashSaleDao;
 import cn.edu.xmu.activity.dao.FlashSaleItemDao;
 import cn.edu.xmu.activity.model.bo.FlashSale;
 import cn.edu.xmu.activity.model.bo.FlashSaleItem;
-import cn.edu.xmu.activity.model.bo.FlashSale;
 import cn.edu.xmu.activity.model.po.*;
 import cn.edu.xmu.activity.model.po.FlashSalePo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
@@ -15,7 +14,6 @@ import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import cn.edu.xmu.otherservice.client.OtherService;
 import cn.edu.xmu.otherservice.model.po.TimeSegmentPo;
-import cn.edu.xmu.otherservice.model.po.TimeSegmentPoExample;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,11 +47,12 @@ public class FlashSaleService {
     @Autowired
     FlashSaleItemDao flashSaleItemDao;
 
-    @Autowired
+    @DubboReference(check = false)
     IGoodsService goodsService;
 
     @DubboReference(check = false)
     OtherService otherService;
+
     @Autowired
     private ReactiveRedisTemplate<String, Serializable> reactiveRedisTemplate;
 
@@ -64,7 +63,7 @@ public class FlashSaleService {
             if (flashSalePo.size() != 0) {
                 List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemDao.getFlashSaleItemPoFromSaleId(flashSalePo.get(0).getId());
                 for (FlashSaleItemPo flashSaleItemPo : flashSaleItemPos) {
-                    GoodsSku goodsSku = getGoodsSku(flashSaleItemPo.getGoodsSkuId());
+                    GoodsSku goodsSku = goodsService.getSkuById(flashSaleItemPo.getGoodsSkuId());
                     FlashSaleItem flashSaleItem = new FlashSaleItem(flashSaleItemPo, goodsSku);
                     redisTemplate.opsForSet().add(segIdStr, flashSaleItem);
                 }
@@ -73,82 +72,27 @@ public class FlashSaleService {
         return reactiveRedisTemplate.opsForSet().members(segIdStr).map(x -> (FlashSaleItem) x);
     }
 
-    @Transactional
-    public ReturnObject<List> getFlashSaleById(Long id) {
-
-        ReturnObject<List> flashSalePos = flashSaleDao.getFlashSaleById(id);
-        if (flashSalePos != null) {
-            //returnObject = new ReturnObject<FlashSalePo>(flashSalePo);
-            return flashSalePos;
-        } else {
-            logger.debug("findFlashSaleById: Not Found");
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
-    }
-
-
-    // 等待goods的接口
-    private List<Long> getGoodsSpuIdsToSkuIds(Long goodsSpuId) {
-        List<Long> longs = new ArrayList<Long>();
-        longs.add(1003L);
-        longs.add(1004L);
-        longs.add(1005L);
-        return longs;
-    }
-
-    @Transactional
-    public boolean checkFlashSaleInActivities(Long goodsSpuId, LocalDateTime beginTime, LocalDateTime endTime) {
-        List<Long> goodsSkuIds = getGoodsSpuIdsToSkuIds(goodsSpuId);
-        for (Long goodsSkuId : goodsSkuIds) {
-            if (flashSaleDao.getFlashSaleItemBetweenTimeByGoodsSkuId(goodsSkuId, beginTime, endTime) != null) {
-
-                return true;
-            }
-        }
-        return false;
-    }
-
 
     @Transactional
     public Flux<FlashSaleItem> getCurrentFlashSale(LocalDateTime localDateTime) {
         String currentNow = "flashSaleNow_" + localDateTime.toString();
         if (redisTemplate.opsForSet().size(currentNow) == 0) {
-            TimeSegmentPo timeSegmentPo = getTimeSegmentPoByTime(localDateTime);
+            TimeSegmentPo timeSegmentPo = returnCurrentTimeSegmentPo();
             List<FlashSalePo> flashSalePos = flashSaleDao.getFlashSalesByTimeSegmentId(timeSegmentPo.getId());
-            for (FlashSalePo flashSalePo : flashSalePos) {
+            if (flashSalePos.size() != 0) {
+                FlashSalePo flashSalePo = flashSalePos.get(0);
                 List<FlashSaleItemPo> flashSaleItemPoFromSaleId = flashSaleItemDao.getFlashSaleItemPoFromSaleId(flashSalePo.getId());
                 for (FlashSaleItemPo flashSaleItemPo : flashSaleItemPoFromSaleId) {
-                    GoodsSku goodsSku = getGoodsSku(flashSaleItemPo.getGoodsSkuId());
+                    GoodsSku goodsSku = goodsService.getSkuById(flashSaleItemPo.getGoodsSkuId());
                     FlashSaleItem flashSaleItem = new FlashSaleItem(flashSaleItemPo, goodsSku);
                     redisTemplate.opsForSet().add(currentNow, flashSaleItem);
                 }
             }
+
         }
         return reactiveRedisTemplate.opsForSet().members(currentNow).map(x -> (FlashSaleItem) x);
     }
 
-    public TimeSegmentPo getTimeSegmentPoByTime(LocalDateTime localDateTime) {
-        localDateTime = LocalDateTime.of(2020, 01, 01, localDateTime.getHour(), localDateTime.getMinute(), localDateTime.getSecond());
-        TimeSegmentPoExample timeSegmentPoExample = new TimeSegmentPoExample();
-        TimeSegmentPoExample.Criteria criteria = timeSegmentPoExample.createCriteria();
-        criteria.andEndTimeGreaterThanOrEqualTo(localDateTime);
-        criteria.andBeginTimeLessThanOrEqualTo(localDateTime);
-        List<TimeSegmentPo> allTimeSegment = otherService.getAllTimeSegment();
-        for (TimeSegmentPo timeSegmentPo : allTimeSegment) {
-            if (timeSegmentPo.getBeginTime().compareTo(localDateTime) < 0 && timeSegmentPo.getEndTime().compareTo(localDateTime) > 0) {
-                return timeSegmentPo;
-            }
-        }
-        return null;
-    }
-
-    private GoodsSku getGoodsSku(Long id) {
-        GoodsSku goodsSku = new GoodsSku();
-        goodsSku.setSkuSn("skusntest11");
-        goodsSku.setId(111L);
-        goodsSku.setDetail("这个是临时测试,记得调用接口");
-        return goodsSku;
-    }
 
     @Transactional
     public ReturnObject createNewFlashSale(NewFlashSaleVo vo, Long id) {
@@ -166,7 +110,7 @@ public class FlashSaleService {
         }
 
         if (checkResult.getData()) {
-            return new ReturnObject(ResponseCode.FLASHSALE_OUTLIMIT);
+            return new ReturnObject(ResponseCode.TIMESEG_CONFLICT);
         }
 
         ReturnObject<Long> returnObject = flashSaleDao.insertFlashSale(vo, id);
@@ -191,8 +135,13 @@ public class FlashSaleService {
         if (flashSalePo == null) {
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
+        if (flashSalePo.getFlashDate().compareTo(LocalDateTime.now()) < 0) {
+            return new ReturnObject(ResponseCode.ACTIVITYALTER_INVALID);
+        }
+        if (flashSalePo.getState() == FlashSale.State.ON.getCode()) {
+            return new ReturnObject(ResponseCode.ACTIVITYALTER_INVALID);
+        }
 
-        // 秒杀不需要判断当前是否下线,可以直接修改日期
         // 修改日期需要注意,修改的结果是否可以
         // 将flashDate的时分秒去掉,达到标准的格式
         vo.setFlashDate(createRealTime(vo.getFlashDate(), LocalDateTime.of(2020, 01, 01, 0, 0, 0)));
@@ -222,6 +171,11 @@ public class FlashSaleService {
         if (goodsSku == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
+        // 检查秒杀是否存在
+        ReturnObject<FlashSalePo> flashSale = flashSaleDao.getFlashSaleByFlashSaleId(flashSaleId);
+        if (flashSale == null) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
 
         ReturnObject<Boolean> booleanReturnObject = flashSaleItemDao.checkSkuInFlashSale(flashSaleId, newFlashSaleItemVo.getSkuId());
         if (booleanReturnObject.getCode() != ResponseCode.OK) {
@@ -230,6 +184,9 @@ public class FlashSaleService {
         // 已经加入该秒杀了,不能重复加入
         if (booleanReturnObject.getData() == true) {
             return new ReturnObject(ResponseCode.SKUPRICE_CONFLICT);
+        }
+        if(goodsSku.getInventory() < newFlashSaleItemVo.getQuantity()){
+            return new ReturnObject(ResponseCode.SKU_NOTENOUGH);
         }
         //这边调用接口,减少相应数量,减少成功返回true
         /*if(goodsService.cutGoodsSkuInventory(newFlashSaleItemVo.getQuantity())){
@@ -251,24 +208,17 @@ public class FlashSaleService {
     }
 
     @Transactional
-    public ReturnObject deleteSkuFromFlashSale(Long fid, Long skuId) {
-        ReturnObject<Boolean> booleanReturnObject = flashSaleItemDao.checkSkuInFlashSale(fid, skuId);
+    public ReturnObject deleteSkuFromFlashSale(Long fid, Long itemId) {
+        ReturnObject<Boolean> booleanReturnObject = flashSaleItemDao.checkItem(itemId);
         if (booleanReturnObject.getCode() != ResponseCode.OK) {
             return new ReturnObject(booleanReturnObject.getCode(), booleanReturnObject.getErrmsg());
         }
         if (booleanReturnObject.getData()) {
-            ReturnObject returnObject = flashSaleItemDao.deleteFlashSaleItem(fid, skuId);
+            ReturnObject returnObject = flashSaleItemDao.deleteFlashSaleItem(itemId);
             return returnObject;
         } else {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-    }
-
-    @Transactional
-    public ReturnObject deleteFlashSale(Long id) {
-        flashSaleItemDao.deleteFlashSaleItem(id, null);
-        ReturnObject returnObject = flashSaleDao.deleteFlashSale(id);
-        return returnObject;
     }
 
 
@@ -276,7 +226,7 @@ public class FlashSaleService {
 
 
     private TimeSegmentPo getTimeSegmentPoById(Long timeSegmentId) {
-        List<TimeSegmentPo> allTimeSegment = flashSaleDao.getAllTimeSegment();
+        List<TimeSegmentPo> allTimeSegment = otherService.getAllTimeSegment();
         for (TimeSegmentPo timeSegmentPo : allTimeSegment) {
             if (timeSegmentPo.getId().equals(timeSegmentId)) {
                 return timeSegmentPo;
@@ -290,12 +240,15 @@ public class FlashSaleService {
         ReturnObject<FlashSalePo> returnObject = flashSaleDao.getFlashSaleByFlashSaleId(id);
         // 存在错误,往上层传
         if (returnObject.getCode() != ResponseCode.OK) {
-            return returnObject;
+            return new ReturnObject(returnObject.getCode(), returnObject.getErrmsg());
+        }
+        if (returnObject.getData() == null) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         FlashSalePo flashSalePo = returnObject.getData();
         // 确认状态:id存在性和权限以及是否下线
         Byte expectState = null;
-        if (state == FlashSale.State.ON.getCode()) {
+        if (state == FlashSale.State.ON.getCode() || state == FlashSale.State.DELETE.getCode()) {
             expectState = FlashSale.State.OFF.getCode();
         } else {
             expectState = FlashSale.State.ON.getCode();
@@ -308,7 +261,12 @@ public class FlashSaleService {
         if (returnObject.getData().getState() == state) {
             return new ReturnObject(ResponseCode.GROUPON_STATENOTALLOW);
         }
-        return flashSaleDao.changeFlashSaleState(id, state);
+        ReturnObject returnObject1 = flashSaleDao.changeFlashSaleState(id, state);
+        if (returnObject1.getCode() != ResponseCode.OK) {
+            return new ReturnObject(returnObject1.getCode(), returnObject1.getErrmsg());
+        } else {
+            return new ReturnObject(ResponseCode.OK);
+        }
     }
 
     /**
@@ -337,7 +295,7 @@ public class FlashSaleService {
         // 时段冲突也不需要考虑,因为在下线状态,考虑的事情,扔给上线吧
         // 参数校验方面 Vo检测未来 Controller检测开始大于结束
         if (expectState != null && flashSalePo.getState() != expectState) {
-            return new ReturnObject(ResponseCode.GROUPON_STATENOTALLOW);
+            return new ReturnObject(ResponseCode.ACTIVITYALTER_INVALID);
         }
 
         // 校验成功,通过
@@ -345,4 +303,33 @@ public class FlashSaleService {
     }
     /****************通用方法结束********************/
 
+
+    /******************时间段补丁*******************/
+    public TimeSegmentPo returnCurrentTimeSegmentPo() {
+        LocalDateTime nowTime = LocalDateTime.now();
+        List<TimeSegmentPo> allTimeSegment = otherService.getAllTimeSegment();
+        for (TimeSegmentPo timeSegmentPo : allTimeSegment) {
+            if (timeSegmentPo.getEndTime().compareTo(nowTime) > 0 &&
+                    timeSegmentPo.getBeginTime().compareTo(nowTime) < 0) {
+                return timeSegmentPo;
+            }
+        }
+        return null;
+    }
+
+    public FlashSaleItemPo getFlashSaleItemPoByTimeSegmentAndGoodsSkuId(Long timeSegmentId, Long goodsSkuId) {
+        List<FlashSalePo> flashSales = flashSaleDao.getFlashSalesByTimeSegmentId(timeSegmentId);
+        if (flashSales.size() != 0) {
+            FlashSalePo flashSalePo = flashSales.get(0);
+            List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemDao.getFlashSaleItemPoFromSaleId(flashSalePo.getId());
+            for (FlashSaleItemPo flashSaleItemPo : flashSaleItemPos) {
+                if (flashSaleItemPo.getGoodsSkuId().longValue() == goodsSkuId.longValue()) {
+                    return flashSaleItemPo;
+                }
+            }
+        }
+        return null;
+    }
+
+    /********************************************/
 }
