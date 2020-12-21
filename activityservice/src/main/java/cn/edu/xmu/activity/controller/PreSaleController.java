@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -162,7 +163,7 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @PostMapping(value = "/shops/{shopId}/skus/{id}/presales", produces = "application/json;charset=UTF-8")
     public Object insertPreSale(
             @PathVariable Long shopId,
@@ -174,7 +175,13 @@ public class PreSaleController {
         httpServletResponse.setContentType("application/json;charset=utf-8");
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
-            return returnObject;
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
+        }
+        if(vo.getBeginTime().compareTo(LocalDateTime.now()) < 0){
+            return Common.decorateReturnObject  (new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
+        }
+        if (vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime()) > 0) {
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
         }
         ReturnObject retObject = preSaleService.createNewPreSale(vo, shopId, id);
         if (retObject.getCode() == ResponseCode.OK) {
@@ -215,8 +222,11 @@ public class PreSaleController {
         if (null != returnObject) {
             return returnObject;
         }
+        if(vo.getBeginTime().compareTo(LocalDateTime.now()) < 0){
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
+        }
         if (vo.getBeginTime().compareTo(vo.getPayTime()) > 0 || vo.getPayTime().compareTo(vo.getEndTime()) > 0) {
-            return Common.getRetObject(new ReturnObject<>(ResponseCode.Log_Bigger));
+            return Common.decorateReturnObject(new ReturnObject<>(ResponseCode.FIELD_NOTVALID));
         }
         ReturnObject retObject = preSaleService.updatePreSale(vo, shopId, id);
         if (retObject.getCode() == ResponseCode.OK) {

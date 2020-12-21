@@ -67,9 +67,6 @@ public class PreSaleService {
         PageHelper.startPage(pageNum, pageSize);
         List<VoObject> voObjects = new ArrayList<>(preSalePosPageInfo.getSize());
         for (PreSalePo preSalePo : preSalePosPageInfo.getList()) {
-            // 目前暂时关闭 dubbo,后续连接上后再取消
-            // GoodsSku goodsSku = goodsService.getSkuById(preSalePo.getGoodsSkuId());
-            // ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
             GoodsSku goodsSku =goodsService.getSkuById(preSalePo.getGoodsSkuId());
             ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
             VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple);
@@ -126,6 +123,12 @@ public class PreSaleService {
             return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
         PreSalePo preSalePo = returnObject.getData();
+        if(preSalePo == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        if(preSalePo.getShopId().longValue() != shopId.longValue()){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         // 确认状态:id存在性和权限以及是否下线
         ReturnObject confirmResult = confirmPreSaleId(preSalePo, shopId, PreSale.State.OFF.getCode());
         if (confirmResult.getCode() != ResponseCode.OK) {

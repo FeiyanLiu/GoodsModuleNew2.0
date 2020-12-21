@@ -3,10 +3,13 @@ package cn.edu.xmu.activity.service;
 
 import cn.edu.xmu.activity.dao.GrouponDao;
 import cn.edu.xmu.activity.model.bo.Groupon;
+import cn.edu.xmu.activity.model.bo.Groupon;
+import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.vo.NewGrouponVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
 import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
@@ -53,27 +56,27 @@ public class GrouponService {
             return new ReturnObject<>(returnGrouponPoPage.getCode(), returnGrouponPoPage.getErrmsg());
         }
 
-        PageInfo<GrouponPo> preSalePosPageInfo = returnGrouponPoPage.getData();
+        PageInfo<GrouponPo> grouponPosPageInfo = returnGrouponPoPage.getData();
         PageHelper.startPage(pageNum, pageSize);
-        List<VoObject> voObjects = new ArrayList<>(preSalePosPageInfo.getSize());
-        for (GrouponPo preSalePo : preSalePosPageInfo.getList()) {
+        List<VoObject> voObjects = new ArrayList<>(grouponPosPageInfo.getSize());
+        for (GrouponPo grouponPo : grouponPosPageInfo.getList()) {
             // 目前暂时关闭 dubbo,后续连接上后再取消
-            // GoodsSpu goodsSpu = goodsService.getSpuById(preSalePo.getGoodsSpuId());
-            // ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
-            GoodsSimpleSpu goodsSpu = goodsService.getSimpleSpuById(preSalePo.getGoodsSpuId());
+            // GoodsSpu goodsSpu = goodsService.getSpuById(grouponPo.getGoodsSpuId());
+            // ShopSimple shopSimple = goodsService.getSimpleShopById(grouponPo.getShopId());
+            GoodsSimpleSpu goodsSpu = goodsService.getSimpleSpuById(grouponPo.getGoodsSpuId());
             Long shopIdReturn = goodsService.getShopIdBySpuId(goodsSpu.getId());
             ShopSimple shopSimple = goodsService.getSimpleShopById(shopIdReturn);
-            VoObject voObject = new Groupon(preSalePo, goodsSpu, shopSimple);
+            VoObject voObject = new Groupon(grouponPo, goodsSpu, shopSimple);
             voObjects.add(voObject);
         }
 
         PageInfo<VoObject> of = PageInfo.of(voObjects);
-        of.setPages(preSalePosPageInfo.getPages());
-        of.setTotal(preSalePosPageInfo.getTotal());
-        of.setPageSize(preSalePosPageInfo.getPageSize());
-        of.setTotal(preSalePosPageInfo.getTotal());
-        of.setPageNum(preSalePosPageInfo.getPageNum());
-        of.setSize(preSalePosPageInfo.getSize());
+        of.setPages(grouponPosPageInfo.getPages());
+        of.setTotal(grouponPosPageInfo.getTotal());
+        of.setPageSize(grouponPosPageInfo.getPageSize());
+        of.setTotal(grouponPosPageInfo.getTotal());
+        of.setPageNum(grouponPosPageInfo.getPageNum());
+        of.setSize(grouponPosPageInfo.getSize());
         return new ReturnObject<PageInfo<VoObject>>(of);
     }
 
@@ -94,9 +97,29 @@ public class GrouponService {
      * @author LJP_3424
      */
     public ReturnObject<PageInfo<VoObject>> selectGroupon(Long shopId, Byte state, Long spuId, LocalDateTime beginTime, LocalDateTime endTime, Integer pageNum, Integer pageSize) {
-        List<GrouponPo> grouponPos = grouponDao.selectGroupon(shopId, state, spuId, beginTime, endTime, pageNum, pageSize);
-        return changeListIntoPage(grouponPos, pageNum, pageSize);
+        ReturnObject<PageInfo<GrouponPo>> returnGrouponPoPage = grouponDao.selectGroupon(shopId, state, spuId, beginTime, endTime, pageNum, pageSize);
+        if (!returnGrouponPoPage.getCode().equals(ResponseCode.OK)) {
+            return new ReturnObject<>(returnGrouponPoPage.getCode(), returnGrouponPoPage.getErrmsg());
+        }
 
+        PageInfo<GrouponPo> grouponPosPageInfo = returnGrouponPoPage.getData();
+        PageHelper.startPage(pageNum, pageSize);
+        List<VoObject> voObjects = new ArrayList<>(grouponPosPageInfo.getSize());
+        for (GrouponPo grouponPo : grouponPosPageInfo.getList()) {
+            GoodsSimpleSpu goodsSimpleSpu =goodsService.getSimpleSpuById(grouponPo.getGoodsSpuId());
+            ShopSimple shopSimple = goodsService.getSimpleShopById(grouponPo.getShopId());
+            VoObject voObject = new Groupon(grouponPo, goodsSimpleSpu, shopSimple);
+            voObjects.add(voObject);
+        }
+
+        PageInfo<VoObject> of = PageInfo.of(voObjects);
+        of.setPages(grouponPosPageInfo.getPages());
+        of.setTotal(grouponPosPageInfo.getTotal());
+        of.setPageSize(grouponPosPageInfo.getPageSize());
+        of.setTotal(grouponPosPageInfo.getTotal());
+        of.setPageNum(grouponPosPageInfo.getPageNum());
+        of.setSize(grouponPosPageInfo.getSize());
+        return new ReturnObject<PageInfo<VoObject>>(of);
     }
 
     @Transactional
@@ -130,9 +153,13 @@ public class GrouponService {
     @Transactional
     public ReturnObject createNewGroupon(NewGrouponVo vo, Long shopId, Long id) {
         GoodsSimpleSpu goodsSimpleSpu = goodsService.getSimpleSpuById(id);
-
-        // 错误路径1: id不存在
+        // 错误路径1.1: id不存在
         if (goodsSimpleSpu == null) {
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 错误路径1.2:shop不存在
+        ShopSimple shopSimple = goodsService.getSimpleShopById(shopId);
+        if(shopSimple == null){
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
         // 错误路径2: 操作的id不是自家的
@@ -154,7 +181,7 @@ public class GrouponService {
 
         GrouponPo grouponPo = returnObject.getData();
         // 正常路径
-        ShopSimple shopSimple = goodsService.getSimpleShopById(shopId);
+
         VoObject voObject = new Groupon(grouponPo, goodsSimpleSpu, shopSimple).createVo();
         return new ReturnObject(voObject);
     }
@@ -176,7 +203,17 @@ public class GrouponService {
             return returnObject;
         }
         GrouponPo grouponPo = returnObject.getData();
-
+        if(grouponPo == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        ShopSimple simpleShopById = goodsService.getSimpleShopById(shopId);
+        if(simpleShopById == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // 商店 和id
+        if(grouponPo.getShopId().longValue() != shopId.longValue()){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         // 确认状态:id存在性和权限以及是否下线
         ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId, Groupon.State.OFF.getCode());
         if (confirmResult.getCode() != ResponseCode.OK) {
@@ -201,6 +238,14 @@ public class GrouponService {
             return returnObject;
         }
         GrouponPo grouponPo = returnObject.getData();
+        ShopSimple simpleShopById = goodsService.getSimpleShopById(shopId);
+        if(simpleShopById == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        // id 与商店
+        if(grouponPo.getShopId().longValue() != shopId.longValue()){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+        }
         // 确认状态:id存在性和权限以及是否下线
         Byte expectState;
         if (state == Groupon.State.ON.getCode() || state == Groupon.State.DELETE.getCode()) {
@@ -210,7 +255,7 @@ public class GrouponService {
         }
         ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId, expectState);
         if (confirmResult.getCode() != ResponseCode.OK) {
-            return confirmResult;
+            return new ReturnObject(confirmResult.getCode(),confirmResult.getErrmsg());
         }
         // 状态相同,改不了,下线的无法再下线,正如上线的无法再上线
         if (returnObject.getData().getState() == state) {
@@ -256,7 +301,7 @@ public class GrouponService {
 
         // 错误路径2,不是自家活动
         if (grouponPo.getShopId().longValue() != shopId.longValue()) {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 
 

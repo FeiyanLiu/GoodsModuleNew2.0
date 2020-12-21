@@ -62,7 +62,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit //认证
+    @Audit //认证
     @GetMapping(value = "/timesegments/{id}/flashsales")
     public Flux<FlashSaleRetItemVo> getFlashSale(@PathVariable Long id) {
         if (logger.isDebugEnabled()) {
@@ -84,7 +84,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @PostMapping("/shops/{did}/timesegments/{id}/flashsales")
     public Object insertFlashSale(
             @PathVariable Long did,
@@ -97,7 +97,9 @@ public class FlashSaleController {
             return Common.processFieldErrors(bindingResult, httpServletResponse);
         }
         LocalDateTime nowDateTime = LocalDateTime.now();
-
+        if(vo.getFlashDate().compareTo(LocalDateTime.now()) < 0){
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
+        }
         // 无法创建当天的秒杀
         if (vo.getFlashDate().compareTo(LocalDateTime.of(nowDateTime.getYear(), nowDateTime.getMonth(), nowDateTime.getDayOfMonth(), 23, 59, 59)) < 0) {
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
@@ -125,7 +127,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit //认证
+    @Audit //认证
     // produces=MediaType.APPLICATION_STREAM_JSON_VALUE 使得返回的数据不会被[   ,    ]包裹起来
     @GetMapping(value = "/flashsales/current")
     public Flux<FlashSaleRetItemVo> getFlashSale() {
@@ -172,6 +174,9 @@ public class FlashSaleController {
             return returnObject;
         }
         LocalDateTime nowDateTime = LocalDateTime.now();
+        if(vo.getFlashDate().compareTo(LocalDateTime.now()) < 0){
+            return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
+        }
         // 无法修改秒杀为当天
         if (vo.getFlashDate().compareTo(LocalDateTime.of(nowDateTime.getYear(), nowDateTime.getMonth(), nowDateTime.getDayOfMonth(), 23, 59, 59)) < 0) {
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
@@ -215,7 +220,7 @@ public class FlashSaleController {
         if (null != returnObject) {
             return returnObject;
         }
-        ReturnObject retObject = flashSaleService.insertSkuIntoPreSale(vo, id);
+        ReturnObject retObject = flashSaleService.insertSkuIntoPreSale(did,vo, id);
         if (retObject.getCode().equals(ResponseCode.OK)) {
             return new ResponseEntity(
                     ResponseUtil.ok(retObject.getData()),
@@ -253,7 +258,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @DeleteMapping("/shops/{did}/flashsales/{id}")
     public Object deleteFlashSale(
             @PathVariable(required = true) Long did,
@@ -278,7 +283,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @PutMapping("/shops/{did}/flashsales/{id}/onshelves")
     public Object onShelves(
             @PathVariable(required = true) Long did,
@@ -299,7 +304,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @PutMapping("/shops/{did}/flashsales/{id}/offshelves")
     public Object offShelves(
             @PathVariable(required = true) Long did,

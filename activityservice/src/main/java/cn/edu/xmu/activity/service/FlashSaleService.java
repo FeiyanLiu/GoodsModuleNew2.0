@@ -9,7 +9,9 @@ import cn.edu.xmu.activity.model.po.FlashSalePo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleItemVo;
 import cn.edu.xmu.activity.model.vo.NewFlashSaleVo;
 import cn.edu.xmu.goodsservice.client.IGoodsService;
+import cn.edu.xmu.goodsservice.model.bo.GoodsSimpleSpu;
 import cn.edu.xmu.goodsservice.model.bo.GoodsSku;
+import cn.edu.xmu.goodsservice.model.bo.ShopSimple;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import cn.edu.xmu.otherservice.client.OtherService;
@@ -47,7 +49,7 @@ public class FlashSaleService {
     @Autowired
     FlashSaleItemDao flashSaleItemDao;
 
-    @DubboReference(version = "2.7.8",group = "goods-service",check = false)
+    @DubboReference(check = false)
     IGoodsService goodsService;
 
     @DubboReference(check = false)
@@ -165,11 +167,19 @@ public class FlashSaleService {
      * @author LJP_3424
      */
     @Transactional
-    public ReturnObject insertSkuIntoPreSale(NewFlashSaleItemVo newFlashSaleItemVo, Long flashSaleId) {
+    public ReturnObject insertSkuIntoPreSale(Long shopId,NewFlashSaleItemVo newFlashSaleItemVo, Long flashSaleId) {
         // 检查商品skuId是否为真
-        GoodsSku goodsSku = goodsServicegetSkuById(newFlashSaleItemVo.getSkuId());
+        GoodsSku goodsSku = goodsService.getSkuById(newFlashSaleItemVo.getSkuId());
         if (goodsSku == null) {
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        ShopSimple simpleShop = goodsService.getSimpleShopById(shopId);
+        if(simpleShop == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
+        GoodsSimpleSpu simpleSpu = goodsService.getSimpleSpuById(goodsSku.getGoodsSpuId());
+        if(goodsService.getShopIdBySpuId(simpleSpu.getId()).longValue() != shopId.longValue()){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 检查秒杀是否存在
         ReturnObject<FlashSalePo> flashSale = flashSaleDao.getFlashSaleByFlashSaleId(flashSaleId);
@@ -185,6 +195,7 @@ public class FlashSaleService {
         if (booleanReturnObject.getData() == true) {
             return new ReturnObject(ResponseCode.SKUPRICE_CONFLICT);
         }
+        // SKU 库存不够
         if(goodsSku.getInventory() < newFlashSaleItemVo.getQuantity()){
             return new ReturnObject(ResponseCode.SKU_NOTENOUGH);
         }
@@ -196,15 +207,6 @@ public class FlashSaleService {
         FlashSaleItemPo flashSaleItemPo = retObj.getData();
         FlashSaleItem flashSaleItem = new FlashSaleItem(flashSaleItemPo, goodsSku);
         return new ReturnObject(flashSaleItem);
-    }
-
-    private GoodsSku goodsServicegetSkuById(Long skuId) {
-        GoodsSku goodsSku = new GoodsSku();
-        goodsSku.setId(skuId);
-        goodsSku.setName("测试,记得改");
-        goodsSku.setDetail("描述");
-        goodsSku.setSkuSn("123");
-        return goodsSku;
     }
 
     @Transactional
@@ -277,11 +279,6 @@ public class FlashSaleService {
                 flashTime.getHour(), flashTime.getMinute(), flashTime.getSecond());
     }
 
-    private LocalDateTime getBeginTimeByTimeSegmentId(Long id) {
-        TimeSegmentPo timeSegmentPo = getTimeSegmentPoById(id);
-        return timeSegmentPo.getBeginTime();
-
-    }
 
     // 可修改状体检测
     public ReturnObject confirmFlashSaleId(FlashSalePo flashSalePo, Byte expectState) {

@@ -4,8 +4,8 @@ package cn.edu.xmu.activity.dao;
 import cn.edu.xmu.activity.mapper.GrouponPoMapper;
 import cn.edu.xmu.activity.model.bo.Groupon;
 import cn.edu.xmu.activity.model.bo.Groupon;
-import cn.edu.xmu.activity.model.po.GrouponPo;
-import cn.edu.xmu.activity.model.po.GrouponPoExample;
+import cn.edu.xmu.activity.model.bo.Groupon;
+import cn.edu.xmu.activity.model.po.*;
 import cn.edu.xmu.activity.model.po.GrouponPo;
 import cn.edu.xmu.activity.model.po.GrouponPoExample;
 import cn.edu.xmu.activity.model.vo.NewGrouponVo;
@@ -112,7 +112,7 @@ public class GrouponDao implements InitializingBean {
         if (shopId != null) criteria.andShopIdEqualTo(shopId);
         if (spuId != null) criteria.andGoodsSpuIdEqualTo(spuId);
 
-        criteria.andStateEqualTo(Groupon.State.ON.getCode());
+        criteria.andStateNotEqualTo(Groupon.State.DELETE.getCode());
         //分页查询
         PageHelper.startPage(pageNum, pageSize);
         logger.debug("page = " + pageNum + "pageSize = " + pageSize);
@@ -155,26 +155,27 @@ public class GrouponDao implements InitializingBean {
      * @Author: LJP_3424
      * @Date: 2020/12/5 23:20
      */
-    public List<GrouponPo> selectGroupon(Long shopId, Byte state, Long spuId, LocalDateTime beginTime, LocalDateTime endTime, Integer pageNum, Integer pageSize) {
+    public ReturnObject<PageInfo<GrouponPo>> selectGroupon(Long shopId, Byte state, Long spuId, LocalDateTime beginTime, LocalDateTime endTime, Integer pageNum, Integer pageSize) {
         GrouponPoExample example = new GrouponPoExample();
         GrouponPoExample.Criteria criteria = example.createCriteria();
         criteria.andShopIdEqualTo(shopId);
         if (state != null) criteria.andStateEqualTo(state);
         if (spuId != null) criteria.andGoodsSpuIdEqualTo(spuId);
-        if (beginTime != null) criteria.andBeginTimeGreaterThanOrEqualTo(beginTime);
-        if (endTime != null) criteria.andEndTimeLessThanOrEqualTo(endTime);
-        List<GrouponPo> grouponPos = null;
+        criteria.andBeginTimeGreaterThanOrEqualTo(beginTime);
+        criteria.andEndTimeLessThanOrEqualTo(endTime);
+        //分页查询
+        PageHelper.startPage(pageNum, pageSize);
         try {
-            grouponPos = selectByExample(example, pageNum, pageSize);
+            List<GrouponPo> grouponPos = grouponPoMapper.selectByExample(example);
+            return new ReturnObject(PageInfo.of(grouponPos));
         } catch (DataAccessException e) {
             logger.error("selectAllGroupon: DataAccessException:" + e.getMessage());
-            //return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            //return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
-        return grouponPos;
     }
 
     /**
