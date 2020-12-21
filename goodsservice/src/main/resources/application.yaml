@@ -11,16 +11,16 @@ server:
       max: 1000
 
 spring:
-  application:
-    name: goods-service
-  profiles:
-    active: dev
   cloud:
     nacos:
       username: nacos
       password: 1-6123
       discovery:
-        server-addr: 193.112.59.84:8848
+        server-addr: 114.215.198.238:8848
+  application:
+    name: goods-service
+  profiles:
+    active: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
@@ -74,6 +74,7 @@ mybatis:
 commentservice:
   initialization: false
 
+
 shopservice:
   initialization: false
 
@@ -122,5 +123,7 @@ dubbo:
     # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
     port: -1
   registry:
-    address: nacos://193.112.59.84:8848
+    address: nacos://114.215.198.238:8848
+
+
 
