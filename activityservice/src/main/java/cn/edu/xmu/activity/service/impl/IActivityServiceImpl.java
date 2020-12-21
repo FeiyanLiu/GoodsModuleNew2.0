@@ -3,9 +3,11 @@ package cn.edu.xmu.activity.service.impl;
 
 import cn.edu.xmu.activity.dao.FlashSaleDao;
 import cn.edu.xmu.activity.model.po.FlashSaleItemPo;
+import cn.edu.xmu.activity.service.FlashSaleService;
 import cn.edu.xmu.goodsservice.client.IActivityService;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
+import cn.edu.xmu.otherservice.model.po.TimeSegmentPo;
 
 import java.time.LocalDateTime;
 
@@ -17,14 +19,16 @@ import java.time.LocalDateTime;
 @DubboService(version = "2.7.8",group = "goods-service")
 public class IActivityServiceImpl implements IActivityService {
     @Autowired
-    FlashSaleDao flashSaleDao;
+    FlashSaleService flashSaleService;
     @Override
-        public Long getFlashSalePriceBySkuId(Long id){
-            FlashSaleItemPo flashSaleItemPo = flashSaleDao.getFlashSaleItemBetweenTimeByGoodsSkuId(id, LocalDateTime.now(), LocalDateTime.now());
-            if(flashSaleItemPo != null){
+    public Long getFlashSalePriceBySkuId(Long id) {
+        TimeSegmentPo timeSegmentPo = flashSaleService.returnCurrentTimeSegmentPo();
+        if (timeSegmentPo != null) {
+            FlashSaleItemPo flashSaleItemPo = flashSaleService.getFlashSaleItemPoByTimeSegmentAndGoodsSkuId(timeSegmentPo.getId(), id);
+            if (flashSaleItemPo != null) {
                 return flashSaleItemPo.getPrice();
-            }else{
-                return null;
             }
+        }
+        return null;
     }
 }
