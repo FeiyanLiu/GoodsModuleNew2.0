@@ -187,6 +187,24 @@ public class Common {
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.INTERNAL_SERVER_ERROR);
             case OK:
+/**
+     * 根据 errCode 修饰 API 返回对象的 HTTP Status
+     * @param returnObject 原返回 Object
+     * @return 修饰后的返回 Object
+     */
+    public static Object decorateReturnObject(ReturnObject returnObject) {
+        switch (returnObject.getCode()) {
+            case RESOURCE_ID_NOTEXIST:
+                // 404：资源不存在
+                return new ResponseEntity(
+                        ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                        HttpStatus.NOT_FOUND);
+            case INTERNAL_SERVER_ERR:
+                // 500：数据库或其他严重错误
+                return new ResponseEntity(
+                        ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            case OK:
                 // 200: 无错误
                 Object data = returnObject.getData();
                 if (data != null){
@@ -194,6 +212,11 @@ public class Common {
                 }else{
                     return ResponseUtil.ok();
                 }
+            case GROUPON_STATENOTALLOW:
+                return new ResponseEntity(
+                        ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),HttpStatus.OK
+                );
+            case PRESALE_STATENOTALLOW:
             case RESOURCE_ID_OUTSCOPE:
                 //505:访问的资源不属于自己
                 return new ResponseEntity(
@@ -204,9 +227,7 @@ public class Common {
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.BAD_REQUEST);
             default:
-                return new ResponseEntity(
-                        ResponseUtil.fail(returnObject.getCode(),returnObject.getErrmsg())
-                ,HttpStatus.OK);
+                return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
         }
     }
 
