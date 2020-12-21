@@ -307,7 +307,7 @@ public class CouponController {
         CouponActivity couponActivity = vo.createCouponActivity();
         AdminVo adminVo =new AdminVo();
         adminVo.setId(userId);
-        adminVo.setName(userService.getUserName(userId));
+       // adminVo.setName(userService.getUserName(userId));
         couponActivity.setModifiedBy(adminVo);
         if(couponActivity.getBeginTime().isAfter(couponActivity.getEndTime()))
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));

@@ -7,12 +7,14 @@ package cn.edu.xmu.goods.service;
 import cn.edu.xmu.goods.dao.CommentDao;
 import cn.edu.xmu.goods.model.bo.Comment;
 import cn.edu.xmu.goods.model.po.CommentPo;
+import cn.edu.xmu.goods.model.vo.CustomerRetVo;
 import cn.edu.xmu.goods.model.vo.StateVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ReturnObject;
 import cn.edu.xmu.orderservice.client.OrderService;
 import cn.edu.xmu.orderservice.model.vo.OrderItemRetVo;
+import cn.edu.xmu.otherservice.client.OtherService;
 import com.github.pagehelper.PageInfo;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
@@ -30,8 +32,11 @@ public class CommentService{
     CommentDao commentDao;
     @Autowired
     GoodsSkuService goodsSkuService;
-    @DubboReference(check=false,version = "2.7.8")
+    @DubboReference(check=false,version = "1.0.1")
     OrderService orderService;
+
+    @DubboReference(check = false,version = "1.2.1")
+    OtherService otherService;
 
     private Logger logger= LoggerFactory.getLogger(CommentService.class);
 
@@ -44,13 +49,13 @@ public class CommentService{
         if(orderItemRetVo==null)
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         if(orderItemRetVo.getCustomerId()!=comment.getCustomerId())//用户没买过此商品
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
-        ReturnObject ret = new ReturnObject();
+            return new ReturnObject<>(ResponseCode.USER_NOTBUY);
         try{
             ReturnObject insert=commentDao.checkCommentInsert(comment);
             if(insert.getCode().equals(ResponseCode.COMMENT_EXISTED.getCode()))
                 return  insert;
             CommentPo commentPo= commentDao.newGoodsSkuComment(comment);
+            comment.setCustomerRetVo(new CustomerRetVo(otherService.getUserById(commentPo.getCustomerId())));
             comment.setId(commentPo.getId());
             VoObject retVo= comment.createRetVo();
             return new ReturnObject<>(retVo);

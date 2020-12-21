@@ -52,7 +52,7 @@ public class CommentController {
     @ApiOperation(value = "买家新增sku的评论")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header",dataType = "String",name="authorization",value = "Token",required = true),
-            @ApiImplicitParam(paramType = "path",dataType = "integer",name="id",value = "订单明细id",required = true),
+            @ApiImplicitParam(paramType = "path",dataType = "Integer",name="id",value = "订单明细id",required = true),
             @ApiImplicitParam(paramType = "body",dataType = "CommentVo",name="vo",value = "评价信息",required = true)
     })
     @ApiResponses({
@@ -61,19 +61,17 @@ public class CommentController {
     })
     @Audit
     @PostMapping("/orderitems/{id}/comments")
-    public Object addComment(@PathVariable Long orderItemId,
-                             BindingResult bindingResult,
+    public Object addComment(@PathVariable Long id,
                             @RequestBody CommentVoBody vo){
         if(vo.getType()!=1&&vo.getType()!=0&&vo.getType()!=2)
             return Common.decorateReturnObject(new ReturnObject(ResponseCode.FIELD_NOTVALID));
         Comment comment=new Comment(vo);
-        comment.setOrderItemId(orderItemId);
+        comment.setOrderItemId(id);
         comment.setGmtCreate(LocalDateTime.now());
-        comment.setGmtModified(LocalDateTime.now());
         ReturnObject returnObject = commentService.newGoodsSkuComment(comment);
         if(returnObject.equals(ResponseCode.OK))
             return new ResponseEntity(
-                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    ResponseUtil.ok(returnObject.getData()),
                     HttpStatus.CREATED);
         return Common.decorateReturnObject(returnObject);
 

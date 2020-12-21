@@ -30,6 +30,6 @@ public class CouponConsumerListener implements RocketMQListener<String> {
     public void onMessage(String message) {
         CouponPo po = JacksonUtil.toObj(message, CouponPo.class);
         logger.info("onMessage: got message coupon =" + po +" time = "+ LocalDateTime.now());
-        couponPoMapper.insert(po);
+        couponPoMapper.insertSelective(po);
     }
 }
