@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-@DubboService(version = "1.0.1")
+@DubboService(version = "2.3.0")
 public class OrderServiceImpl implements OrderService {
 
     @Autowired

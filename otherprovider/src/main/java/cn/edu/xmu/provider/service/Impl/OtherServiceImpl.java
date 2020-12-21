@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-@DubboService(version = "0.0.1")
+@DubboService(version = "2.4.0")
 public class OtherServiceImpl implements OtherService {
 
     @Autowired

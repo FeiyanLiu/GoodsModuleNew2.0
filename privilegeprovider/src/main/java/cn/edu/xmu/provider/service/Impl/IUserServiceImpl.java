@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @Date: 2020/12/10 9:43
  */
 
-@DubboService(version = "0.0.1-SNAPSHOT")
+@DubboService(version = "2.5.0")
 public class IUserServiceImpl implements IUserService {
 
     @Autowired
