@@ -57,7 +57,7 @@ public class CouponActivityService {
     CouponSkuDao couponSkuDao;
     @Autowired
     CouponDao couponDao;
-    @DubboReference(check = false,version = "2.7.8",group = "goods-service")
+    @DubboReference(check = false,version = "2.2.0",group = "goods-service")
     IGoodsService goodsService;
     @Resource
     RocketMQTemplate rocketMQTemplate;
@@ -342,8 +342,10 @@ public class CouponActivityService {
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             if (couponActivityPo.getShopId() != shopId)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
-            if (couponActivityPo.getState() != CouponActivity.State.OFFLINE.getCode())
+            if (couponActivityPo.getState() == CouponActivity.State.ONLINE.getCode())
                 return new ReturnObject(ResponseCode.COUPONACT_STATENOTALLOW);
+            if (couponActivityPo.getState() == CouponActivity.State.DELETED.getCode())
+                return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             couponActivityDao.changeCouponActivityState(id, CouponActivity.State.DELETED.getCode());
             ;
             couponDao.deleteCouponByActivityId(id);
@@ -529,7 +531,9 @@ public class CouponActivityService {
                     couponActivityPo.setQuantity(Integer.parseInt(couponQuantity));
                     sendUpdateCouponQuantityMessage(couponActivityPo1);
                     returnObject.add(couponPo.getCouponSn());
-                    redisTemplate.opsForValue().set("coupon_" + id + "_" + userId, true);
+                    //设置结束时间
+                    long second = couponActivityPo.getEndTime().toEpochSecond(ZoneOffset.ofHours(8))-LocalDateTime.now().toEpochSecond(ZoneOffset.ofHours(8));
+                    redisTemplate.opsForValue().set("coupon_" + id + "_" + userId, 1, second, TimeUnit.SECONDS);
                 }
             }
             return new ReturnObject<>(returnObject);
@@ -582,7 +586,7 @@ public class CouponActivityService {
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
             if (couponActivityPo.getShopId() != shopId)
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE);
-            if (couponActivityPo.getState() == CouponActivity.State.OFFLINE.getCode())
+            if (couponActivityPo.getState() == CouponActivity.State.DELETED.getCode())
                 return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             couponActivityDao.changeCouponActivityState(id, CouponActivity.State.OFFLINE.getCode());
             couponDao.deleteCouponByActivityId(id);
@@ -608,6 +612,7 @@ public class CouponActivityService {
         couponPo.setCustomerId(userId);
         couponPo.setActivityId(id);
         couponPo.setName(couponActivityPo.getName());
+        couponPo.setGmtCreate(LocalDateTime.now());
         if (couponActivityPo.getValidTerm() == 0) {
             couponPo.setBeginTime(couponActivityPo.getCouponTime());
             couponPo.setEndTime(couponActivityPo.getEndTime());
