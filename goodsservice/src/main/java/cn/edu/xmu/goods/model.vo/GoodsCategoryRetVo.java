@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Data
 public class GoodsCategoryRetVo implements Serializable {
     private Long id;
-    private Long pId;
+    private Long pid;
     @NotBlank
     private String name;
     private String gmtCreate;

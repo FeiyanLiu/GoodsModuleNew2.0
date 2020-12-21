@@ -78,8 +78,8 @@ public class GoodsCategoryDao {
         ReturnObject<GoodsCategoryPo> retObj=null;
 
         //check father
-        GoodsCategoryPo goodsCategoryPo1 = goodsCategoryPoMapper.selectByPrimaryKey(goodsCategory.getPId());
-        if(goodsCategory.getPId()!=0 && goodsCategoryPo1 == null) {
+        GoodsCategoryPo goodsCategoryPo1 = goodsCategoryPoMapper.selectByPrimaryKey(goodsCategory.getPid());
+        if(goodsCategory.getPid()!=0 && goodsCategoryPo1 == null) {
             return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
 

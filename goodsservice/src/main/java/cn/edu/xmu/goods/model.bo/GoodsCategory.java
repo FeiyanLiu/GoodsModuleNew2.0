@@ -16,14 +16,14 @@ import java.time.LocalDateTime;
 @Data
 public class GoodsCategory implements VoObject {
     private Long id;
-    private Long pId;
+    private Long pid;
     private String name;
     private LocalDateTime gmtGreate;
     private LocalDateTime gmtModified;
 
     public GoodsCategory(GoodsCategoryPo goodsCategoryPo){
         this.id=goodsCategoryPo.getId();
-        this.pId=goodsCategoryPo.getPid();
+        this.pid=goodsCategoryPo.getPid();
         this.name=goodsCategoryPo.getName();
         this.gmtGreate=goodsCategoryPo.getGmtCreate();
         this.gmtModified=goodsCategoryPo.getGmtModified();
@@ -36,7 +36,7 @@ public class GoodsCategory implements VoObject {
     public GoodsCategoryRetVo createVo(){
         GoodsCategoryRetVo goodsCategoryRetVo=new GoodsCategoryRetVo();
         goodsCategoryRetVo.setId(this.id);
-        goodsCategoryRetVo.setPId(this.pId);
+        goodsCategoryRetVo.setPid(this.pid);
         goodsCategoryRetVo.setName(this.name);
         goodsCategoryRetVo.setGmtCreate(this.gmtGreate.toString());
         goodsCategoryRetVo.setGmtModified(this.gmtModified.toString());
@@ -55,7 +55,7 @@ public class GoodsCategory implements VoObject {
         GoodsCategoryPo goodsCategoryPo=new GoodsCategoryPo();
         goodsCategoryPo.setId(this.id);
         goodsCategoryPo.setName(this.name);
-        goodsCategoryPo.setPid(this.pId);
+        goodsCategoryPo.setPid(this.pid);
         goodsCategoryPo.setGmtCreate(this.gmtGreate);
         goodsCategoryPo.setGmtModified(this.gmtModified);
         return goodsCategoryPo;

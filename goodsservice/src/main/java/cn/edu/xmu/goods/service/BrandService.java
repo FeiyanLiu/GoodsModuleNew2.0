@@ -139,7 +139,7 @@ public class BrandService{
             r =  new ReturnObject<BrandRetVo>(ret.getData().createVo());
         }
         else {
-            return new ReturnObject<>(ret.getCode(),ret.getErrmsg());
+            r =  new ReturnObject<>(ret.getCode(),ret.getErrmsg());
         }
         return r;
     }

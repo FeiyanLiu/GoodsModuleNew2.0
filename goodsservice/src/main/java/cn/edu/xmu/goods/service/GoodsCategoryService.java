@@ -75,7 +75,7 @@ public class GoodsCategoryService{
     @Transactional
     public ReturnObject<GoodsCategoryRetVo> createCategory(GoodsCategoryRetVo vo){
         GoodsCategory goodsCategory=new GoodsCategory();
-        goodsCategory.setPId(vo.getPId());
+        goodsCategory.setPid(vo.getPid());
         goodsCategory.setName(vo.getName());
         goodsCategory.setGmtGreate(LocalDateTime.now());
         goodsCategory.setGmtModified(LocalDateTime.now());

@@ -85,6 +85,11 @@ public class FloatPriceController {
     @PostMapping("/shops/{shopId}/skus/{id}/floatPrices")
     public Object createFloatPrice(@LoginUser Long userId, @PathVariable("id") Long id, @PathVariable("shopId") Long shopId,@RequestBody FloatPriceVo floatPriceVo,BindingResult bindingResult){
         Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if(floatPriceVo.getQuantity()<0){
+            return new ResponseEntity(
+                    ResponseUtil.fail(ResponseCode.FIELD_NOTVALID),
+                    HttpStatus.BAD_REQUEST);
+        }
         if (null != errors) {
             return errors;
         }
@@ -95,9 +100,8 @@ public class FloatPriceController {
                     HttpStatus.FORBIDDEN);
         }
         if(result.getCode()== ResponseCode.OK){
-            return new ResponseEntity(
-                    ResponseUtil.ok(result),
-                    HttpStatus.CREATED);
+            ResponseEntity res = new ResponseEntity(ResponseUtil.ok(result.getData()), HttpStatus.CREATED);
+            return res;
         }
         return Common.decorateReturnObject(result);
     }

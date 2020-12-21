@@ -66,13 +66,11 @@ public class GoodsCategoryController {
         if(logger.isDebugEnabled()){
             logger.debug("create Category: id = "+id);
         }
-        vo.setPId(id);
+        vo.setPid(id);
 
         ReturnObject<GoodsCategoryRetVo> result=goodsCategoryService.createCategory(vo);
         if(result.getCode()== ResponseCode.OK){
-            ResponseEntity res = new ResponseEntity(
-                    ResponseUtil.ok(result),
-                    HttpStatus.CREATED);
+            ResponseEntity res = new ResponseEntity(ResponseUtil.ok(result.getData()), HttpStatus.CREATED);
             return res;
         } else
         {

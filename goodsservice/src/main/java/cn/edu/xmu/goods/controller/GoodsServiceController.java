@@ -178,10 +178,9 @@ public class GoodsServiceController {
         Brand brand = new Brand(vo);
         brand.setGmtCreate(LocalDateTime.now());
         ReturnObject<BrandRetVo> returnObject = brandService.addBrand(brand, id);
-        if (returnObject.getCode() == ResponseCode.OK) {
-            return new ResponseEntity(
-                    ResponseUtil.fail(ResponseCode.OK),
-                    HttpStatus.CREATED);
+        if(returnObject.getCode()== ResponseCode.OK){
+            ResponseEntity res = new ResponseEntity(ResponseUtil.ok(returnObject.getData()), HttpStatus.CREATED);
+            return res;
         } else {
             return Common.decorateReturnObject(returnObject);
         }
@@ -428,15 +427,13 @@ public class GoodsServiceController {
         GoodsSku goodsSku = new GoodsSku(vo);
         ReturnObject<VoObject> returnObject = goodsSkuService.updateSku(goodsSku, shopId, id);
         if(returnObject.getCode() == ResponseCode.RESOURCE_ID_OUTSCOPE){
-            return new ResponseEntity(
+             Object res = new ResponseEntity(
                     ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                     HttpStatus.FORBIDDEN);
+            return res;
         }
-        if (returnObject.getCode() == ResponseCode.OK) {
-            return Common.decorateReturnObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
-        }
+        Object res =  Common.decorateReturnObject(returnObject);
+        return res;
     }
 
     /**

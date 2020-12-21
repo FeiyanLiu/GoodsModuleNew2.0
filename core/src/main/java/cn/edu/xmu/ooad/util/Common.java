@@ -204,7 +204,9 @@ public class Common {
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.BAD_REQUEST);
             default:
-                return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
+                return new ResponseEntity(
+                        ResponseUtil.fail(returnObject.getCode(),returnObject.getErrmsg())
+                ,HttpStatus.OK);
         }
     }
 

@@ -218,14 +218,17 @@ public class GoodsSkuDao {
             return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
 
-        GoodsSkuPoExample goodsSkuPoExample = new GoodsSkuPoExample();
-        GoodsSkuPoExample.Criteria criteria = goodsSkuPoExample.createCriteria();
-        criteria.andSkuSnEqualTo(goodsSku.getSkuSn());
-        //check goods sn
-        List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(goodsSkuPoExample);
-        if(goodsSkuPos != null && goodsSkuPos.size() > 0){
-            return new ReturnObject<>(ResponseCode.SKUSN_SAME);
+        if(goodsSku.getSkuSn()!=null){
+            GoodsSkuPoExample goodsSkuPoExample = new GoodsSkuPoExample();
+            GoodsSkuPoExample.Criteria criteria = goodsSkuPoExample.createCriteria();
+            criteria.andSkuSnEqualTo(goodsSku.getSkuSn());
+            //check goods sn
+            List<GoodsSkuPo> goodsSkuPos = goodsSkuPoMapper.selectByExample(goodsSkuPoExample);
+            if(goodsSkuPos != null && goodsSkuPos.size() > 0){
+                return new ReturnObject<>(ResponseCode.SKUSN_SAME);
+            }
         }
+
 
         newPo.setId(id);
         newPo.setId(id);
