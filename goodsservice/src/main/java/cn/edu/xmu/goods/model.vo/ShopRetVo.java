@@ -2,6 +2,7 @@ package cn.edu.xmu.goods.model.vo;
 
 
 import cn.edu.xmu.goods.model.bo.Shop;
+import cn.edu.xmu.ooad.model.VoObject;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
  **/
 @Data
 @ApiModel(description = "商店对象")
-public class ShopRetVo {
+public class ShopRetVo implements VoObject {
     @ApiModelProperty(value = "id")
     private Long id;
     @ApiModelProperty(value = "名称")
@@ -37,4 +38,13 @@ public class ShopRetVo {
     }
 
 
+    @Override
+    public Object createVo() {
+        return null;
+    }
+
+    @Override
+    public Object createSimpleVo() {
+        return null;
+    }
 }

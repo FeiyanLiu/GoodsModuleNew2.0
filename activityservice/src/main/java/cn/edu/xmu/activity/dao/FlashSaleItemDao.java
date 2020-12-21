@@ -28,21 +28,10 @@ public class FlashSaleItemDao {
         return flashSaleItemPoMapper.selectByExample(example);
     }
 
-    public ReturnObject deleteFlashSaleItem(Long fid, Long skuId) {
-        FlashSaleItemPoExample example = new FlashSaleItemPoExample();
-        FlashSaleItemPoExample.Criteria criteria = example.createCriteria();
-        criteria.andSaleIdEqualTo(fid);
-        if (skuId != null) {
-            criteria.andGoodsSkuIdEqualTo(skuId);
-        }
-        List<FlashSaleItemPo> flashSaleItemPos = flashSaleItemPoMapper.selectByExample(example);
-        if (flashSaleItemPos.size() == 0) {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-        }
+    public ReturnObject deleteFlashSaleItem(Long itemId) {
+        FlashSaleItemPo flashSaleItemPo = flashSaleItemPoMapper.selectByPrimaryKey(itemId);
         try {
-            for (FlashSaleItemPo flashSaleItemPo : flashSaleItemPos) {
-                flashSaleItemPoMapper.deleteByPrimaryKey(flashSaleItemPo.getId());
-            }
+            flashSaleItemPoMapper.deleteByPrimaryKey(flashSaleItemPo.getId());
         } catch (DataAccessException e) {
             // 数据库错误
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
@@ -76,6 +65,36 @@ public class FlashSaleItemDao {
             return new ReturnObject<Boolean>(true);
         } else {
             return new ReturnObject<Boolean>(false);
+        }
+    }
+
+    public ReturnObject<Boolean> checkSkuInFlashSale(Long itemId) {
+
+        FlashSaleItemPo flashSaleItemPos;
+        try {
+            flashSaleItemPos = flashSaleItemPoMapper.selectByPrimaryKey(itemId);
+            if (flashSaleItemPos == null) {
+                return new ReturnObject<>(false);
+            } else {
+                return new ReturnObject<>(true);
+            }
+        } catch (DataAccessException e) {
+            // 数据库错误
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+    }
+
+    public ReturnObject<Boolean> checkItem(Long itemId) {
+        FlashSaleItemPo flashSaleItemPo = flashSaleItemPoMapper.selectByPrimaryKey(itemId);
+        if(flashSaleItemPo != null){
+            return new ReturnObject<>(true);
+        }else{
+            return new ReturnObject<>(false);
         }
     }
 }

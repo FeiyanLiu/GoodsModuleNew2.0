@@ -45,3 +45,4 @@ public class ShopSimpleVo implements VoObject {
         return null;
     }
 }
+

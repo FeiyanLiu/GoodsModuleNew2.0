@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * @date Created in 2020/11/7 22:47
  **/
 @Service
-@RocketMQMessageListener(topic = "activity-topic", consumeMode = ConsumeMode.CONCURRENTLY, consumeThreadMax = 10, consumerGroup = "activity-group")
+@RocketMQMessageListener(topic = "activity-topic",  consumerGroup = "activity-group")
 public class ActivityConsumerListener implements RocketMQListener<String> {
     private static final Logger logger = LoggerFactory.getLogger(ActivityConsumerListener.class);
     @Autowired

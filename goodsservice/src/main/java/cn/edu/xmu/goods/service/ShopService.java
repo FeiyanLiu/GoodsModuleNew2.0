@@ -10,6 +10,9 @@ import cn.edu.xmu.goods.dao.ShopDao;
 import cn.edu.xmu.goods.model.bo.Shop;
 import cn.edu.xmu.goods.model.po.ShopPo;
 import cn.edu.xmu.otherservice.model.po.ShoppingCartPo;
+import cn.edu.xmu.privilegeservice.client.IUserService;
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.hibernate.validator.constraints.time.DurationMax;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,10 @@ public class ShopService{
     ShopDao shopDao;
     @Autowired
     GoodsSkuDao goodsSkuDao;
+    @Autowired
+    GoodsSpuService goodsSpuService;
+    @DubboReference(check = false)
+    IUserService userService;
 
     /** 
     * @Description: 得到店铺状态 
@@ -57,19 +64,16 @@ public class ShopService{
      */
     @Transactional
     
-    public ReturnObject<VoObject> createShop(Shop shop) {
+    public ReturnObject createShop(Shop shop) {
         ReturnObject returnObject = new ReturnObject();
         try {
             if (shopDao.checkShopName(shop.getShopName())) {
                 return new ReturnObject<>(ResponseCode.valueOf("该姓名已被占用"));
             }
-            if (shop.getId() == -1) {
-                return new ReturnObject<>(ResponseCode.USER_HASSHOP);
-            }
             ShopPo newShopPo=shopDao.insertShop(shop);
             shop.setId(newShopPo.getId());
-            VoObject returnVo=(VoObject) shop.createRetVo();
-            return new ReturnObject<VoObject>(returnVo);
+            VoObject returnVo= shop.createRetVo();
+            return new ReturnObject<>(returnVo);
 
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
@@ -105,13 +109,13 @@ public class ShopService{
      * @return
      */
     @Transactional
-    
     public ReturnObject closeShop(Long shopId) {
         try {
             if (shopDao.getShopById(shopId) == null) {
                 return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("店铺 id：" + shopId));
             }
-
+            goodsSpuService.setSkuDisabledByShopId(shopId);
+            //修改用户deptId
             return shopDao.closeShop(shopId);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
@@ -120,15 +124,24 @@ public class ShopService{
     }
 
 
+    /**
+     * @Description 审核店铺信息
+     * @author Ruzhen Chang
+     * @param shop
+     * @return
+     */
 
     @Transactional
-    
-    public ReturnObject auditShop(Long shopId, Boolean conclusion) {
+    public ReturnObject auditShop(Shop shop) {
         try {
-            if (shopDao.getShopById(shopId) == null) {
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("店铺 id：" + shopId));
+            ShopPo shopPo=shopDao.getShopById(shop.getId());
+            if(shopPo==null){
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("店铺不存在 id：" + shop.getId()));
             }
-            return shopDao.auditShop(shopId,conclusion);
+            if(shop.getState()==(byte)Shop.State.OFFLINE.getCode()){
+                //修改用户deptId
+            }
+            return shopDao.changeShopState(shop);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
@@ -139,17 +152,17 @@ public class ShopService{
     /**
      * @description 上线店铺
      * @author Ruzhen Chang
-     * @param shopId
      * @return
      */
     @Transactional
-    
-    public ReturnObject onShelvesShop(Long shopId) {
+
+    public ReturnObject onShelvesShop(Shop shop) {
         try {
-            if (shopDao.getShopById(shopId) == null) {
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("店铺 id：" + shopId));
+            ShopPo shopPo=shopDao.getShopById(shop.getId());
+            if(shopPo==null){
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("店铺不存在 id：" + shop.getId()));
             }
-            return shopDao.onShelvesShop(shopId);
+            return shopDao.changeShopState(shop);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
@@ -160,25 +173,21 @@ public class ShopService{
     /**
      * @description 下线店铺
      * @author Ruzhen Chang
-     * @param shopId
      * @return
      */
     @Transactional
-    
-    public ReturnObject offShelvesShop(Long shopId) {
+
+    public ReturnObject offShelvesShop(Shop shop) {
         try {
-            if (shopDao.getShopById(shopId) == null) {
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("店铺 id：" + shopId));
+            ShopPo shopPo=shopDao.getShopById(shop.getId());
+            if(shopPo==null){
+                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("店铺不存在 id：" + shop.getId()));
             }
-            return shopDao.offShelvesShop(shopId);
+            return shopDao.changeShopState(shop);
         } catch (Exception e) {
             logger.error("发生了严重的服务器内部错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
         }
     }
 
-
-    public ShopPo getShopPoById(Long id) {
-        return shopDao.getShopById(id);
-    }
 }

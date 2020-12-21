@@ -1,7 +1,7 @@
 package cn.edu.xmu.goods.model.vo;
 
 import cn.edu.xmu.goods.model.bo.Comment;
-import cn.edu.xmu.goodsservice.model.vo.CustomerVo;
+import cn.edu.xmu.otherservice.model.vo.CustomerVo;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 import org.apache.dubbo.registry.client.metadata.SpringCloudMetadataServiceURLBuilder;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 public class CommentRetVo implements VoObject {
     Long id;
-    CustomerVo customerVo;
+    CustomerRetVo customerRetVo;
     Long goodsSkuId;
     Byte type;
     String content;
@@ -25,7 +25,7 @@ public class CommentRetVo implements VoObject {
 
     public CommentRetVo(Comment comment){
         this.id=comment.getId();
-        //this.customerVo.setId(comment.getCustomerId());
+        this.customerRetVo=comment.getCustomerRetVo();
         this.goodsSkuId=comment.getGoodsSkuId();
         this.type=comment.getType();
         this.content=comment.getContent();

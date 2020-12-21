@@ -1,7 +1,7 @@
 package cn.edu.xmu.activity.model.vo;
 
-import cn.edu.xmu.activity.model.po.TimeSegmentPo;
 import cn.edu.xmu.ooad.model.VoObject;
+import cn.edu.xmu.otherservice.model.po.TimeSegmentPo;
 import lombok.Data;
 
 import java.time.LocalDateTime;

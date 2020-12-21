@@ -4,7 +4,9 @@ package cn.edu.xmu.goods.model.bo;
 import cn.edu.xmu.goods.model.po.CommentPo;
 import cn.edu.xmu.goods.model.vo.CommentRetVo;
 import cn.edu.xmu.goods.model.vo.CommentVoBody;
+import cn.edu.xmu.goods.model.vo.CustomerRetVo;
 import cn.edu.xmu.ooad.model.VoObject;
+import cn.edu.xmu.goodsservice.model.vo.CustomerVo;
 import io.lettuce.core.StrAlgoArgs;
 import io.netty.channel.SimpleUserEventChannelHandler;
 import lombok.Data;
@@ -78,6 +80,8 @@ public class Comment implements VoObject{
 
     private Long id;
 
+    CustomerRetVo customerRetVo;
+    CustomerVo customerVo;
     private Long customerId;
 
     private Long goodsSkuId;
@@ -116,6 +120,7 @@ public class Comment implements VoObject{
     public Object createVo() {
         return null;
     }
+
     public VoObject createRetVo() {
         return new CommentRetVo(this);
     }

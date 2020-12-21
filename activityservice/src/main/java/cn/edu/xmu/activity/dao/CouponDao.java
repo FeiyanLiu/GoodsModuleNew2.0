@@ -105,6 +105,23 @@ public class CouponDao implements InitializingBean {
         return returnObject;
     }
 
+    public ReturnObject addCoupon(CouponPo couponPo) {
+        ReturnObject returnObject = null;
+        try {
+            int ret = couponMapper.insert(couponPo);
+            if (ret == 0) {
+                logger.debug("updateCouponState: update fail. coupon id: ");
+                returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+            } else {
+                logger.debug("updateCouponState: update success. coupon id: ");
+                returnObject = new ReturnObject();
+            }
+        } catch (Exception e) {
+            logger.error("发生了严重的服务器内部错误：" + e.getMessage());
+        }
+        return returnObject;
+    }
+
     public CouponPo getCouponById(Long id)
     {
         CouponPo po=null;

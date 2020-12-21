@@ -51,4 +51,16 @@ public class CommentTest {
                 .andExpect(status().isForbidden())
                 .andReturn().getResponse().getContentAsString();
     }
+
+
+    @Test
+    public void addComment() throws Exception {
+        String token=creatTestToken(1L, 1L, 100);
+        String json = "{\"type\":0,\"content\":\"新增Sku评论\"}";
+        String responseString = this.mvc.perform(post("/comment/orderitems/143/comments").header("authorization",token)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andReturn().getResponse().getContentAsString();
+    }
 }

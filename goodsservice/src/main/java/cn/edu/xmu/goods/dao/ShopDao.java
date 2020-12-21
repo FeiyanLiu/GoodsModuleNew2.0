@@ -1,3 +1,4 @@
+
 package cn.edu.xmu.goods.dao;
 
 import cn.edu.xmu.goods.mapper.ShopPoMapper;
@@ -96,8 +97,12 @@ public class ShopDao implements InitializingBean{
     public ReturnObject<Shop> updateShop(Shop shop){
         ShopPo shopPo= new ShopPo();
         shopPo.setId(shop.getId());
-        if(!checkShopName(shop.getShopName()))
+        if(shopPo.getName()==null){
+            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID,String.format("名字为空 id:" + shop.getId()));
+        }
+        if(!checkShopName(shop.getShopName())) {
             return new ReturnObject<>(ResponseCode.valueOf("该姓名已被占用"));
+        }
         shopPo.setName(shop.getShopName());
         shopPo.setGmtModified(shop.getGmtModified());
         ReturnObject<Shop> returnObject=null;
@@ -139,61 +144,6 @@ public class ShopDao implements InitializingBean{
                 returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             } else {
                 logger.debug("closeShop success. shopId: " + shopId);
-                returnObject = new ReturnObject(ResponseCode.OK);
-            }
-        } catch (Exception e) {
-            logger.error("发生了严重的服务器内部错误：" + e.getMessage());
-        }
-        return returnObject;
-    }
-
-
-    /**
-     * 审核店铺信息
-     * @author Ruzhen Chang
-     */
-    public ReturnObject<Object> auditShop(Long shopId,Boolean conclusion){
-        ReturnObject returnObject = null;
-        ShopPo shopPo = new ShopPo();
-        shopPo.setId(shopId);
-        try {
-            if(conclusion) {
-                shopPo.setState((byte) Shop.State.OFFLINE.getCode());
-            } else {
-                shopPo.setState((byte)Shop.State.FAILED.getCode());
-            }
-            int ret = shopPoMapper.updateByPrimaryKeySelective(shopPo);
-            if (ret == 0) {
-                logger.debug("closeShop fail. shopId: " + shopId);
-                returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else {
-                logger.debug("closeShop success. shopId: " + shopId);
-                returnObject = new ReturnObject();
-            }
-        } catch (Exception e) {
-            logger.error("发生了严重的服务器内部错误：" + e.getMessage());
-        }
-        return returnObject;
-
-    }
-
-
-    /**
-     * 上线店铺
-     * @author Ruzhen Chang
-     */
-    public ReturnObject onShelvesShop(Long shopId){
-        ReturnObject returnObject = null;
-        ShopPo shopPo = new ShopPo();
-        shopPo.setId(shopId);
-        shopPo.setState((byte) Shop.State.ONLINE.getCode());
-        try {
-            int ret = shopPoMapper.updateByPrimaryKeySelective(shopPo);
-            if (ret == 0) {
-                logger.debug("closeShop fail. shopId: " + shopId);
-                returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else {
-                logger.debug("closeShop success. shopId: " + shopId);
                 returnObject = new ReturnObject();
             }
         } catch (Exception e) {
@@ -203,26 +153,25 @@ public class ShopDao implements InitializingBean{
     }
 
 
-    /**
-     * 下线店铺
-     * @author Ruzhen Chang
-     */
-    public ReturnObject offShelvesShop(Long shopId){
-        ReturnObject returnObject = null;
-        ShopPo shopPo = new ShopPo();
-        shopPo.setId(shopId);
-        shopPo.setState((byte) Shop.State.OFFLINE.getCode());
-        try {
-            int ret = shopPoMapper.updateByPrimaryKeySelective(shopPo);
-            if (ret == 0) {
-                logger.debug("closeShop fail. shopId: " + shopId);
+
+    public ReturnObject changeShopState(Shop shop){
+        ShopPo shopPo=new ShopPo();
+        shopPo.setId(shop.getId());
+        shopPo.setState(shop.getState());
+        ReturnObject returnObject=new ReturnObject();
+        try{
+            int ret=shopPoMapper.updateByPrimaryKeySelective(shopPo);
+            if(ret==0){
+                logger.debug("changeShopState: change failed. shop id:"+shopPo.getId());
                 returnObject = new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
-            } else {
-                logger.debug("closeShop success. shopId: " + shopId);
-                returnObject = new ReturnObject();
             }
-        } catch (Exception e) {
-            logger.error("发生了严重的服务器内部错误：" + e.getMessage());
+            else {
+                logger.debug("changeShopState:change success:" + shop.toString());
+                returnObject=new ReturnObject();
+            }
+        }
+        catch (Exception e){
+            logger.error("发生了严重的服务器内部错误: " +e.getMessage());
         }
         return returnObject;
     }

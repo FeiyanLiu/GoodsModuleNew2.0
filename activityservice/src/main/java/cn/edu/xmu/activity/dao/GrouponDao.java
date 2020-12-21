@@ -201,7 +201,7 @@ public class GrouponDao implements InitializingBean {
      * @Author: LJP_3424
      * @Date: 2020/12/5 23:22
      */
-    public ReturnObject<Long> insertNewGroupon(NewGrouponVo vo, Long shopId, Long id) {
+    public ReturnObject<GrouponPo> creatNewGroupon(NewGrouponVo vo, Long shopId, Long id) {
         GrouponPo grouponPo = vo.createGrouponPo();
         grouponPo.setGoodsSpuId(id);
         grouponPo.setShopId(shopId);
@@ -223,7 +223,7 @@ public class GrouponDao implements InitializingBean {
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
-        return new ReturnObject<>(grouponPo.getId());
+        return new ReturnObject<>(grouponPo);
     }
 
     public ReturnObject<GrouponPo> getGrouponPoByGrouponId(Long id) {
@@ -240,13 +240,6 @@ public class GrouponDao implements InitializingBean {
             logger.error("严重错误：" + e.getMessage());
             return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
-        }
-
-        // 已删除即没有,不能返回
-        if (grouponPo != null) {
-            if (grouponPo.getState() == Groupon.State.DELETE.getCode()) {
-                grouponPo = null;
-            }
         }
         return new ReturnObject<>(grouponPo);
     }

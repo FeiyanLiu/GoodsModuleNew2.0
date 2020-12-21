@@ -2,8 +2,8 @@ package cn.edu.xmu.goods.model.bo;
 
 import cn.edu.xmu.goods.model.po.ShopPo;
 import cn.edu.xmu.goods.model.vo.ShopRetVo;
-import cn.edu.xmu.goods.model.vo.ShopSimpleVo;
 import cn.edu.xmu.goods.model.vo.ShopVo;
+import cn.edu.xmu.goods.model.vo.ShopVoBody;
 import cn.edu.xmu.ooad.model.VoObject;
 import lombok.Data;
 
@@ -28,7 +28,7 @@ public class Shop implements VoObject{
 
     }
 
-    public ShopRetVo createRetVo() {
+    public VoObject createRetVo() {
         return new ShopRetVo(this);
     }
 
@@ -77,6 +77,10 @@ public class Shop implements VoObject{
         this.setState(po.getState());
         this.setGmtCreate(po.getGmtCreate());
         this.setGmtModified(po.getGmtModified());
+    }
+
+    public Shop(ShopVoBody shopVoBody){
+        setShopName(shopVoBody.getName());
     }
 
 

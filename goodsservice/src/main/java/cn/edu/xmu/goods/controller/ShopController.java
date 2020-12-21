@@ -1,13 +1,11 @@
 package cn.edu.xmu.goods.controller;
 
 import cn.edu.xmu.goods.model.bo.Shop;
-import cn.edu.xmu.goods.model.vo.ShopSimpleVo;
-import cn.edu.xmu.goods.model.vo.ShopVo;
-import cn.edu.xmu.goods.service.GoodsSpuService;
+import cn.edu.xmu.goods.model.vo.CommentConclusionVo;
 import cn.edu.xmu.goods.service.ShopService;
+import cn.edu.xmu.goods.model.vo.ShopVoBody;
 import cn.edu.xmu.ooad.annotation.Audit;
 import cn.edu.xmu.ooad.annotation.Depart;
-import cn.edu.xmu.ooad.annotation.LoginUser;
 import cn.edu.xmu.ooad.util.Common;
 import cn.edu.xmu.ooad.util.ResponseCode;
 import cn.edu.xmu.ooad.util.ResponseUtil;
@@ -24,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
 
 /**
 * @author Ruzhen Chang
@@ -36,8 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 public class ShopController {
     private static final Logger logger =LoggerFactory.getLogger(ShopController.class);
 
-    @Autowired
-    private GoodsSpuService goodsSpuService;
     @Autowired
     private ShopService shopService;
     @Autowired
@@ -58,7 +55,7 @@ public class ShopController {
     })
     @Audit
     @PostMapping("/shops")
-    public Object insertShop(@Validated @RequestBody ShopVo shopVo,
+    public Object insertShop(@Validated @RequestBody ShopVoBody shopVoBody,
                              BindingResult bindingResult,
                              @PathVariable Long id,
                              @Depart Long departId) {
@@ -66,15 +63,17 @@ public class ShopController {
         if (null != errors) {
             return errors;
         }
-        Shop shop =shopVo.createShop();
-        if(shop.getId()==-1)
+        if(departId != -1)
             return ResponseCode.USER_HASSHOP;
+        Shop shop=new Shop(shopVoBody);
+        shop.setGmtCreate(LocalDateTime.now());
+        shop.setGmtModified(LocalDateTime.now());
         ReturnObject returnObject = shopService.createShop(shop);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
-        }
+        if(returnObject.equals(ResponseCode.OK))
+            return new ResponseEntity(
+                    ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
+                    HttpStatus.CREATED);
+        return Common.decorateReturnObject(returnObject);
     }
 
 
@@ -94,22 +93,22 @@ public class ShopController {
     @PutMapping("/shops/{shopId}")
     public Object updateShop(@PathVariable Long shopId,
                              @Depart Long departId,
-                             @Validated @RequestBody ShopSimpleVo vo,
+                             @Validated @RequestBody ShopVoBody vo,
                              BindingResult bindingResult) {
         Object errors = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != errors) {
             return errors;
         }
-        if(!departId.equals(shopId))
-            return ResponseCode.AUTH_NOT_ALLOW;
-        Shop shop = vo.createShop();
-        shop.setId(shopId);
-        ReturnObject returnObject = shopService.updateShop(shop);
-        if (returnObject.getData() != null) {
-            return ResponseUtil.ok(returnObject.getData());
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
+        if(departId.equals(shopId)){
+            Shop shop = new Shop(vo);
+            shop.setId(shopId);
+            ReturnObject returnObject = shopService.updateShop(shop);
+            return Common.decorateReturnObject(returnObject);
         }
+        else {
+            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE), httpServletResponse);
+        }
+
     }
 
 
@@ -126,26 +125,22 @@ public class ShopController {
     })
     @Audit
     @DeleteMapping("/shops/{id}")
-    public Object userCloseShop(@PathVariable Long shopId, @Depart Long departId) {
-        if (shopId.equals(departId)) {
-            ReturnObject closeShopReturn = shopService.closeShop(shopId);
-            ReturnObject skuDisableReturn = goodsSpuService.setSkuDisabledByShopId(shopId);
-            if (closeShopReturn.getData() != null && skuDisableReturn.getData() !=null) {
-                return Common.getRetObject(closeShopReturn);
+    public Object userCloseShop(@PathVariable Long shopId,
+                                @Depart Long departId) {
+        if (shopId.equals(departId)||departId.equals(0l)) {
+            Shop shop=new Shop();
+            shop.setId(shopId);
+            if(shop.getState().equals(Shop.State.ONLINE)){
+                shop.setState((byte)Shop.State.DELETE.getCode());
             }
-            if(closeShopReturn.getCode() == ResponseCode.OK){
-                return new ResponseEntity(
-                        ResponseUtil.fail(ResponseCode.OK, "该ID对应的SKU不存在"),
-                        HttpStatus.CREATED);
+            else{
+                return ResponseCode.SHOP_STATENOTALLOW;
             }
-            else if(closeShopReturn.getData()==null){
-                return Common.getNullRetObj(new ReturnObject<>(closeShopReturn.getCode(), closeShopReturn.getErrmsg()), httpServletResponse);
-            }
-            else {
-                return Common.getNullRetObj(new ReturnObject<>(skuDisableReturn.getCode(),skuDisableReturn.getErrmsg()),httpServletResponse);
-            }
-        } else {
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("departId不匹配")), httpServletResponse);
+            ReturnObject returnObject = shopService.closeShop(shopId);
+            return Common.decorateReturnObject(returnObject);
+        }
+        else {
+            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE),httpServletResponse);
         }
     }
 
@@ -164,16 +159,28 @@ public class ShopController {
     })
     @Audit
     @DeleteMapping("/shops/{shopId}/newshops/{id}/audit")
-    public Object userAuditShop(@PathVariable Long id, @PathVariable Long shopId,@RequestBody Boolean conclusion,@Depart Long deptId) {
-        if (id.equals(deptId)) {
-            ReturnObject returnObject = shopService.auditShop(shopId,conclusion);
-            if (returnObject.getData() != null) {
-                return Common.getRetObject(returnObject);
-            } else {
-                return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
+    public Object userAuditShop(@PathVariable Long id,
+                                @PathVariable Long shopId,
+                                @RequestBody CommentConclusionVo conclusion,
+                                @Depart Long deptId) {
+        if (id.equals(0l)) {
+            Shop shop=new Shop();
+            shop.setId(shopId);
+            if(shop.getState().equals(Shop.State.UNAUDITED)){
+                if(conclusion.getConclusion()==true){
+                    shop.setState((byte)Shop.State.OFFLINE.getCode());
+                }
+                else {
+                    shop.setState((byte)Shop.State.FAILED.getCode());
+                }
             }
+            else{
+                return ResponseCode.SHOP_STATENOTALLOW;
+            }
+            ReturnObject returnObject = shopService.auditShop(shop);
+            return Common.decorateReturnObject(returnObject);
         } else {
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("departId不匹配")), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE),httpServletResponse);
         }
     }
 
@@ -191,31 +198,24 @@ public class ShopController {
     })
     @Audit
     @DeleteMapping("/shops/{id}/onshelves")
-    public Object userOnShelvesShop(@PathVariable Long shopId, @Depart Long departId) {
-        if (shopId.equals(departId)) {
-            ReturnObject returnObject = shopService.onShelvesShop(shopId);
-            if (returnObject.getData() != null) {
-                return Common.getRetObject(returnObject);
-            } else {
-                return Common.getNullRetObj(new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg()), httpServletResponse);
+    public Object userOnShelvesShop(@PathVariable Long shopId,
+                                    @Depart Long departId) {
+
+        if (departId.equals(0l)) {
+            Shop shop=new Shop();
+            shop.setId(shopId);
+            if(shop.getState().equals(Shop.State.OFFLINE)){
+                shop.setState((byte)Shop.State.ONLINE.getCode());
             }
+            else{
+                return ResponseCode.SHOP_STATENOTALLOW;
+            }
+            ReturnObject returnObject = shopService.onShelvesShop(shop);
+            return Common.decorateReturnObject(returnObject);
         } else {
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("departId不匹配")), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE),httpServletResponse);
         }
     }
-
-    @ApiOperation(value = "获取店铺状态")
-    @ApiImplicitParams({
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 504, message = "操作id不存在")
-    })
-    @GetMapping("/shops/states")
-    public Object getShopState() {
-                return Common.decorateReturnObject(shopService.getShopStates());
-    }
-
 
 
 
@@ -231,22 +231,18 @@ public class ShopController {
     @Audit
     @DeleteMapping("/shops/{id}/offshelves")
     public Object userOffShelvesShop(@PathVariable Long shopId, @Depart Long departId) {
-        if (shopId.equals(departId)) {
-            ReturnObject offShelvesShopReturn = shopService.offShelvesShop(shopId);
-            ReturnObject offShelvesGoodsSkuReturn = goodsSpuService.setAllSkuOffShelvesByShopId(shopId);
-
-            if (offShelvesShopReturn.getData() != null && offShelvesGoodsSkuReturn.getData() != null) {
-                return Common.getRetObject(offShelvesShopReturn);
+        if (departId.equals(0l)) {
+            Shop shop = new Shop();
+            shop.setId(shopId);
+            if (shop.getState().equals(Shop.State.ONLINE)) {
+                shop.setState((byte) Shop.State.OFFLINE.getCode());
+            } else {
+                return ResponseCode.SHOP_STATENOTALLOW;
             }
-            else if(offShelvesShopReturn==null) {
-                return Common.getNullRetObj(new ReturnObject<>(offShelvesShopReturn.getCode(), offShelvesShopReturn.getErrmsg()), httpServletResponse);
-            }
-            else {
-                return  Common.getNullRetObj(new ReturnObject<>(offShelvesGoodsSkuReturn.getCode(),offShelvesGoodsSkuReturn.getErrmsg()),httpServletResponse);
-            }
+            ReturnObject returnObject = shopService.offShelvesShop(shop);
+            return Common.decorateReturnObject(returnObject);
         } else {
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("departId不匹配")), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.RESOURCE_ID_OUTSCOPE), httpServletResponse);
         }
     }
-
 }

@@ -159,7 +159,7 @@ public class PreSaleDao implements InitializingBean {
      * @return ReturnObject
      * createdBy: LJP_3424
      */
-    public ReturnObject<PreSalePo> createNewPreSaleByVo(NewPreSaleVo vo, Long shopId, Long id) {
+    public ReturnObject<PreSalePo> createNewPreSale(NewPreSaleVo vo, Long shopId, Long id) {
         // vo方法创建简单的PreSalePO
         PreSalePo preSalePo = vo.createPreSalePo();
 
@@ -170,7 +170,7 @@ public class PreSaleDao implements InitializingBean {
         preSalePo.setGmtCreate(LocalDateTime.now());
         try {
             int insertResult = preSalePoMapper.insert(preSalePo);
-            if (insertResult != 0) {
+            if (insertResult == 0) {
                 return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR, "插入失败");
             }
         } catch (DataAccessException e) {
@@ -228,7 +228,7 @@ public class PreSaleDao implements InitializingBean {
         PreSalePo preSalePo = null;
         try {
             preSalePo = preSalePoMapper.selectByPrimaryKey(preSaleId);
-            if (preSalePo == null || preSalePo.getState() == PreSale.State.DELETE.getCode()) {
+            if (preSalePo == null) {
                 return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
             } else {
                 return new ReturnObject(preSalePo);
