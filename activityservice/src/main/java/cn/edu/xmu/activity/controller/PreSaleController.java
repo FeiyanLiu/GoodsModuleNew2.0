@@ -34,7 +34,7 @@ import java.util.List;
  */
 @Api(value = "预售活动", tags = "presale")
 @RestController
-@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "presale", produces = "application/json;charset=UTF-8")
 public class PreSaleController {
     private static final Logger logger = LoggerFactory.getLogger(PreSaleController.class);
 
