@@ -62,7 +62,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Audit //认证
+    //@Audit //认证
     @GetMapping(value = "/timesegments/{id}/flashsales")
     public Flux<FlashSaleRetItemVo> getFlashSale(@PathVariable Long id) {
         if (logger.isDebugEnabled()) {
@@ -84,7 +84,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Audit
+    //@Audit
     @PostMapping("/shops/{did}/timesegments/{id}/flashsales")
     public Object insertFlashSale(
             @PathVariable Long did,
@@ -127,7 +127,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Audit //认证
+    //@Audit //认证
     // produces=MediaType.APPLICATION_STREAM_JSON_VALUE 使得返回的数据不会被[   ,    ]包裹起来
     @GetMapping(value = "/flashsales/current")
     public Flux<FlashSaleRetItemVo> getFlashSale() {
@@ -161,7 +161,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit
+    //@Audit
     @PutMapping("/shops/{did}/flashsales/{id}")
     public Object updateFlashSale(
             @PathVariable Long did,
@@ -208,7 +208,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit
+    //@Audit
     @PostMapping("/shops/{did}/flashsales/{id}/flashitems")
     public Object insertNewFlashSaleItem(
             @PathVariable Long did,
@@ -258,7 +258,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Audit
+    //@Audit
     @DeleteMapping("/shops/{did}/flashsales/{id}")
     public Object deleteFlashSale(
             @PathVariable(required = true) Long did,
@@ -283,7 +283,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Audit
+    //@Audit
     @PutMapping("/shops/{did}/flashsales/{id}/onshelves")
     public Object onShelves(
             @PathVariable(required = true) Long did,
@@ -304,7 +304,7 @@ public class FlashSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    @Audit
+    //@Audit
     @PutMapping("/shops/{did}/flashsales/{id}/offshelves")
     public Object offShelves(
             @PathVariable(required = true) Long did,

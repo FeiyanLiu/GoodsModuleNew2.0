@@ -33,7 +33,7 @@ public class PreSaleService {
     @Autowired
     PreSaleDao preSaleDao;
 
-    @DubboReference(check = false,version = "2.2.0",group = "goods-service")
+    @DubboReference(check = false,version = "2.7.8",group = "goods-service")
     IGoodsService goodsService;
 
 
@@ -45,12 +45,12 @@ public class PreSaleService {
             return new ReturnObject<>(returnObject.getCode(), returnObject.getErrmsg());
         }
         List<PreSalePo> preSalePos = returnObject.getData();
-        List<VoObject> voObjects = new ArrayList<>(preSalePos.size());
+        List<PreSale> voObjects = new ArrayList<>(preSalePos.size());
         for (PreSalePo preSalePo : preSalePos) {
             GoodsSku goodsSku = goodsService.getSkuById(preSalePo.getGoodsSkuId());
             ShopSimple shopSimple = goodsService.getSimpleShopById(preSalePo.getShopId());
-            VoObject voObject = new PreSale(preSalePo, goodsSku, shopSimple).createVo();
-            voObjects.add(voObject);
+            PreSale preSale= new PreSale(preSalePo, goodsSku, shopSimple);
+            voObjects.add(preSale);
         }
         return new ReturnObject<>(voObjects);
     }

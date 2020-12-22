@@ -39,7 +39,7 @@ public class GrouponService {
     @Autowired
     GrouponDao grouponDao;
 
-    @DubboReference(check = false, version = "2.2.0", group = "goods-service")
+    @DubboReference(check = false, version = "2.7.8", group = "goods-service")
     IGoodsService goodsService;
 
     /**
@@ -238,14 +238,14 @@ public class GrouponService {
             return returnObject;
         }
         GrouponPo grouponPo = returnObject.getData();
+        if(grouponPo == null){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+        }
         ShopSimple simpleShopById = goodsService.getSimpleShopById(shopId);
         if(simpleShopById == null){
             return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
         }
-        // id 与商店
-        if(grouponPo.getShopId().longValue() != shopId.longValue()){
-            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
-        }
+
         // 确认状态:id存在性和权限以及是否下线
         Byte expectState;
         if (state == Groupon.State.ON.getCode() || state == Groupon.State.DELETE.getCode()) {
@@ -256,6 +256,10 @@ public class GrouponService {
         ReturnObject confirmResult = confirmGrouponId(grouponPo, shopId, expectState);
         if (confirmResult.getCode() != ResponseCode.OK) {
             return new ReturnObject(confirmResult.getCode(),confirmResult.getErrmsg());
+        }
+        // id 与商店
+        if(grouponPo.getShopId().longValue() != shopId.longValue()){
+            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
         }
         // 状态相同,改不了,下线的无法再下线,正如上线的无法再上线
         if (returnObject.getData().getState() == state) {
