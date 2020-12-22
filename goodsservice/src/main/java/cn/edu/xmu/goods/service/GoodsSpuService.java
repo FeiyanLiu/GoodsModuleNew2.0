@@ -125,11 +125,11 @@ public class GoodsSpuService{
                 goodsSpuRetVo.setCategory(goodsCategorySimpleVo);
             }
 
-//            Long freightId = goodsSpuPo.getFreightId();
-//            FreightModel freightModel = orderService.getFreightModelById(freightId);
-//            if(freightModel != null){
-//                goodsSpuRetVo.setFreightModel(freightModel);
-//            }
+            Long freightId = goodsSpuPo.getFreightId();
+            FreightModel freightModel = orderService.getFreightModelById(freightId);
+            if(freightModel != null){
+                goodsSpuRetVo.setFreightModel(freightModel);
+            }
 
             Spec s = new Spec();
             String specJson = goodsSpuPo.getSpec();
