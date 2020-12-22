@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Api(value = "秒杀活动", tags = "flashsale")
 @RestController
-@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "flashsale", produces = "application/json;charset=UTF-8")
 public class FlashSaleController {
     private static final Logger logger = LoggerFactory.getLogger(FlashSaleController.class);
 
