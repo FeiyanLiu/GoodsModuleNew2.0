@@ -122,7 +122,7 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit //认证
+    @Audit //认证
     @GetMapping("/shops/{shopId}/presales")
     public Object getPreSale(
             @PathVariable Long shopId,
@@ -163,7 +163,7 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    ////@Audit
+    //@Audit
     @PostMapping(value = "/shops/{shopId}/skus/{id}/presales", produces = "application/json;charset=UTF-8")
     public Object insertPreSale(
             @PathVariable Long shopId,
@@ -210,7 +210,7 @@ public class PreSaleController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    //@Audit
+    @Audit
     @PutMapping("/shops/{shopId}/presales/{id}")
     public Object updatePreSale(@PathVariable Long shopId,
                                 @PathVariable Long id,
@@ -249,7 +249,7 @@ public class PreSaleController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @DeleteMapping("/shops/{shopId}/presales/{id}")
     public Object deletePreSale(@PathVariable Long id, @PathVariable Long shopId) {
         if (logger.isDebugEnabled()) {
@@ -276,7 +276,7 @@ public class PreSaleController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @PutMapping("/shops/{shopId}/presales/{id}/onshelves")
     public Object preSaleOn(@PathVariable Long id, @PathVariable Long shopId) {
         if (logger.isDebugEnabled()) {
@@ -303,7 +303,7 @@ public class PreSaleController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @PutMapping("/shops/{shopId}/presales/{id}/offshelves")
     public Object preSaleOff(@PathVariable Long id, @PathVariable Long shopId) {
         if (logger.isDebugEnabled()) {

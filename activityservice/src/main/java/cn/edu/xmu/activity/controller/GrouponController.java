@@ -167,7 +167,7 @@ public class GrouponController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit //认证
+    @Audit //认证
     @GetMapping("/shops/{shopId}/spus/{id}/groupons")
     public Object getGroupon(
             @PathVariable Long shopId,
@@ -203,7 +203,7 @@ public class GrouponController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @PostMapping("/shops/{shopId}/spus/{id}/groupons")
     public Object insertGroupon(
             @PathVariable Long shopId,
@@ -256,7 +256,7 @@ public class GrouponController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功")
     })
-    //@Audit
+    @Audit
     @PutMapping("/shops/{shopId}/groupons/{id}")
     public Object updateGroupon(@PathVariable Long shopId,
                                 @PathVariable Long id,
@@ -299,7 +299,7 @@ public class GrouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @DeleteMapping("/shops/{shopId}/groupons/{id}")
     public Object deleteGroupon(@PathVariable Long id, @PathVariable Long shopId) {
 
@@ -325,7 +325,7 @@ public class GrouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    ////@Audit // 需要认证
+    //@Audit // 需要认证
     @PutMapping("/shops/{shopId}/groupons/{id}/onshelves")
     public Object grouponOn(@PathVariable Long id, @PathVariable Long shopId) {
         ReturnObject retObject = grouponService.changeGrouponState(shopId, id, Groupon.State.ON.getCode());
@@ -350,7 +350,7 @@ public class GrouponController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 906, message = "优惠活动禁止")
     })
-    //@Audit // 需要认证
+    @Audit // 需要认证
     @PutMapping("/shops/{shopId}/groupons/{id}/offshelves")
     public Object grouponOFF(@PathVariable Long id, @PathVariable Long shopId) {
         ReturnObject retObject = grouponService.changeGrouponState(shopId, id, Groupon.State.OFF.getCode());
