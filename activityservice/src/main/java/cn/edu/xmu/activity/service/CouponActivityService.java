@@ -504,9 +504,6 @@ public class CouponActivityService {
                 String key = "coupon_" + couponActivityPo.getId();
                 if (!redisTemplate.hasKey(key))
                     redisTemplate.opsForValue().set(key, couponActivityPo.getQuantity());
-                //查询用户是否领过优惠券
-                if (redisTemplate.hasKey("coupon_" + id + "_" + userId))
-                    return new ReturnObject<>(ResponseCode.USER_HASCOUPON);
                 if (quantityType == 0)//每人数量
                 {
                     CouponPo couponPo = createCoupon(userId, id, couponActivityPo);
@@ -528,6 +525,7 @@ public class CouponActivityService {
                     CouponActivityPo couponActivityPo1=new CouponActivityPo();
                     couponActivityPo.setId(id);
                     String couponQuantity=redisTemplate.opsForValue().get(key).toString();
+                    logger.debug("coupon quantity:"+couponQuantity);
                     couponActivityPo.setQuantity(Integer.parseInt(couponQuantity));
                     sendUpdateCouponQuantityMessage(couponActivityPo1);
                     returnObject.add(couponPo.getCouponSn());
