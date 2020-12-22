@@ -36,7 +36,7 @@ import java.util.List;
  */
 @Api(value = "团购活动", tags = "groupon")
 @RestController
-@RequestMapping(value = "", produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "groupon", produces = "application/json;charset=UTF-8")
 public class GrouponController {
     private static final Logger logger = LoggerFactory.getLogger(GrouponController.class);
 
