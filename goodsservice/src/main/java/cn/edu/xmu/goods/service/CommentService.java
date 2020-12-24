@@ -75,17 +75,16 @@ public class CommentService{
      */
     @Transactional
     public ReturnObject<PageInfo<VoObject>> getGoodsSkuCommentsList(Long goodsSkuId, Integer page, Integer pageSize){
-//        PageInfo<VoObject> retObj=null;
-//        try {
+        PageInfo<VoObject> retObj=null;
+        try {
 //            ReturnObject ret=goodsSkuService.getSkuById(goodsSkuId);
 //            if(ret.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST))
 //                return  new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
-//           return new ReturnObject<>(commentDao.getCommentListByGoodsSkuId(goodsSkuId,page,pageSize));
-//        } catch (Exception e) {
-//            logger.error("发生了严重的服务器内部错误ha：" + e.getMessage());
-//            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
-//        }
-        return new ReturnObject<>();
+           return new ReturnObject<>(commentDao.getCommentListByGoodsSkuId(goodsSkuId,page,pageSize));
+        } catch (Exception e) {
+            logger.error("发生了严重的服务器内部错误ha：" + e.getMessage());
+            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+        }
     }
 
 
